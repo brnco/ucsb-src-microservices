@@ -2,6 +2,7 @@
 ::the way it works is
 ::there's an initialization of a capture directory, based on today's date
 ::then, for each side of each disc
+::scan the barcode into filemaker
 ::take a picture of the disc
 ::wait for it to dl into the capture directory
 ::scan the barcode
