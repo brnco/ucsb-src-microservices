@@ -129,7 +129,7 @@ GOTO :eof
 
 
 :move_broadcast_toQC
-pushd !processedBroadDir!
+pushd !rawBroadDir!
 for /R %%j in (*.wav) do (
 	set name=%%~nj
 	set qcNamedDir=!qualityControlDir!!name!\
