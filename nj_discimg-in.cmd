@@ -28,7 +28,7 @@ for /r %%g in (*.txt) do (
 	set barcode=!_barcode:ucsb_=cusb_!
 	::if this file already exists it'll enter this loop, print a msg, and exit without doing anything
 	::this keeps you form accidentally making a dupe
-	if exist !captureDir!!barcode!.cr2 (
+	if exist !captureDir!!barcode!.CR2 (
 		echo sorry to tell you mate, you've already scanned that barcode
 		pause
 		del *.txt
@@ -41,7 +41,7 @@ for /r %%g in (*.txt) do (
 		set targetObj=!captureDir!!newest!
 	)
 	::rename takes a full path and a name.ext
-	ren !targetObj! !barcode!.cr2
+	ren !targetObj! !barcode!.CR2
 	::here's some more error detection that checks if there was an error renaming that file
 	::if this wasn't here the cmd window would just exit out without telling you anything
 	if !errorlevel! EQU 1 (
