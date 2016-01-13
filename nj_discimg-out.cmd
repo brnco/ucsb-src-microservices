@@ -8,11 +8,11 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 ::here is the main production directory for our Jukebox stuff
 set mainWorkingDir=R:\78rpm\avlab\national_jukebox\in_process\visual_captures\
 ::here are individual directories for our various filetypes
-set cr2Dir=!mainWorkingDir!raw-captures
+set cr2Dir=!mainWorkingDir!raw-captures\
 ::we needed a separate directory for the dng files because of stupid photoshop
 set dngDir=!mainWorkingDir!intermediates\
 ::we needed a separate directory for the tif files also because of stupid photoshop
-set tifDir=!mainWorkingDir!ps-processed\
+set tifDir=!mainWorkingDir!processed\
 ::here is our destination directory
 set qualityControlDir=R:\78rpm\avlab\national_jukebox\in_process\pre-ingest-QC\
 
