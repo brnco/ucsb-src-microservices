@@ -17,6 +17,7 @@ set tifDir=!mainWorkingDir!processed\
 set qualityControlDir=R:\78rpm\avlab\national_jukebox\in_process\pre-ingest-QC\
 
 CALL :rename_ucsbtocusb
+CALL :process_intermediates
 CALL :move_cr2_to_toQC
 CALL :move_dng_to_toQC
 CALL :move_tif_to_toQC
@@ -45,6 +46,16 @@ for /D /r %%g in ("ucsb*") do (
 	)
 popd
 
+
+:process_intermediates
+pushd !dngDir!
+for /r %%g in (*.DNG) do (
+	set startObj=%%g
+	set barcode=%%~ng
+	echo processing !barcode!
+	gm convert !startObj! -crop 3648x3648+920 -rotate 180 !tifDir!!barcode!.tif
+)
+popd
 
 
 :move_cr2_to_toQC

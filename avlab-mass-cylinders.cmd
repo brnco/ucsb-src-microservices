@@ -87,9 +87,6 @@ for /f "delims=" %%i in (R:\Cylinders\avlab\_tmpLength.txt) do (
 	::move the processed broadcast master and overwrite the previous broadcast master
 	move /y !processingDir!!broadcastObj! !startDir!\!broadcastObj!
 )
-	
-::delete the processing directory cause we don't need it anymore
-rd !processingDir!
 ::delete the txt file with the length string in it
 del R:\Cylinders\avlab\_tmpLength.txt
 GOTO :eof
@@ -174,20 +171,6 @@ for /r %%j in (*.md5) do (
 	)
 )
 popd
-
-
-ping -n 11 127.0.0.1>nul
-rd !startDir!
-::if the directory still has stuff in it (i.e. the checksums didn't match) this will fail and it wont be deleted
-::pause the script to allow 10 seconds for the dir to be deleted
-::we ping a loopback address here because it takes less cpu time than timeout
-ping -n 11 127.0.0.1>nul
-::if the whole operation is complete,
-::meaning that the files are successfully on the r:\ drive
-::and that their orig dir is deleted,
-::then we log the cylinder number to a txt file
-::so that somebody can update the bibliographic records
-if not exist !startDir! echo Cylinder!cylNum! >> R:\Cylinders\avlab\to-update.txt
 GOTO :eof
 
 :End
