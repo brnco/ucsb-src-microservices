@@ -1,5 +1,6 @@
 ::rename everything in a directory from ucsb to cusb
 ::the result of a programming error years ago :)
+::takes 1 argument for the parent directory of files and folders to rename
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
 pushd %1

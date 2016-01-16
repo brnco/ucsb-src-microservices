@@ -1,35 +1,30 @@
-
+::processes discs for the AVLAB at UCSB
 
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 ::lets set some paths
-::here is the main directory where we do Jukebox work
+::here is the main directory where we do work
 ::end this variable string with a \
 set processingMainDir=R:\78rpm\avlab\new_ingest\
-::here are the subdirectories for individual steps in the process
-::they are derived from the workflow of those halcyon pre-script days
+::here are the subdirectories for individual workflow steps
 ::here's where our raw archival masters go
 set rawArchDir=!processingMainDir!audio_captures\master-sides\
 ::here's where our raw broadcast masters go
 set rawBroadDir=!processingMainDir!audio_captures\broadcast-sides\
 ::here is a pre-SIP holding pen for all of these production files
+set rawMTDDir=!processingMainDir!mtd-captures\
 set qualityControlDir=!processingMainDir!pre-ingest-qc\
 
 CALL S:\avlab\microservices\rename_ucsbtocusb.cmd !processingMainDir!
 CALL :process_intermediates
+pause
 CALL :move_andRen_archival_toQC
 CALL :move_broadcast_toQC
 CALL :delete-bs
 GOTO :END
 
-
-
-
-
 :process_intermediates
-echo back again
-pause
 pushd !rawBroadDir!
 ::for files rooted at the raw broadcast directory directory that are wavs
 for /r %%j in (*.wav) do (
@@ -45,13 +40,14 @@ for /r %%j in (*.wav) do (
 	set "x=%%~xj"
 	::set path for finished file to be saved to
 	set processingDir=!rawBroadDir!!n!\
-	::check that this files doesn't already exist in the output drectory
+	::check that this file doesn't already exist in the output drectory
 	if not exist !qualityControlDir!!n!\!n!!x! (
 		md !processingDir!
+		::now we make 2s heads and tails fades
 		::use this ffmpeg extension to port the duration of a wav to a temp text file
-		ffprobe -i !d!!p!!n!!x! -show_entries format=duration -v quiet -of csv="p=0" > R:\78rpm\avlab\new_ingest\_tmpLength.txt
+		ffprobe -i !d!!p!!n!!x! -show_entries format=duration -v quiet -of csv="p=0" > !processingDir!_tmpLength.txt
 		::loop thru the contents of that file (1 text string)
-		for /f "delims=" %%i in (R:\78rpm\avlab\new_ingest\_tmpLength.txt) do (
+		for /f "delims=" %%i in (!processingDir!_tmpLength.txt) do (
 			set _length=%%i
 			::separate decimal values from whole number values because windows
 			set decimal=!_length:*.=!
@@ -68,10 +64,12 @@ for /r %%j in (*.wav) do (
 		)
 		::move the processed broadcast master to the broadcast master directory, overwriting the raw broadcast master
 		move /y !processingDir!!n!!x! !rawBroadDir!!n!!x!
+		::delete that pesky txt file
+		del !processingDir!_tmpLength.txt
+		::wait
+		ping -n 3 127.0.0.1>nul
 		::delete the processing directory
 		rd !processingDir!
-		::delete the text file
-		del R:\78rpm\avlab\new_ingest\_tmpLength.txt
 	)
 )
 popd
@@ -86,8 +84,6 @@ set /a count=0
 for /r %%j in (*.wav) do (
 	set name=%%~nj
 	set qcNamedDir=!qualityControlDir!!name!\
-	::generate a data chunk checksum and embed it into the md5 chunk
-	bwfmetaedit --MD5-Embed %%j
 	::if the folder doesnt already exist, make it exist
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!	
