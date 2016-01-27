@@ -1,5 +1,5 @@
 ::hashes, xcopies, hashes the xcopy, deletes original
-::takes 2 arguments for input and output folderpaths which must end with \
+::takes 3 arguments for input and output folderpaths which must end with \
 ::-folder flag indicates folder while inputting filename works for indv files
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
@@ -21,8 +21,8 @@ if not !_ed-backslash!==\ (
 ::hashmove for folders
 if !flag!==-folder (
 robocopy !startDir! !endDir!
-fsum !startDir! /t:e /o
-fsum !endDir! /t:e /o
+fsum !startDir! /t:e
+fsum !endDir! /t:e
 
 pushd !startDir!
 ::loop through the directory we've been working with, and for every .md5 file, compare the string to the .md5 file in the destination
@@ -62,7 +62,9 @@ for /r %%j in (*.md5) do (
 ::hashmove for files
 if not !flag!==-folder (
 	robocopy !startDir! !endDir! !flag!
-	fsum !startDir!!flag! !startDir!!flag!.md5
+	if not exist !startDir!!flag!.md5 (
+			fsum !startDir!!flag! !startDir!!flag!.md5
+	)
 	fsum !endDir!!flag! !endDir!!flag!.md5
 	pushd !startDir!
 	::loop through the directory we've been working with, and for every .md5 file, compare the string to the .md5 file in the destination

@@ -95,18 +95,8 @@ GOTO :eof
 
 :make-mp3
 pushd !startDir!
-::make an intermediary mp3
-ffmpeg -i !broadcastObj! -ar 44100 -ab 320k -f mp3 !intermediateObj!
-	
-::loop through our metadata object and assign each text instance (between tabs) to a letter, j-m
-::stream-copy the intermediary mp3 and insert the metadata into the new one
-::we make two files here because I've had errors where RIFF header info is overwritten by ID3 info if transcoding from orig wavs
-::in the future too this makes it possible to add image to mp3
-for /f "tokens=1-4 delims=	" %%j in (!mtdObj!) do (
-	ffmpeg -i !intermediateObj! -c:a copy -metadata title="%%j" -metadata artist="%%k" -metadata album="%%l" -metadata date="%%m" -metadata publisher="UCSB Cylinder Audio Archive" -metadata copyright="2016 The Regents of the University of California" -id3v2_version 3 -write_id3v1 1 !endObj!
-)
-del !intermediateObj!
-popd
+S:\avlab\bash-microservices\makemp3.sh !broadcastObj! R:\Cylinders\avlab\audio_captures\!cylNum!\
+popd 
 GOTO :eof
 
 	

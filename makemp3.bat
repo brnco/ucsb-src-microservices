@@ -5,7 +5,7 @@ set startObj=%1
 set mtdDir=%2
 
 ::grab filename
-set filename=!startObj:~0,-4!
+set filename=!startObj:~0,-5!
 
 ::make sure the path to metadata object is formatted correctly
 set _mtd-backslash=!mtdDir:~-1!

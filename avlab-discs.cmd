@@ -16,13 +16,36 @@ set rawBroadDir=!processingMainDir!audio_captures\broadcast-sides\
 set rawMTDDir=!processingMainDir!mtd-captures\
 set qualityControlDir=!processingMainDir!pre-ingest-qc\
 
-CALL S:\avlab\microservices\rename_ucsbtocusb.cmd !processingMainDir!
-CALL :process_intermediates
-pause
-CALL :move_andRen_archival_toQC
+::CALL S:\avlab\microservices\rename_ucsbtocusb.cmd !processingMainDir!
+::CALL :delete-bs
+::CALL :process_intermediates
+::crashes halfway through ^^^
 CALL :move_broadcast_toQC
-CALL :delete-bs
+::CALL :move_mp3_toQC
+::CALL ::move_andRen_archival_toQC
+
+
+
 GOTO :END
+
+:delete-bs
+pushd !rawArchDir!
+for /r %%g in (*.gpk) do del %%g
+for /r %%g in (*.bak) do del %%g
+for /r %%g in (*.mrk) do del %%g
+popd
+pushd !processedBroadDir!
+for /r %%g in (*.gpk) do del %%g
+for /r %%g in (*.bak) do del %%g
+for /r %%g in (*.mrk) do del %%g
+popd
+pushd !rawBroadDir!
+for /r %%g in (*.gpk) do del %%g
+for /r %%g in (*.bak) do del %%g
+for /r %%g in (*.mrk) do del %%g
+popd
+GOTO :eof
+
 
 :process_intermediates
 pushd !rawBroadDir!
@@ -70,40 +93,27 @@ for /r %%j in (*.wav) do (
 		ping -n 3 127.0.0.1>nul
 		::delete the processing directory
 		rd !processingDir!
+		::rename our newly minted broadcast master with a use character to reflect that
+		ren !n!!x! !n!b!x!
+		::wait
+		ping -n 3 127.0.0.1>nul
+		makemp3 !n!b!x! !rawMTDDir!
 	)
 )
 popd
 GOTO :eof
-
-
-:move_andRen_archival_toQC
-pushd !rawArchDir!
-::initialize a variable so you know how long it'll take
-set /a count=0
-::for files rooted at the a-side directory that are wavs
-for /r %%j in (*.wav) do (
-	set name=%%~nj
-	set qcNamedDir=!qualityControlDir!!name!\
-	::if the folder doesnt already exist, make it exist
-	if not exist !qcNamedDir! (
-		md !qcNamedDir!	
-	)
-	::move the renamed archival master to a QC folder
-	move %%j !qcNamedDir!
-	ren !qcNamedDir!\!name!.wav !name!a.wav
-	set /a count+=1
-	echo !count!
-)
-popd
-GOTO :eof
-
 
 
 :move_broadcast_toQC
 pushd !rawBroadDir!
 for /R %%j in (*.wav) do (
-	set name=%%~nj
+	set _name=%%~nj%%~xj
+	echo !_name!
+	set name=!_name:b.wav=!
+	echo !name!
 	set qcNamedDir=!qualityControlDir!!name!\
+	echo !qcnamedDir!
+	pause
 	::generate a checksum and embed it into the md5 chunk
 	bwfmetaedit --MD5-Embed %%j
 	::if the folder doesnt already exist make it exist
@@ -111,29 +121,54 @@ for /R %%j in (*.wav) do (
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	move %%j !qcNamedDir!
-	ren !qcNamedDir!!name!.wav !name!b.wav
+	hashmove !_name! !rawBroadDir! !qcNamedDir!
 )
 popd
 GOTO :eof
 
-:delete-bs
-pushd !rawArchDir!
-for /r %%g in (*.gpk) do del %%g
-for /r %%g in (*.bak) do del %%g
-for /r %%g in (*.mrk) do del %%g
-popd
-pushd !processedBroadDir!
-for /r %%g in (*.gpk) do del %%g
-for /r %%g in (*.bak) do del %%g
-for /r %%g in (*.mrk) do del %%g
-popd
+
+:move_mp3_toQC
 pushd !rawBroadDir!
-for /r %%g in (*.gpk) do del %%g
-for /r %%g in (*.bak) do del %%g
-for /r %%g in (*.mrk) do del %%g
+for /R %%j in (*.mp3) do (
+	set _name=%%~nj%%~xj
+	set name=!_name:d.mp3=!
+	set qcNamedDir=!qualityControlDir!!name!\
+	::if the folder doesnt already exist make it exist
+	::move can only move to pre-existing locations
+	if not exist !qcNamedDir! (
+		md !qcNamedDir!
+	)
+	hashmove !_name! !rawBroadDir! !qcNamedDir!
+)
 popd
 GOTO :eof
+
+
+:move_andRen_archival_toQC
+pushd !rawArchDir!
+for /R %%j in (*.wav) do (
+	set _name=%%~nj
+	set x=%%~xj
+	set name=!_name!a!x!
+	ren %%j !name!
+	set qcNamedDir=!qualityControlDir!!_name!\
+	::generate a checksum and embed it into the md5 chunk
+	bwfmetaedit --MD5-Embed !name!
+	::if the folder doesnt already exist make it exist
+	::move can only move to pre-existing locations
+	if not exist !qcNamedDir! (
+		md !qcNamedDir!
+	)
+	hashmove !name! !rawArchDir! !qcNamedDir!
+)
+popd
+GOTO :eof
+
+
+
+
+
+
 
 :End
 
