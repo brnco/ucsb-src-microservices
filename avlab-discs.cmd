@@ -61,7 +61,7 @@ for /r %%j in (*.wav) do (
 	set processingDir=!rawBroadDir!!n!\
 	::grab mtd object
 	set _name=!n!!x!
-	set mtdObj=!mtdDir!!_name:b.wav=.txt!
+	set mtdObj=!mtdDir!!_name:.wav=.txt!
 	::check that this file doesn't already exist in the output drectory
 	if not exist !qualityControlDir!!n!\!n!!x! (
 		md !processingDir!
@@ -93,7 +93,7 @@ for /r %%j in (*.wav) do (
 		::delete the processing directory
 		rd !processingDir!
 		::rename our newly minted broadcast master with a use character to reflect that
-		ren !n!!x! !n!!x!
+		ren !n!!x! !n!b!x!
 	)
 )
 popd
