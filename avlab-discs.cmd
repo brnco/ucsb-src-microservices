@@ -12,17 +12,18 @@ set processingMainDir=R:\78rpm\avlab\new_ingest\
 set rawArchDir=!processingMainDir!audio_captures\master-sides\
 ::here's where our raw broadcast masters go
 set rawBroadDir=!processingMainDir!audio_captures\broadcast-sides\
+::here's where the text files that write ID3 tags go
+set mtdDir=!processingMainDir!mtd-captures\
 ::here is a pre-SIP holding pen for all of these production files
-set rawMTDDir=!processingMainDir!mtd-captures\
 set qualityControlDir=!processingMainDir!pre-ingest-qc\
 
-::CALL S:\avlab\microservices\rename_ucsbtocusb.cmd !processingMainDir!
-::CALL :delete-bs
-::CALL :process_intermediates
+CALL S:\avlab\microservices\rename_ucsbtocusb.cmd !processingMainDir!
+CALL :delete-bs
+CALL :process_intermediates
 ::crashes halfway through ^^^
-CALL :move_broadcast_toQC
-::CALL :move_mp3_toQC
-::CALL ::move_andRen_archival_toQC
+CALL :put_broadcast_inQC
+CALL :put_mp3_inQC
+CALL ::put_andRen_archival_inQC
 
 
 
@@ -30,11 +31,6 @@ GOTO :END
 
 :delete-bs
 pushd !rawArchDir!
-for /r %%g in (*.gpk) do del %%g
-for /r %%g in (*.bak) do del %%g
-for /r %%g in (*.mrk) do del %%g
-popd
-pushd !processedBroadDir!
 for /r %%g in (*.gpk) do del %%g
 for /r %%g in (*.bak) do del %%g
 for /r %%g in (*.mrk) do del %%g
@@ -63,6 +59,9 @@ for /r %%j in (*.wav) do (
 	set "x=%%~xj"
 	::set path for finished file to be saved to
 	set processingDir=!rawBroadDir!!n!\
+	::grab mtd object
+	set _name=!n!!x!
+	set mtdObj=!mtdDir!!_name:b.wav=.txt!
 	::check that this file doesn't already exist in the output drectory
 	if not exist !qualityControlDir!!n!\!n!!x! (
 		md !processingDir!
@@ -83,7 +82,7 @@ for /r %%j in (*.wav) do (
 			::recombine the whole-number fadeout start time with the decimal value from earlier and we get a 2s fadeout that ends exactly when the wav ends
 			set fadeoutStart=!_fadeoutStart!.!decimal!
 			::call ffmpeg with the input, set the audio channel to downmix to 1 (mono), set sample rate to 44100, set the fades, insert calculated start time form earlier, set the sample rate, set the output
-			ffmpeg -i !d!!p!!n!!x! -ar 96000 -ac 2 -af afade=t=in:ss=0:d=2,afade=t=out:st=!fadeoutStart!:d=2 -acodec pcm_s24le !processingDir!!n!!x!
+			ffmpeg -i !d!!p!!n!!x! -i !mtdObj! -map_metadata 1 -ar 96000 -ac 1 -af afade=t=in:ss=0:d=2,afade=t=out:st=!fadeoutStart!:d=2 -acodec pcm_s24le -id3v2_version 3 -write_id3v1 1 !processingDir!!n!!x!
 		)
 		::move the processed broadcast master to the broadcast master directory, overwriting the raw broadcast master
 		move /y !processingDir!!n!!x! !rawBroadDir!!n!!x!
@@ -94,40 +93,34 @@ for /r %%j in (*.wav) do (
 		::delete the processing directory
 		rd !processingDir!
 		::rename our newly minted broadcast master with a use character to reflect that
-		ren !n!!x! !n!b!x!
-		::wait
-		ping -n 3 127.0.0.1>nul
-		makemp3 !n!b!x! !rawMTDDir!
+		ren !n!!x! !n!!x!
 	)
 )
 popd
 GOTO :eof
 
 
-:move_broadcast_toQC
-pushd !rawBroadDir!
+:put_broadcast_inQC
+pushd !rawbroadDir!
 for /R %%j in (*.wav) do (
 	set _name=%%~nj%%~xj
-	echo !_name!
 	set name=!_name:b.wav=!
-	echo !name!
 	set qcNamedDir=!qualityControlDir!!name!\
-	echo !qcnamedDir!
-	pause
 	::generate a checksum and embed it into the md5 chunk
-	bwfmetaedit --MD5-Embed %%j
+	bwfmetaedit --MD5-Embed !_name!
 	::if the folder doesnt already exist make it exist
 	::move can only move to pre-existing locations
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	hashmove !_name! !rawBroadDir! !qcNamedDir!
+	CALL hashmove !_name! !rawBroadDir! !qcNamedDir!
 )
 popd
 GOTO :eof
 
 
-:move_mp3_toQC
+
+:put_mp3_inQC
 pushd !rawBroadDir!
 for /R %%j in (*.mp3) do (
 	set _name=%%~nj%%~xj
@@ -138,17 +131,16 @@ for /R %%j in (*.mp3) do (
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	hashmove !_name! !rawBroadDir! !qcNamedDir!
+	CALL hashmove !_name! !rawBroadDir! !qcNamedDir!
 )
 popd
 GOTO :eof
 
 
-:move_andRen_archival_toQC
+:put_andRen_archival_inQC
 pushd !rawArchDir!
 for /R %%j in (*.wav) do (
 	set _name=%%~nj
-	set x=%%~xj
 	set name=!_name!a!x!
 	ren %%j !name!
 	set qcNamedDir=!qualityControlDir!!_name!\
@@ -159,7 +151,7 @@ for /R %%j in (*.wav) do (
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	hashmove !name! !rawArchDir! !qcNamedDir!
+	CALL hashmove !name! !rawArchDir! !qcNamedDir!
 )
 popd
 GOTO :eof

@@ -73,7 +73,7 @@ for /f "delims=" %%i in (R:\Cylinders\avlab\_tmpLength.txt) do (
 	::recombine the whole-number fadeout start time with the decimal value from earlier and we get a 2s fadeout that ends exactly when the wav ends
 	set fadeoutStart=!_fadeoutStart!.!decimal!
 	::call ffmpeg with the input, set the audio channel to downmix to 1 (mono), set sample rate to 44100, set the fades, insert calculated start time form earlier, set the sample rate, set the output
-	ffmpeg -i !broadcastObj! -ac 1 -ar 44100 -af afade=t=in:ss=0:d=2,afade=t=out:st=!fadeoutStart!:d=2 -sample_fmt s16 -id3v2_version 3 -write_id3v1 1 !processingDir!!broadcastObj!
+	ffmpeg -i !broadcastObj! -i !mtdObj! -map_metadata 1 -ac 1 -ar 44100 -af afade=t=in:ss=0:d=2,afade=t=out:st=!fadeoutStart!:d=2 -sample_fmt s16 -id3v2_version 3 -write_id3v1 1 !processingDir!!broadcastObj!
 	::move the processed broadcast master and overwrite the previous broadcast master
 	move /y !processingDir!!broadcastObj! !startDir!\!broadcastObj!
 )
