@@ -54,16 +54,10 @@ del *.txt
 popd
 ::here's where we error check the capture dir
 pushd !captureDir!
-for /r %%g in (*) do (
-	set name=%%~ng
-	set dat3=%date%
-	set foo=!name:~0,10!
-	::this reads
-	::if the first 10 digits of the filename are today's date
-	if "!name:~0,10!"=="!dat3!" (
-		echo you missed scanning a barcode, sorry to tell you that mate
-		pause
-	)
+::more error detection, if a files exists here and it's name is the date, we didnt rename it
+if exist 2016*.CR2 (
+	echo you missed scanning a barcode, sorry to tell you that mate
+	pause
 )
 popd
 ENDLOCAL
