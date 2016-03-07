@@ -9,9 +9,19 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 set startObj=%1
 
-::grab filename and initialize a bunch of crap
-set filename=!startObj:~0,-5!
+
+::find out if this file has already been designated a b-side w/ a use character "b"
+set usecharcheck=!startObj:~-5!
+if !usecharcheck!==b.wav (
+	set filename=!startObj:~0,-5!
+)
+if not !usecharcheck!==b.wav (
+	set filename=!startObj:~0,-4!
+)
+::initialize a bunch of crap
 set mtdObj=!filename!.txt
+echo !mtdObj!
+pause
 set intermediateObj=!filename!e.mp3
 set endObj=!filename!d.mp3
 set startimageObj=!filename!.tif
