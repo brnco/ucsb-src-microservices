@@ -101,7 +101,7 @@ GOTO :eof
 pushd !rawArchDir!
 for /R %%j in (*.wav) do (
 	set _name=%%~nj
-	set name=!_name!a!x!
+	set name=!_name!a.wav
 	ren %%j !name!
 	set qcNamedDir=!qualityControlDir!!_name!\
 	::generate a checksum and embed it into the md5 chunk

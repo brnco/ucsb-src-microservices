@@ -36,11 +36,13 @@ for /r %%g in (*.txt) do (
 	)
 	:this for loop creates a set for all files in the capture dir and sorts by creation date
 	:the most recent, the one just in from the camera, is set as our target object
-	for /f "tokens=*" %%i in ('dir /o:d /b "!captureDir!*"') do (
+	for /f "tokens=*" %%i in ('dir /o:d /b "R:\78rpm\avlab\national_jukebox\in_process\visual_captures\raw-captures\%date%\*"') do (
 		set newest=%%i
 		set targetObj=!captureDir!!newest!
 	)
 	::rename takes a full path and a name.ext
+	echo !targetObj!
+	echo !barcode!.CR2
 	ren !targetObj! !barcode!.CR2
 	:here's some more error detection that checks if there was an error renaming that file
 	:if this wasn't here the cmd window would just exit out without telling you anything
