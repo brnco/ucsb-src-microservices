@@ -8,7 +8,6 @@ startObj = sys.argv[1] # grab argument from CL
 startObj = startObj.replace("\\","/") # fun fact, windows lets you type both fwd and bck slashes in pathnames
 dest = sys.argv[2]
 dest = dest.replace("\\","/") # gotta have trailing slash here
-print dest
 if dest[-1] != "/": # check for said trailing slash
 	dest = dest + "/"
 if not os.path.exists(dest):
@@ -17,23 +16,27 @@ endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that 
 soMD = startObj + ".md5"
 eoMD = endObj + ".md5"
 flist = [startObj, endObj]
-blocksize = 65536 # reading a file in chunks this size more memory efficient
-hasher = hashlib.md5() # specify method/ hashing algorithm
 # soPath, soFname = os.path.split(startObj) placeholder
 
 shutil.copy2(startObj, dest) # actually copy the file from start to finish
 
 #here's where the fun starts, generate checksums for both source and dest
-for f in flist:
-	fmd5 = f + ".md5" # concat with ext to make md5 file names
-	with open(f,'rb') as afile: # open da file
-		buf = afile.read(blocksize) # read it into a buffer in block sized chunks
-		while len(buf) > 0: # as long as there is something in the buffer
-			hasher.update(buf) # append the buffer data to our hasher dict
-			buf = afile.read(blocksize) # iterate
+def hashfile(afile, hasher, blocksize=65536):
+	fmd5 = fname + ".md5" # concat with ext to make md5 file names
+	buf = afile.read(blocksize) # read the file into a buffer cause it's more efficient for big files
+	while len(buf) > 0: # little loop to keep reading
+		hasher.update(buf) # here's where the hash is actually generated
+		buf = afile.read(blocksize) # keep reading
+	if not os.path.exists(fmd5): # if a sum already exists we don't wanna waste energy re-doing it. also a failsafe
+		# THING: if a sum already exists in dest it wont be recalcd but idgaf
 		with open(fmd5,"w") as text_file: # initialize a file that will contain the md5
-			text_file.write(hasher.hexdigest() + " *" + f) # write it with the hash *filename
-	print(hasher.hexdigest()) # print it to the screen too who cares
+			text_file.write(hasher.hexdigest() + " *" + fname) # write it with the hash *filename
+	print hasher.hexdigest() # pop the results to the cli who cares
+	return hasher.hexdigest() # close the file
+	
+[(fname, hashfile(open(fname, 'rb'), hashlib.md5())) for fname in flist] # call the function using files in the list
+
+wait = raw_input("press any key to continue")
 
 # open the hash files and compare their contents
 with open(soMD,'r') as f1:
