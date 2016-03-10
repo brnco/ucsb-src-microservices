@@ -7,7 +7,7 @@
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 set qcPath=R:\78rpm\avlab\national_jukebox\in_process\pre-ingest-QC\
-set workingSIP=R:\78rpm\avlab\national_jukebox\in_process\11000\
+set workingSIP=R:\78rpm\avlab\national_jukebox\in_process\12000\
 ::loop through the folders in our QC directory
 for /f "tokens=*" %%g in ('dir /b /s /a:d /o:n "!qcPath!*"') do (
 	
