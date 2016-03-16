@@ -53,7 +53,7 @@ for /r %%g in (*.DNG) do (
 	set startObj=%%g
 	set barcode=%%~ng
 	echo processing !barcode!
-	gm convert !startObj! -crop 3648x3648+920 -rotate 180 !tifDir!!barcode!.tif
+	gm convert !startObj! -crop 3648x3648+920 -density 300x300 -rotate 180 !tifDir!!barcode!.tif
 )
 popd
 
