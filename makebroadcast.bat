@@ -21,7 +21,6 @@ if not !usecharcheck!==b.wav (
 ::initialize a bunch of crap
 set mtdObj=!filename!.txt
 echo !mtdObj!
-pause
 set intermediateObj=!filename!e.mp3
 set endObj=!filename!d.mp3
 set startimageObj=!filename!.tif

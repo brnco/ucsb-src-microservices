@@ -1,19 +1,50 @@
 # for pres
-#mediainfo
-#jhove
+#qctoolsreport
+#pbcore2
 #framemd5
-#send acc to R:\Visual\[0000]
+#send acc + presmtd to R:\Visual\[0000]
 import os
 import subprocess
 import sys
+import glob
 
-startObj = sys.argv[1]
-ffdata = open(startObj + ".ffdata.txt","w")
-subprocess.call(['ffprobe','-show_streams','-of','flat','-sexagesimal','-i',startObj], stdout=ffdata)
-ffdata.close()
-subprocess.call(['ffmpeg','-vcodec','libopenjpeg','-vsync','0','-i',startObj,'-vcodec','rawvideo','-acodec','pcm_s24le','-vf','tinterlace=mode=merge,setfield=bff','-f','nut','-y',startObj + '.temp1.nut'])
-tmpxml = open(startObj + '.qctools.xml','w')
-subprocess.call(['ffprobe','-loglevel','error','-f','lavfi','movie=' + startObj + '.temp1.nut:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng,cropdetect=reset=1,split[a][b];[a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1[out1]','-show_frames','-show_versions','-of','xml=x=1:q=1','-noprivate'], stdout=tmpxml)
-tmpxml.close()
-subprocess.call(['C:/7-zip/7z.exe','a','-tgzip',startObj + '.qctools.xml.gzip',startObj + '.qctools.xml'])
-os.remove(tmpxml)
+class cd:
+    #Context manager for changing the current working directory
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+rootdir = 'R:/Visual/avlab/new_ingest'
+#move through the new_ingest directory tree
+for subdir, dirs, files in os.walk(rootdir):
+	#cd into subdirs
+	with cd(subdir):
+		#pwd
+		foo = os.getcwd()
+		print foo
+		#grab the mxf archival master file
+		for presfile in glob.glob('*.mxf'):
+			#instatiate var names of our output files
+			_qctfile = presfile + '.qctools.xml.gz'
+			_pbc2file = presfile + '.PBCore2.xml'
+			_framemd5 = presfile + '.framemd5'
+			#if there's not a qctools doc for it, make one
+			if not os.path.exists(_qctfile):
+				print _qctfile
+				subprocess.call(['C:/Python27/python.exe','S:/avlab/microservices/makeqctoolsreport.py',presfile])
+			#if there's not a PBCore2 doc for it, make one
+			if not os.path.exists(_pbc2file):
+				print _pbc2file
+				#gotta give the PBCore2 filename as concat string here, _pbc2file is a file object
+				subprocess.call(['C:/mediainfo/MediaInfo.exe','--Output=PBCore2','--LogFile=' + presfile + '.PBCore2.xml',presfile])
+			#if there's not a framemd5 for it, make one
+			if not os.path.exists(_framemd5):
+				print _framemd5
+				#gotta give the framemd5 filename as concat string here, _framemd5 is a file object
+				subprocess.call(['C:/ffmpeg/bin/ffmpeg.exe','-i',presfile,'-f','framemd5',presfile + '.framemd5'])

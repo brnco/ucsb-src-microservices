@@ -73,7 +73,7 @@ for /R %%j in (*.wav) do (
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	CALL hashmove !_name! !rawBroadDir! !qcNamedDir!
+	CALL python S:/avlab/microservices/hashmove.py !rawBroadDir!!_name! !qcNamedDir!
 )
 popd
 GOTO :eof
@@ -91,7 +91,7 @@ for /R %%j in (*.mp3) do (
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	CALL hashmove !_name! !rawBroadDir! !qcNamedDir!
+	CALL python S:/avlab/microservices/hashmove.py !rawBroadDir!!_name! !qcNamedDir!
 )
 popd
 GOTO :eof
@@ -111,7 +111,7 @@ for /R %%j in (*.wav) do (
 	if not exist !qcNamedDir! (
 		md !qcNamedDir!
 	)
-	CALL hashmove !name! !rawArchDir! !qcNamedDir!
+	CALL python S:/avlab/microservices/hashmove.py !rawArchDir!!name! !qcNamedDir!
 )
 popd
 GOTO :eof
