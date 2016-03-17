@@ -1,4 +1,4 @@
-# for pres
+#for pres mxf wrapped j2k files
 #qctoolsreport
 #pbcore2
 #framemd5

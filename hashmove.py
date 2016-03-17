@@ -25,17 +25,20 @@ def makelist(startObj,dest,flist=[]):
 		flist = (startObj, endObj)
 	if os.path.isdir(startObj):
 		soisdir = '1'
-		startObj = startObj + "/"
+		if not startObj.endswith("/"):
+			startObj = startObj + "/" #add trailing slash
 		for file in os.listdir(startObj):
 			_file = os.path.join(startObj + str(file))
 			filename, ext = os.path.splitext(_file)
 			if not ext == '.md5':
-				endObj = dest + file
+				endObj = dest + os.path.basename(os.path.normpath(startObj)) + "/" + file
+				print endObj
 				flist.extend((_file,endObj))
 	it = iter(flist)
 	flist = zip(it, it)
+	print flist
 	return flist, soisdir
-
+	blargh = raw_input("did that work y/n")
 #generate checksums for both source and dest
 def hashfile(afile, hasher, blocksize=65536):
 	fmd5 = afile.name + ".md5" # concat with ext to make md5 file names
@@ -80,7 +83,13 @@ flist, soisdir = makelist(startObj, dest)
 #copy each item from start to end
 for f in flist:
 	sf, ef = f
-	shutil.copy2(sf,ef)
+	if soisdir == '0':
+		shutil.copy2(sf,ef)
+	if soisdir == '1':
+		_dest = os.path.dirname(os.path.normpath(ef))
+		if not os.path.exists(_dest):
+			os.makedirs(_dest)
+		shutil.copy2(sf,ef)
 
 #hash start and end files
 for sf, ef in flist:
@@ -90,5 +99,6 @@ for sf, ef in flist:
 for f in flist:
 	compareDelete(f)
 
+#if we hashmoved a dir, try to delete the now empty dir
 if soisdir == '1':
 	os.rmdir(startObj)
