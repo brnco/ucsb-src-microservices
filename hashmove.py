@@ -18,7 +18,7 @@ if not os.path.exists(dest): # make the destination dir if it don't already exis
 	os.makedirs(dest)
 
 #figure out if arguments given are files or dirs, generate list of files to move
-def makelist(startObj,dest,flist=[]):		
+def makelist(startObj,dest,flist=[],soisdir=''):		
 	if os.path.isfile(startObj):#if first argument is a file it's p easy
 		soisdir = '0'
 		endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that we wanted to move, in its destination
@@ -32,13 +32,11 @@ def makelist(startObj,dest,flist=[]):
 			filename, ext = os.path.splitext(_file)
 			if not ext == '.md5':
 				endObj = dest + os.path.basename(os.path.normpath(startObj)) + "/" + file
-				print endObj
 				flist.extend((_file,endObj))
 	it = iter(flist)
 	flist = zip(it, it)
-	print flist
 	return flist, soisdir
-	blargh = raw_input("did that work y/n")
+
 #generate checksums for both source and dest
 def hashfile(afile, hasher, blocksize=65536):
 	fmd5 = afile.name + ".md5" # concat with ext to make md5 file names
