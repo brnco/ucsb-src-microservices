@@ -6,14 +6,15 @@ import hashlib
 import os
 import sys
 import shutil
+import time
 
 #initialize a buncha stuff
 startObj = sys.argv[1] # grab argument from CL
 startObj = startObj.replace("\\","/") # fun fact, windows lets you type both fwd and back slashes in pathnames
 dest = sys.argv[2]
 dest = dest.replace("\\","/") # just easier to replace these slashes for windows sry
-if not dest.endswith("/"):
-	dest = dest + "/" #ADD TRAILING SLASH
+#if not dest.endswith("/"):
+#	dest = dest + "/" #ADD TRAILING SLASH
 if not os.path.exists(dest): # make the destination dir if it don't already exist
 	os.makedirs(dest)
 
@@ -25,14 +26,24 @@ def makelist(startObj,dest,flist=[],soisdir=''):
 		flist = (startObj, endObj)
 	if os.path.isdir(startObj):
 		soisdir = '1'
-		if not startObj.endswith("/"):
-			startObj = startObj + "/" #add trailing slash
-		for file in os.listdir(startObj):
-			_file = os.path.join(startObj + str(file))
-			filename, ext = os.path.splitext(_file)
-			if not ext == '.md5':
-				endObj = dest + os.path.basename(os.path.normpath(startObj)) + "/" + file
-				flist.extend((_file,endObj))
+		#if not startObj.endswith("/"):
+		#	startObj = startObj + "/" #add trailing slash
+		for dirname, subdirs, files in os.walk(startObj): #walk recursively through the dirtree
+			for y in subdirs: #for each subdir
+				for z in os.listdir(os.path.join(dirname,y)): #for each file in y-subdir
+					_file = os.path.join(dirname,y,z) #get the full path to the start file
+					endObj = os.path.join(dest,y,z) #make the full path for the destination file
+					filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
+					if not ext == '.md5':
+						flist.extend((_file,endObj)) #add these items as a tuple to the list of files
+			for x in files: #ok, for all files rooted at startdir
+				for s in flist: #loop through file list
+					if not os.path.join(dirname,x) in flist: #check to see that the file isnt already in flist
+						_file = os.path.join(dirname, x) #if it's not grab the start file full path
+						endObj = os.path.join(dest, x) #make the end object full path
+						filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
+						if not ext == '.md5':
+							flist.extend((_file,endObj))#add these items as a tuple to the list of files
 	it = iter(flist)
 	flist = zip(it, it)
 	return flist, soisdir
@@ -77,6 +88,7 @@ def compareDelete(bar):
 
 #ok make the list
 flist, soisdir = makelist(startObj, dest)
+print flist
 
 #copy each item from start to end
 for f in flist:
@@ -99,4 +111,8 @@ for f in flist:
 
 #if we hashmoved a dir, try to delete the now empty dir
 if soisdir == '1':
+	for dirname, subdirs, files, in os.walk(startObj):
+		for x in subdirs:
+			os.rmdir(os.path.join(dirname,x))
+	time.sleep(2.0)
 	os.rmdir(startObj)
