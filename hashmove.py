@@ -7,27 +7,17 @@ import os
 import sys
 import shutil
 import time
+from optparse import OptionParser #OpenCube uses python 2.6 so has to be compatible, argparse not available until 2.7
 
-#initialize a buncha stuff
-startObj = sys.argv[1] # grab argument from CL
-startObj = startObj.replace("\\","/") # fun fact, windows lets you type both fwd and back slashes in pathnames
-dest = sys.argv[2]
-dest = dest.replace("\\","/") # just easier to replace these slashes for windows sry
-#if not dest.endswith("/"):
-#	dest = dest + "/" #ADD TRAILING SLASH
-if not os.path.exists(dest): # make the destination dir if it don't already exist
-	os.makedirs(dest)
-
-#figure out if arguments given are files or dirs, generate list of files to move
+#figure out if arguments given are files or dirs, generate list of files and destinations to work on
 def makelist(startObj,dest,flist=[],soisdir=''):		
 	if os.path.isfile(startObj):#if first argument is a file it's p easy
 		soisdir = '0'
 		endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that we wanted to move, in its destination
 		flist = (startObj, endObj)
+	#if the start object is a directory things get tricky
 	if os.path.isdir(startObj):
-		soisdir = '1'
-		#if not startObj.endswith("/"):
-		#	startObj = startObj + "/" #add trailing slash
+		soisdir = '1' #we'll use this later to delete these dirs
 		for dirname, subdirs, files in os.walk(startObj): #walk recursively through the dirtree
 			for y in subdirs: #for each subdir
 				for z in os.listdir(os.path.join(dirname,y)): #for each file in y-subdir
@@ -36,16 +26,16 @@ def makelist(startObj,dest,flist=[],soisdir=''):
 					filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
 					if not ext == '.md5':
 						flist.extend((_file,endObj)) #add these items as a tuple to the list of files
-			for x in files: #ok, for all files rooted at startdir
+			for x in files: #ok, for all files rooted at start object
 				for s in flist: #loop through file list
 					if not os.path.join(dirname,x) in flist: #check to see that the file isnt already in flist
-						_file = os.path.join(dirname, x) #if it's not grab the start file full path
+						_file = os.path.join(dirname, x) #if it's not, grab the start file full path
 						endObj = os.path.join(dest, x) #make the end object full path
 						filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
 						if not ext == '.md5':
 							flist.extend((_file,endObj))#add these items as a tuple to the list of files
 	it = iter(flist)
-	flist = zip(it, it)
+	flist = zip(it, it) #uhhhh, formally make that object into a list
 	return flist, soisdir
 
 #generate checksums for both source and dest
@@ -86,33 +76,53 @@ def compareDelete(bar):
 		print "uh there was an issue there"	
 	return
 
-#ok make the list
-flist, soisdir = makelist(startObj, dest)
-print flist
+def main():
+	#initialize all of the things
+	usage = "Usage: python %prog [-options] source destination"
+	parser = OptionParser(usage=usage) #crate a parser object
+	parser.add_option('-c','--copy',action='store_true',dest='c',default='None',help="copy, don't delete from source") #add an option to our parser object, in this case '-c' for copy
+	(options, args) = parser.parse_args() #parse the parser object, return list of options followed by positional parameters
+	#args[] is the index of a positional argument, 0=source, 1=destination, in this case
+	startObj = args[0].replace("\\","/") # fun fact, windows lets you type both fwd and back slashes in pathnames
+	dest = args[1].replace("\\","/") # just easier to replace these slashes for windows sry
+	if not os.path.exists(dest): # make the destination dir if it don't already exist
+		os.makedirs(dest)
+		
+	#ok
+	#return a list of tuples, files to move and their destinations
+	flist, soisdir = makelist(startObj, dest)
+	
+	#copy each item from start to dest
+	for f in flist:
+		sf, ef = f #break list of tuples up into startfile and endfile
+		if soisdir == '0':
+			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
+		if soisdir == '1':
+			#make the subdirectories
+			_dest = os.path.dirname(os.path.normpath(ef))
+			if not os.path.exists(_dest):
+				os.makedirs(_dest)
+			shutil.copy2(sf,ef) #we use copy2 because it grabs all the registry metadata too
+	
+	#hash start and end files
+	for sf, ef in flist:
+		#to change the hashing algorithm just replace MD5 with SHA256 or whatever, remember to change extensions up top too!
+		sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
+	
+	
+	if options.c is 'None': #if we are moving not copying, as declared by flag -c, delete the start object
+		#compare and delete them
+		for f in flist:
+			compareDelete(f)
+			
+		#if we hashmoved a dir, try to delete the now empty dir
+		if soisdir == '1':
+			for dirname, subdirs, files, in os.walk(startObj):
+				for x in subdirs: #delete subdirs
+					os.rmdir(os.path.join(dirname,x))
+			time.sleep(2.0) #gotta give the system time to catch up and recognize if a dir is empty
+			os.rmdir(startObj)
 
-#copy each item from start to end
-for f in flist:
-	sf, ef = f
-	if soisdir == '0':
-		shutil.copy2(sf,ef)
-	if soisdir == '1':
-		_dest = os.path.dirname(os.path.normpath(ef))
-		if not os.path.exists(_dest):
-			os.makedirs(_dest)
-		shutil.copy2(sf,ef)
+	return
 
-#hash start and end files
-for sf, ef in flist:
-	sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
-
-#compare and delete them
-for f in flist:
-	compareDelete(f)
-
-#if we hashmoved a dir, try to delete the now empty dir
-if soisdir == '1':
-	for dirname, subdirs, files, in os.walk(startObj):
-		for x in subdirs:
-			os.rmdir(os.path.join(dirname,x))
-	time.sleep(2.0)
-	os.rmdir(startObj)
+main()
