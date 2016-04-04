@@ -10,7 +10,7 @@ import time
 from optparse import OptionParser #OpenCube uses python 2.6 so has to be compatible, argparse not available until 2.7
 
 #figure out if arguments given are files or dirs, generate list of files and destinations to work on
-def makelist(startObj,dest,flist=[],soisdir=''):		
+def makelist(startObj,dest,flist=[],soisdir=''):
 	if os.path.isfile(startObj):#if first argument is a file it's p easy
 		soisdir = '0'
 		endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that we wanted to move, in its destination
@@ -27,13 +27,13 @@ def makelist(startObj,dest,flist=[],soisdir=''):
 					if not ext == '.md5':
 						flist.extend((_file,endObj)) #add these items as a tuple to the list of files
 			for x in files: #ok, for all files rooted at start object
-				for s in flist: #loop through file list
-					if not os.path.join(dirname,x) in flist: #check to see that the file isnt already in flist
-						_file = os.path.join(dirname, x) #if it's not, grab the start file full path
-						endObj = os.path.join(dest, x) #make the end object full path
-						filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
-						if not ext == '.md5':
-							flist.extend((_file,endObj))#add these items as a tuple to the list of files
+				#for s in flist: #loop through file list
+				if not os.path.join(dirname,x) in flist: #check to see that the file isnt already in flist
+					_file = os.path.join(dirname, x) #if it's not, grab the start file full path
+					endObj = os.path.join(dest, x) #make the end object full path
+					filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
+					if not ext == '.md5':
+						flist.extend((_file,endObj))#add these items as a tuple to the list of files
 	it = iter(flist)
 	flist = zip(it, it) #uhhhh, formally make that object into a list
 	return flist, soisdir
@@ -91,9 +91,11 @@ def main():
 	#ok
 	#return a list of tuples, files to move and their destinations
 	flist, soisdir = makelist(startObj, dest)
-	
+
 	#copy each item from start to dest
 	for f in flist:
+		print "copying files from source to destination..."
+		print ""
 		sf, ef = f #break list of tuples up into startfile and endfile
 		if soisdir == '0':
 			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
@@ -106,6 +108,8 @@ def main():
 	
 	#hash start and end files
 	for sf, ef in flist:
+		print "hashing source and destination files..."
+		print ""
 		#to change the hashing algorithm just replace MD5 with SHA256 or whatever, remember to change extensions up top too!
 		sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
 	
@@ -113,6 +117,8 @@ def main():
 	if options.c is 'None': #if we are moving not copying, as declared by flag -c, delete the start object
 		#compare and delete them
 		for f in flist:
+			print "verifying source and destination hashes..."
+			print ""
 			compareDelete(f)
 			
 		#if we hashmoved a dir, try to delete the now empty dir
@@ -124,5 +130,6 @@ def main():
 			os.rmdir(startObj)
 
 	return
+
 
 main()

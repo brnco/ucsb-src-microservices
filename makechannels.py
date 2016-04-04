@@ -5,6 +5,16 @@
 import os
 import subprocess
 import argparse
+import sys
+from distutils import spawn
+
+def dependencies():
+	depends = ['ffmpeg']
+	for d in depends:
+		if spawn.find_executable(d) is None:
+			print "Buddy, you gotta install " + d
+			sys.exit()
+	return
 
 def main():
 	#initialize arguments using argparse
@@ -26,4 +36,5 @@ def main():
 		subprocess.call(['ffmpeg','-i',args['i1'],'-i',args['i2'],'-filter_complex','[0:a][1:a]amerge=inputs=2[aout]','-map','[aout]',endObj])
 	return
 
+dependencies()
 main()

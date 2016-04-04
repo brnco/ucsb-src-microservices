@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import glob
+from distutils import spawn
 
 class cd:
     #Context manager for changing the current working directory
@@ -20,31 +21,45 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+def dependencies():
+	depends = ['ffmpeg','ffprobe','MediaInfo','python']
+	for d in depends:
+		if spawn.find_executable(d) is None:
+			print "Buddy, you gotta install " + d
+			sys.exit()
+	return
+
+
+def main():
+	#move through the new_ingest directory tree
+	for subdir, dirs, files in os.walk(rootdir):
+		#cd into subdirs
+		with cd(subdir):
+			#pwd
+			foo = os.getcwd()
+			print foo
+			#grab the mxf archival master file
+			for presfile in glob.glob('*.mxf'):
+				#instantiate var names of our output files
+				_qctfile = presfile + '.qctools.xml.gz'
+				_pbc2file = presfile + '.PBCore2.xml'
+				_framemd5 = presfile + '.framemd5'
+				#if there's not a qctools doc for it, make one
+				if not os.path.exists(_qctfile):
+					print _qctfile
+					subprocess.call(['python','S:/avlab/microservices/makeqctoolsreport.py',presfile])
+				#if there's not a PBCore2 doc for it, make one
+				if not os.path.exists(_pbc2file):
+					print _pbc2file
+					#gotta give the PBCore2 filename as concat string here, _pbc2file is a file object
+					subprocess.call(['MediaInfo','--Output=PBCore2','--LogFile=' + presfile + '.PBCore2.xml',presfile])
+				#if there's not a framemd5 for it, make one
+				if not os.path.exists(_framemd5):
+					print _framemd5
+					#gotta give the framemd5 filename as concat string here, _framemd5 is a file object
+					subprocess.call(['ffmpeg','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
+	return
+
 rootdir = 'R:/Visual/avlab/new_ingest'
-#move through the new_ingest directory tree
-for subdir, dirs, files in os.walk(rootdir):
-	#cd into subdirs
-	with cd(subdir):
-		#pwd
-		foo = os.getcwd()
-		print foo
-		#grab the mxf archival master file
-		for presfile in glob.glob('*.mxf'):
-			#instatiate var names of our output files
-			_qctfile = presfile + '.qctools.xml.gz'
-			_pbc2file = presfile + '.PBCore2.xml'
-			_framemd5 = presfile + '.framemd5'
-			#if there's not a qctools doc for it, make one
-			if not os.path.exists(_qctfile):
-				print _qctfile
-				subprocess.call(['C:/Python27/python.exe','S:/avlab/microservices/makeqctoolsreport.py',presfile])
-			#if there's not a PBCore2 doc for it, make one
-			if not os.path.exists(_pbc2file):
-				print _pbc2file
-				#gotta give the PBCore2 filename as concat string here, _pbc2file is a file object
-				subprocess.call(['C:/mediainfo/MediaInfo.exe','--Output=PBCore2','--LogFile=' + presfile + '.PBCore2.xml',presfile])
-			#if there's not a framemd5 for it, make one
-			if not os.path.exists(_framemd5):
-				print _framemd5
-				#gotta give the framemd5 filename as concat string here, _framemd5 is a file object
-				subprocess.call(['C:/ffmpeg/bin/ffmpeg.exe','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
+dependencies()
+main()

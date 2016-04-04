@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 import glob
-
+from distutils import spawn
 class cd:
     #Context manager for changing the current working directory
     def __init__(self, newPath):
@@ -19,6 +19,14 @@ class cd:
 
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
+
+def dependencies():
+	depends = ['ffmpeg','ffprobe']
+	for d in depends:
+		if spawn.find_executable(d) is None:
+			print "Buddy, you gotta install " + d
+			sys.exit()
+	return
 
 def makenames(masterNum, vmNums):
 	fPres= []
@@ -41,11 +49,11 @@ def makeslices(fPres, fAcc, slicepoints, startPresObj, startAccObj):
 	for i in range(1,len(slicepoints),1):
 		presClip = [slicepoints[i-1],fPres[i-1],slicepoints[i]]
 		accClip = [slicepoints[i-1],fAcc[i-1],slicepoints[i]]
-		subprocess.call(['C:/ffmpeg/bin/ffmpeg.exe','-i',startPresObj,'-ss',slicepoints[i-1],'-c','copy','-t',slicepoints[i],fPres[i-1]])
-		subprocess.call(['C:/ffmpeg/bin/ffmpeg.exe','-i',startAccObj,'-ss',slicepoints[i-1], '-c','copy','-t',slicepoints[i],fAcc[i-1]])
+		subprocess.call(['ffmpeg','-i',startPresObj,'-ss',slicepoints[i-1],'-c','copy','-t',slicepoints[i],fPres[i-1]])
+		subprocess.call(['ffmpeg','-i',startAccObj,'-ss',slicepoints[i-1], '-c','copy','-t',slicepoints[i],fAcc[i-1]])
 	return
 	
-
+dependencies()
 startPresObj = sys.argv[1]
 startPresObj = startPresObj.replace("\\","/")
 startAccObj = startPresObj.replace(".mxf",".mp4")
