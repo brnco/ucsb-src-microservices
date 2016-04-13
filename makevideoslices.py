@@ -56,9 +56,9 @@ def makeslices(fPres, fAcc, slicepoints, startPresObj, startAccObj):
 dependencies()
 startPresObj = sys.argv[1]
 startPresObj = startPresObj.replace("\\","/")
-startAccObj = startPresObj.replace(".mxf",".mp4")
+startAccObj = startPresObj.replace("pres.mxf","acc.mp4")
 masterKey = sys.argv[2]
-vmNums = ['vm0094','vm0095','vm0096']
-slicepoints = ['00:00:59.90','00:11:59.13','00:27:01.57','00:31:06.50']
+vmNums = ['vm0092','vm0093','vm0094','vm0095','vm0096']
+slicepoints = ['00:00:30.00','00:09:26.37','00:21:10.00','00:29:26.97','00:40:58.50','00:52:19.57']
 fPres, fAcc = makenames(masterKey, vmNums)
 makeslices(fPres, fAcc, slicepoints, startPresObj, startAccObj)
