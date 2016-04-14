@@ -132,14 +132,15 @@ def main():
 	
 	if options.lto is not 'None':
 		ltoNumber = raw_input("What is the barcode of this LTO? ")
-		with open("S:/avlab/lto-logs/" + ltoNumber + ".txt","a") as ltoLog:
-			ltoLog.write(startObj + "\n")
-			for sf, ef in flist:
-				with open(ef + ".md5","r") as m:
-					_emd5 = m.read()
-					emd5 = _emd5[0:32]
-					ltoLog.write(ef + " * " + emd5 + "\n")
-			ltoLog.write("\n")
+		ltoLog = open("S:/avlab/lto-logs/" + ltoNumber + ".txt","w")
+		ltoLog.write(startObj + "\n")
+		for sf, ef in flist:
+			with open(ef + ".md5","r") as m:
+				_emd5 = m.read()
+				emd5 = _emd5[0:32]
+				ltoLog.write(ef + " * " + emd5 + "\n")
+		ltoLog.write("\n")
+		ltoLog.close()
 	return
 
 
