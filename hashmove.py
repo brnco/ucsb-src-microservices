@@ -81,6 +81,7 @@ def main():
 	usage = "Usage: python %prog [-options] source destination"
 	parser = OptionParser(usage=usage) #crate a parser object
 	parser.add_option('-c','--copy',action='store_true',dest='c',default='None',help="copy, don't delete from source") #add an option to our parser object, in this case '-c' for copy
+	parser.add_option('-l','--lto',action='store_true',dest='lto',default='None',help="write to lto, asks for lto barcode and logs files written")
 	(options, args) = parser.parse_args() #parse the parser object, return list of options followed by positional parameters
 	#args[] is the index of a positional argument, 0=source, 1=destination, in this case
 	startObj = args[0].replace("\\","/") # fun fact, windows lets you type both fwd and back slashes in pathnames
@@ -128,7 +129,17 @@ def main():
 					os.rmdir(os.path.join(dirname,x))
 			time.sleep(2.0) #gotta give the system time to catch up and recognize if a dir is empty
 			os.rmdir(startObj)
-
+	
+	if options.lto is not 'None':
+		ltoNumber = raw_input("What is the barcode of this LTO? ")
+		with open("S:/avlab/lto-logs/" + ltoNumber + ".txt","a") as ltoLog:
+			ltoLog.write(startObj + "\n")
+			for sf, ef in flist:
+				with open(ef + ".md5","r") as m:
+					_emd5 = m.read()
+					emd5 = _emd5[0:32]
+					ltoLog.write(ef + " * " + emd5 + "\n")
+			ltoLog.write("\n")
 	return
 
 

@@ -1,5 +1,5 @@
 #makevideoSIP
-#takes argument for video package (folder, named vNum) and optional arg for -lto, which writes package to lto5
+#takes argument for video package (folder, named vNum)
 #verifies all contents of SIP exist: -pres.mxf and -acc.mp4 files, -pres.mxf.PBCore2.0.xml metadata, -pres.mxf.framemd5 hash, -pres.qctools.xml.gz report, -pres.mxf.md5 and -acc.mp4.md5 hashes
 #copies -acc.mp4 and ancillary data to vNumber folder on R:/
 #gzips video package folder package
@@ -13,6 +13,7 @@ import glob
 import re
 import argparse
 import shutil
+import tarfile
 import gzip
 
 class cd:
@@ -71,9 +72,10 @@ def main():
 				print "Copying " + f
 				shutil.copy2(f,endObj)
 	#gzip()
-	
-	#writelog()
-	#subprocess.call('python','writelto.py')
+	with cd('R:/Visual/avlab/new_ingest/'):
+		tar = tarfile.open(vNum + ".tar.gz","w:gz")
+		tar.add(startObj)
+		tar.close()
 	return
 
 main()
