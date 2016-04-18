@@ -54,7 +54,7 @@ def id3Check(startObj, assetName):
 	return
 
 def makeAudio(startObj, startDir, assetName, EuseChar):	
-	endObj = assetName + EuseChar + '.wav'
+	endObj = assetName + EuseChar + '.mp3'
 	subprocess.call(['ffmpeg','-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj])
 	return
 

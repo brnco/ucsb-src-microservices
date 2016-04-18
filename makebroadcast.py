@@ -167,7 +167,7 @@ def handling():
 				EuseChar = "c"
 			elif SuseChar == 'c':
 				assetName = fname[:-1]
-				EuseChar = "c"
+				EuseChar = "e"
 			else:
 				assetName = fname
 				EuseChar = "b"
