@@ -150,7 +150,7 @@ def handling():
 	else:
 		if ext in vexts:
 			print "itsa vid"
-			makevideo(startObj, )
+			#makevideo(startObj, )
 		if ext in aexts:
 			print "itsa sound"
 			if SuseChar == 'a':

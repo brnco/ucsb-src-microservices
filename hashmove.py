@@ -8,6 +8,7 @@ import sys
 import shutil
 import time
 from optparse import OptionParser #OpenCube uses python 2.6 so has to be compatible, argparse not available until 2.7
+import getpass
 
 #figure out if arguments given are files or dirs, generate list of files and destinations to work on
 def makelist(startObj,dest,flist=[],soisdir=''):
@@ -132,7 +133,12 @@ def main():
 	
 	if options.lto is not 'None':
 		ltoNumber = raw_input("What is the barcode of this LTO? ")
-		ltoLog = open("S:/avlab/lto-logs/" + ltoNumber + ".txt","w")
+		usr = getpass.getuser()
+		if usr == 'opencube':
+			_ltoLog = "/DATA/special/DeptShare/special/avlab/lto-logs/" + ltoNumber + ".txt"
+		else:
+			_ltoLog = os.path.join(os.path.sep,'s','avlab','lto-logs',ltoNumber + ".txt")
+		ltoLog = open(_ltoLog,"a")
 		ltoLog.write(startObj + "\n")
 		for sf, ef in flist:
 			with open(ef + ".md5","r") as m:

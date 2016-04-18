@@ -116,6 +116,7 @@ if not "!cylNum:~0,1!"=="0" (
 		hashmove -folder !startDir! !endDir!
 	)
 )
+echo Cylinder!cylNum! >> R:/Cylinders/avlab/to-update.txt
 
 GOTO :eof
 
