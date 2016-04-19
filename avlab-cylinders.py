@@ -57,8 +57,7 @@ def main():
 				endDirThousand = endDirThousand[:1] + "000"
 			else:
 				endDirThousand = endDirThousand[:2] + "000"
-			endDir = os.path.join("R:/Cylinders",endDirThousand,s)
-			print os.getcwd()
+			endDir = os.path.abspath(os.path.join("R:/Cylinders",endDirThousand,s))
 			subprocess.call(['python','S:/avlab/microservices/hashmove.py',s,endDir])
 	return
 
