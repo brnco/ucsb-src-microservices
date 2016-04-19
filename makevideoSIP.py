@@ -56,22 +56,22 @@ def main():
 	with cd(startObj):
 		extList = ['-pres.mxf','-acc.mp4','-pres.mxf.PBCore2.xml','-pres.mxf.framemd5','-pres.mxf.md5','-pres.mxf.qctools.xml.gz',]
 		flist = []
-		for file in os.listdir(startObj):
+		for file in os.listdir(startObj): #mak a list of the files in our startdir
 			flist.append(file)
-		for x in extList:
-			if not any(x in f for f in flist):
+		for x in extList: #loop through boths lists that we made and if anything is missing say so
+			if not any(x in f for f in flist): 
 				print "Buddy, you're missing a sidecar file with a " + x + " extension"
 				sys.exit()
-		manifest = open(vNum + '-manifest.txt','w')
+		manifest = open(vNum + '-manifest.txt','w') #initialize a text file that we'll use to log what ~should~ be in this folder
 		for f in flist:
 			manifest.write(f + "\n")
 		manifest.close()
-		#copy
+		#copy to the access repo in R:/Visual
 		for f in flist:
-			if not f.endswith('.mxf'):
+			if not f.endswith('.mxf'): #don't copy the preservation master
 				print "Copying " + f
-				shutil.copy2(f,endObj)
-	#gzip()
+				shutil.copy2(f,endObj) #copy2 grabs the registry metadata which is cool and good
+	#turn it into a tarball then gzip it
 	with cd('R:/Visual/avlab/new_ingest/'):
 		tar = tarfile.open(vNum + ".tar.gz","w:gz")
 		tar.add(startObj)

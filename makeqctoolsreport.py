@@ -3,6 +3,7 @@
 #jhove
 #framemd5
 #send acc to R:\Visual\[0000]
+
 import os
 import subprocess
 import sys
@@ -11,6 +12,7 @@ import gzip
 import shutil
 from distutils import spawn
 
+#check to see that we have the required software to run this script
 def dependencies():
 	depends = ['ffmpeg','ffprobe']
 	for d in depends:

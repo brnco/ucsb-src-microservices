@@ -13,8 +13,8 @@ import re
 import argparse
 from distutils import spawn
 
+#Context manager for changing the current working directory
 class cd:
-    #Context manager for changing the current working directory
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
 
@@ -25,6 +25,7 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+#check that we have required software installed
 def dependencies():
 	depends = ['ffmpeg','ffprobe']
 	for d in depends:
@@ -34,7 +35,7 @@ def dependencies():
 	return
 
 def makeVideo(startObj):
-#print ffprobe output to txt file, we'll grep it later to see if we need to transcode for j2k/mxf
+	#print ffprobe output to txt file, we'll grep it later to see if we need to transcode for j2k/mxf
 	ffdata = open(startObj + ".ffdata.txt","w")
 	subprocess.call(['ffprobe','-show_streams','-of','flat','-sexagesimal','-i',startObj], stdout=ffdata)
 	ffdata.close()
@@ -61,13 +62,14 @@ def makeVideo(startObj):
 def makeAudio(args, startObj, startDir, assetName, EuseChar):
 	with cd(startDir):
 		#set some defaults
-		ac = '1'
-		ar = '44100'
-		sfmt = 's16'
-		fadestring = ''
-		id3string = ''
+		ac = '1' #audio channels
+		ar = '44100' #audio rate
+		sfmt = 's16' #sample_fmt, signed 16-bit in this case
+		fadestring = '' #placeholder for fades, if we make em
 		if not EuseChar == '': #sorts out the jukebox stuff which doesn't get this treatment
-			id3string = makeid3(startDir, assetName)
+			id3string = makeid3(startDir, assetName) #calls our id3 function
+		else:
+			id3string = ''
 		#get the right channel config
 		if args['stereo'] is not False:
 			ac = '2'
@@ -90,41 +92,40 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 					fadestring = "-af afade=t=in:ss=0:d=2,afade=t=out:st=" + fadestart + ":d=2 " #generate the fade string using the fade out start time
 			ffdata.close() #housekeeping
 			os.remove(startObj + '.ffdata.txt') #housekeeping
-		
 		#subprocess.call(['ffmpeg','-i',startObj,'-ar',ar,'-sample_fmt',sfmt,'-ac',ac,'-id3v2_version','3','-write_id3v1','1','-y',assetName + EuseChar + '.wav'])
 		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + fadestring + '-id3v2_version 3 -write_id3v1 1 -y ' + assetName + EuseChar + '.wav'
-
 		subprocess.call(ffmpegstring)
 	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makeid3(startDir, assetName):
+	#initialize some crap
 	id3Obj = os.path.join(startDir, assetName + "-mtd.txt")
-	print "id3Obj " + id3Obj
 	id3String = ""
-	if not os.path.exists(id3Obj):
+	if not os.path.exists(id3Obj): #check to see if it exists alread
 		usrInput = ''
 		while usrInput not in ['y','n']: #gotta answer yes or no to this q
 			usrInput = raw_input("There is currently no associated ID3 metadata for this object, would you like to make some so that it'll play nice with iTunes? (y/n) ")
 			usrInput = usrInput.lower()
+		#this promts the user to make a txt file with this formatting
 		if usrInput == 'y':
 			print "Great, thank you! Here's how"
 			print "1)Open a new text file and save it in the same folder as the thing you're trying to broadcast"
-			print "2)Copy and paste the following into the empty text file, keep the new lines and punctuation"
+			print "2)Type the following into the empty text file, keep the new lines and punctuation"
 			print ";FFMETADATA1"
 			print "title= "
 			print "artist= "
 			print "album- "
 			print "date= "
 			print "publisher=UCSB Special Research Collections"
-			print "3)Ok, don't copy-paste this part. Now, the best you can, fill out those fields in the text file"
+			print "3)Ok, don't type this part. Now, the best you can, fill out those fields in the text file"
 			print "4)Lastly, save it as " + assetName + "-mtd.txt"
-			donezo = raw_input("Press 'Enter' when you've finished the above process")
-			id3String = "-i " + id3Obj + " -map_metadata 1"
+			donezo = raw_input("Press 'Enter' when you've finished the above process") #pauses script until the user says they're done
+			id3String = "-i " + id3Obj + " -map_metadata 1" #set the string so ffmpeg can find and use this obj
 		if usrInput == 'n':
-			print "Ok, not great but ok"
+			print "Ok, not great but ok" #fine, i mean i guess, whatever
 	else:
-		id3String = "-i " + id3Obj + " -map_metadata 1"
+		id3String = "-i " + id3Obj + " -map_metadata 1" #if the object already exists, set the string so ffmpeg can find and use this obj
 	return id3String
 
 #parses input and makes the appropriate calls	
@@ -136,23 +137,24 @@ def handling():
 	parser.add_argument('-s','--stereo',action='store_true',help='outputs to stereo (mono is default)')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = args['startObj'].replace("\\",'/') #for the windows peeps
-	vexts = ['.mxf','.mp4','.mkv']
-	aexts = ['.wav']
-	fnamext = os.path.basename(os.path.abspath(startObj))
-	fname, ext = os.path.splitext(fnamext)
-	SuseChar = fname[-1:]
-	startDir = os.path.abspath(os.path.join(startObj, os.pardir))
+	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
+	aexts = ['.wav'] #set extensions we recognize for audio
+	fnamext = os.path.basename(os.path.abspath(startObj)) #grabs the filename and extension
+	fname, ext = os.path.splitext(fnamext) #splits filename and extension
+	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
+	startDir = os.path.abspath(os.path.join(startObj, os.pardir)) #grabs the directory that this object is in (we'll cd into it later)
 	#start testing
-	if not os.path.isfile(startObj):
+	if not os.path.isfile(startObj): #if it's not a file, say so
 		print "Buddy, that's not a file"
-	if not ext in vexts and not ext in aexts:
+	if not ext in vexts and not ext in aexts: #if it's not a file we expect to deal with, say so, it probly needs special params
 		print "Buddy, that's not really a file that we can make a broadcast master out of"
 	else:
 		if ext in vexts:
 			print "itsa vid"
-			#makevideo(startObj, )
+			#makevideo(startObj, ) gotta get on this
 		if ext in aexts:
 			print "itsa sound"
+			#see what character it is and assign EndUseCharacters accordingly
 			if SuseChar == 'a':
 				print "archival master"
 				assetName = fname[:-1]
@@ -171,7 +173,7 @@ def handling():
 			else:
 				assetName = fname
 				EuseChar = "b"
-			makeAudio(args, startObj, startDir, assetName, EuseChar)
+			makeAudio(args, startObj, startDir, assetName, EuseChar) #actually make the thing
 	return 
 
 
@@ -179,6 +181,6 @@ dependencies()
 handling()
 
 #adds for later
-#seeing if id3 metadata is already in the file
+#seeing if id3 metadata is already in the file, import from makemp3
 #replacing print to txt with regex
 #video

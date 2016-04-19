@@ -8,6 +8,7 @@ import argparse
 import sys
 from distutils import spawn
 
+#check that we have the required software to run this script
 def dependencies():
 	depends = ['ffmpeg']
 	for d in depends:

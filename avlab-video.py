@@ -3,14 +3,15 @@
 #pbcore2
 #framemd5
 #send acc + presmtd to R:\Visual\[0000]
+
 import os
 import subprocess
 import sys
 import glob
 from distutils import spawn
 
+#Context manager for changing the current working directory
 class cd:
-    #Context manager for changing the current working directory
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
 
@@ -21,6 +22,7 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+#find if we have the correct software installed		
 def dependencies():
 	depends = ['ffmpeg','ffprobe','MediaInfo','python']
 	for d in depends:
@@ -32,6 +34,7 @@ def dependencies():
 
 def main():
 	#move through the new_ingest directory tree
+	rootdir = 'R:/Visual/avlab/new_ingest'
 	for subdir, dirs, files in os.walk(rootdir):
 		#cd into subdirs
 		with cd(subdir):
@@ -60,6 +63,5 @@ def main():
 					subprocess.call(['ffmpeg','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
 	return
 
-rootdir = 'R:/Visual/avlab/new_ingest'
 dependencies()
 main()
