@@ -39,18 +39,22 @@ def main():
 	batchDir = config.get('NationalJukebox','BatchDir')
 	mmrepo = config.get('global','scriptRepo')
 	vad = config.get('NationalJukebox','VisualArchRawDir')
+	vad = os.path.join(vad,time.strftime("%Y-%m-%d")) #actual capture directory has today's date in ISO format
 	vid = config.get('NationalJukebox','VisualIntermedDir')
 	vpd = config.get('NationalJukebox','VisualProcessedDir')
-	ren = [vad, vid, vpd] #lets not repeat ourselves here
-	blah = os.path.join(vad,time.strftime("%Y-%m-%d"))
+	vislist = [vad, vid, vpd] #list of dirs to go thru
+	#first, process the intermediates
 	for dirs, subdris, files in os.walk(vid):
 		for f in files:
 			fname, ext = os.path.splitext(f)
-			subprocess.call(['gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180',os.path.join(vpd,fname + ".tif")])
-	for r in ren:
-		with cd(r):
-			print "blah"
-			subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),r]) 
+			subprocess.call(['gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180',os.path.join(vpd,fname + ".tif")]) #convert them and save them to a diff folder (mimicing the bespoke processes of yore)
+	#move all the files
+	for r in vislist:
+		subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),r]) #deal with the stupid cusb bug	
+		for dirs, subdris, files in os.walk(r):
+			for f in files:
+				fname, ext = os.path.splitext(f)
+				subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(dirs,f),os.path.join(batchDir,fname)])
 	return
 
 dependencies()
