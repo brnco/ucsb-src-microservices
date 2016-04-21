@@ -7,6 +7,7 @@ import os
 import sys
 import shutil
 import time
+import re
 from optparse import OptionParser #OpenCube uses python 2.6 so has to be compatible, argparse not available until 2.7
 import getpass
 
@@ -61,11 +62,11 @@ def compareDelete(bar):
 	#open both md5 files
 	with open(soMD,'r') as f1:
 		with open(eoMD,'r') as f2:
-			_sf1 = f1.read()
-			sf1 = _sf1[0:32] #read first 32 chars (length of md5 hash)
-			_ef2 = f2.read()
-			ef2 = _ef2[0:32]
-			if sf1 == ef2: #if they're the same that's great
+			sf1 = re.search('\w{32}',f1.read()) #this searches for a 32char alphanumeric string (the md5 hash)
+			ef2 = re.search('\w{32}',f2.read())
+			print "srce: " + sf1.group().lower()
+			print "dest: " ef2.group().lower()
+			if sf1.group().lower() == ef2.group().lower(): #if they're the same that's great
 				delyn = 1 # set an error level
 			else: #fine too but it means the files aren't the same on both ends of transfer
 				delyn = 0		
@@ -96,9 +97,9 @@ def main():
 
 	#copy each item from start to dest
 	for f in flist:
-		print "copying files from source to destination..."
-		print ""
 		sf, ef = f #break list of tuples up into startfile and endfile
+		print "copying" + sf + "from source to destination..."
+		print ""
 		if soisdir == '0':
 			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
 		if soisdir == '1':
@@ -110,8 +111,9 @@ def main():
 	
 	#hash start and end files
 	for sf, ef in flist:
-		print "hashing source and destination files..."
 		print ""
+		print "hashing source and destination files..."
+		print sf + " " + ef
 		#to change the hashing algorithm just replace MD5 with SHA256 or whatever, remember to change extensions up top too!
 		sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
 	
@@ -119,8 +121,8 @@ def main():
 	if options.c is 'None': #if we are moving not copying, as declared by flag -c, delete the start object
 		#compare and delete them
 		for f in flist:
-			print "verifying source and destination hashes..."
 			print ""
+			print "verifying source and destination hashes..."
 			compareDelete(f)
 			
 		#if we hashmoved a dir, try to delete the now empty dir

@@ -29,8 +29,8 @@ def main():
 	mmrepo = config.get('global','scriptRepo')
 	flist = ['m.wav','.wav','.tif']
 	dirlist = []
-	with cd(qcDir)
-		subprocess.call('python',os.path.join(mmrepo,'rename_ucsbtocusb.py'))
+	with cd(qcDir):
+		subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),qcDir])
 	#make a list of dirs that have everything we need
 	for dirs, subdirs, files in os.walk(qcDir): #loop thru qc dir
 		for s in subdirs: #loop thru each subdir
@@ -43,7 +43,7 @@ def main():
 				if os.path.isfile(s + flist[0]) and os.path.isfile(s + flist[1]) and os.path.isfile(s + flist[2]): #if each file extension exists in there
 					dirlist.append(s) #append the subdir to the list of files we wanna move
 	for d in dirlist: #for each verified subdir
-		subprocess.call('python',os.path.join(mmrepo,'hashmove.py'),os.path.join(qcDir,d),os.path.join(batchDir,d)) #hashmove it to the batch folder
+		subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(qcDir,d),os.path.join(batchDir,d)]) #hashmove it to the batch folder
 				
 	return
 
