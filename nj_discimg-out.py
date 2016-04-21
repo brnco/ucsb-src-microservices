@@ -45,8 +45,8 @@ def main():
 	blah = os.path.join(vad,time.strftime("%Y-%m-%d"))
 	for dirs, subdris, files in os.walk(vid):
 		for f in files:
-			print f
-			#subprocess.call('gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180'
+			fname, ext = os.path.splitext(f)
+			subprocess.call(['gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180',os.path.join(vpd,fname + ".tif")])
 	for r in ren:
 		with cd(r):
 			print "blah"
