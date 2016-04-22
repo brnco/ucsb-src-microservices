@@ -65,7 +65,7 @@ def compareDelete(bar):
 			sf1 = re.search('\w{32}',f1.read()) #this searches for a 32char alphanumeric string (the md5 hash)
 			ef2 = re.search('\w{32}',f2.read())
 			print "srce: " + sf1.group().lower()
-			print "dest: " ef2.group().lower()
+			print "dest: " + ef2.group().lower()
 			if sf1.group().lower() == ef2.group().lower(): #if they're the same that's great
 				delyn = 1 # set an error level
 			else: #fine too but it means the files aren't the same on both ends of transfer

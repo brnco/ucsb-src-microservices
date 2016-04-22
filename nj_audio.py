@@ -44,18 +44,27 @@ def main():
 	broadDir = config.get('NationalJukebox','AudioBroadDir')
 	subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),archDir])
 	subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),broadDir])
-	for dirs, subdirs, files in os.walk(broadDir):
-		for f in files:
-			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),f,'-ff','-nj'])
-			fname, ext = os.path.splitext(f)
-			subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),f,os.path.join(qcDir,fname)])
-	for dirs, subdirs, files in os.walk(archDir):
-		for f in files:
-			fname, ext = os.path.splitext(f)
-			mname = fname + "m" + ext
-			os.path.rename(f,mname)
-			subprocess.call(['bwfmetaedit','--MD5-Embed',mname])
-			subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),mname,os.path.join(qcDir,fname)])
+	with cd(broadDir):
+		for dirs, subdirs, files in os.walk(os.getcwd()):
+			for f in files:
+				if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"):
+					os.remove(f)
+				else:
+					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),f,'-ff','-nj'])
+					fname, ext = os.path.splitext(f)
+					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),f,os.path.join(qcDir,fname)])
+	with cd(archDir):
+		for dirs, subdirs, files in os.walk(os.getcwd()):
+			for f in files:
+				if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"):
+					os.remove(f)
+				else:
+					fname, ext = os.path.splitext(f)
+					mname = fname + "m" + ext
+					os.rename(f,mname)
+					print "embedding MD5 info in " + mname
+					subprocess.call(['bwfmetaedit','--MD5-Embed',mname])
+					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),mname,os.path.join(qcDir,fname)])
 	return
 
 dependencies()

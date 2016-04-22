@@ -66,7 +66,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		ar = '44100' #audio rate
 		sfmt = 's16' #sample_fmt, signed 16-bit in this case
 		fadestring = '' #placeholder for fades, if we make em
-		if not EuseChar == '': #sorts out the jukebox stuff which doesn't get this treatment
+		if args['nationaljukebox'] is False: #sorts out the jukebox stuff which doesn't get this treatment
 			id3string = makeid3(startDir, assetName) #calls our id3 function
 		else:
 			id3string = ''
@@ -176,8 +176,8 @@ def handling():
 				assetName = fname
 				EuseChar = "b"
 			makeAudio(args, startObj, startDir, assetName, EuseChar) #actually make the thing
-	if args['NationalJukebox'] is True:
-		with cd(startDir)
+	if args['nationaljukebox'] is True:
+		with cd(startDir):
 			os.remove(startObj)
 			os.rename(assetName + EuseChar + '.wav',assetName + '.wav')
 	return 
