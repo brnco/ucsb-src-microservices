@@ -135,6 +135,7 @@ def handling():
 	parser.add_argument('startObj',nargs ='?',help='the file to be transcoded',)
 	parser.add_argument('-ff','--fades',action='store_true',help='adds 2s heads and tails fades to black/ silence')
 	parser.add_argument('-s','--stereo',action='store_true',help='outputs to stereo (mono is default)')
+	parser.add_argument('-nj','--nationaljukebox',action='store_true',help='extra processing step for National Jukebox files')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = args['startObj'].replace("\\",'/') #for the windows peeps
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
@@ -143,6 +144,7 @@ def handling():
 	fname, ext = os.path.splitext(fnamext) #splits filename and extension
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	startDir = os.path.abspath(os.path.join(startObj, os.pardir)) #grabs the directory that this object is in (we'll cd into it later)
+	
 	#start testing
 	if not os.path.isfile(startObj): #if it's not a file, say so
 		print "Buddy, that's not a file"
@@ -174,6 +176,10 @@ def handling():
 				assetName = fname
 				EuseChar = "b"
 			makeAudio(args, startObj, startDir, assetName, EuseChar) #actually make the thing
+	if args['NationalJukebox'] is True:
+		with cd(startDir)
+			os.remove(startObj)
+			os.rename(assetName + EuseChar + '.wav',assetName + '.wav')
 	return 
 
 
