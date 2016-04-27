@@ -14,29 +14,24 @@ import getpass
 #figure out if arguments given are files or dirs, generate list of files and destinations to work on
 def makelist(startObj,dest,flist=[],soisdir=''):
 	if os.path.isfile(startObj):#if first argument is a file it's p easy
-		soisdir = '0'
+		soisdir = False
 		endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that we wanted to move, in its destination
 		flist = (startObj, endObj)
 	#if the start object is a directory things get tricky
-	if os.path.isdir(startObj):
-		soisdir = '1' #we'll use this later to delete these dirs
-		for dirname, subdirs, files in os.walk(startObj): #walk recursively through the dirtree
-			for y in subdirs: #for each subdir
-				for z in os.listdir(os.path.join(dirname,y)): #for each file in y-subdir
-					_file = os.path.join(dirname,y,z) #get the full path to the start file
-					endObj = os.path.join(dest,y,z) #make the full path for the destination file
-					filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
-					if not ext == '.md5':
-						flist.extend((_file,endObj)) #add these items as a tuple to the list of files
+	elif os.path.isdir(startObj):
+		soisdir = True #we'll use this later to delete these dirs
+		if not startObj.endswith("/"):
+			startObj = startObj + "/" #later, when we do some string subs, this keeps os.path.join() from breaking on a leading /
+		for dirs, subdirs, files in os.walk(startObj): #walk recursively through the dirtree
 			for x in files: #ok, for all files rooted at start object
-				#for s in flist: #loop through file list
-				if not os.path.join(dirname,x) in flist: #check to see that the file isnt already in flist
-					_file = os.path.join(dirname, x) #if it's not, grab the start file full path
-					endObj = os.path.join(dest, x) #make the end object full path
-					filename, ext = os.path.splitext(_file) #check that it's not an md5 (no hashes of hashes here my friend)
-					if not ext == '.md5':
-						flist.extend((_file,endObj))#add these items as a tuple to the list of files
-	it = iter(flist)
+				b = os.path.join(dirs,x) #make the full path to the file
+				b = b.replace(startObj,'') #extract just path relative to startObj (the subdirtree that x is in)
+				endObj = os.path.join(dest,b) #recombine the subdirtree with given destination
+				_file = os.path.join(dirs, x) #if it's not, grab the start file full path
+				filename, ext = os.path.splitext(_file) #separate extension from filename
+				if not ext == '.md5': #check that the file found it not an md5 (no hashes of hashes here my friend)
+					flist.extend((_file,endObj)) #add these items as a tuple to the list of files
+	it = iter(flist) #i dunno but it's necessary
 	flist = zip(it, it) #uhhhh, formally make that object into a list
 	return flist, soisdir
 
@@ -51,7 +46,7 @@ def hashfile(afile, hasher, blocksize=65536):
 		# THING: if a sum already exists in dest it wont be recalcd but idgaf
 		with open(fmd5,"w") as text_file: # initialize a file that will contain the md5
 			text_file.write(hasher.hexdigest() + " *" + afile.name) # write it with the hash *filename
-	print hasher.hexdigest() # pop the results to the cli who cares
+	#print hasher.hexdigest() # pop the results to the cli who cares
 	return
 
 #open the hash files and compare their contents
@@ -64,8 +59,8 @@ def compareDelete(bar):
 		with open(eoMD,'r') as f2:
 			sf1 = re.search('\w{32}',f1.read()) #this searches for a 32char alphanumeric string (the md5 hash)
 			ef2 = re.search('\w{32}',f2.read())
-			print "srce: " + sf1.group().lower()
-			print "dest: " + ef2.group().lower()
+			print "srce " + os.path.basename(so) + " " + sf1.group().lower()
+			print "dest " + os.path.basename(eo) + " " + ef2.group().lower()
 			if sf1.group().lower() == ef2.group().lower(): #if they're the same that's great
 				delyn = 1 # set an error level
 			else: #fine too but it means the files aren't the same on both ends of transfer
@@ -98,13 +93,13 @@ def main():
 	#copy each item from start to dest
 	for f in flist:
 		sf, ef = f #break list of tuples up into startfile and endfile
-		print "copying" + sf + "from source to destination..."
 		print ""
-		if soisdir == '0':
+		print "copying " + os.path.basename(sf) + " from source to destination..."
+		if soisdir is False: #if the startObject is not a directory
 			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
-		if soisdir == '1':
+		if soisdir is True: #if the startObject is a directory
 			#make the subdirectories
-			_dest = os.path.dirname(os.path.normpath(ef))
+			_dest = os.path.dirname(os.path.normpath(ef)) 
 			if not os.path.exists(_dest):
 				os.makedirs(_dest)
 			shutil.copy2(sf,ef) #we use copy2 because it grabs all the registry metadata too
@@ -112,8 +107,7 @@ def main():
 	#hash start and end files
 	for sf, ef in flist:
 		print ""
-		print "hashing source and destination files..."
-		print sf + " " + ef
+		print "hashing source and destination " + os.path.basename(sf)
 		#to change the hashing algorithm just replace MD5 with SHA256 or whatever, remember to change extensions up top too!
 		sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
 	
@@ -126,11 +120,15 @@ def main():
 			compareDelete(f)
 			
 		#if we hashmoved a dir, try to delete the now empty dir
-		if soisdir == '1':
-			for dirname, subdirs, files, in os.walk(startObj):
+		if soisdir is True:
+			rmDirList = []
+			for dirs, subdirs, files, in os.walk(startObj):
 				for x in subdirs: #delete subdirs
-					os.rmdir(os.path.join(dirname,x))
-			time.sleep(2.0) #gotta give the system time to catch up and recognize if a dir is empty
+					rmDirList.append(os.path.join(dirs,x))
+					#os.rmdir(os.path.join(dirs,x))
+			for rm in reversed(rmDirList):
+				os.rmdir(rm)
+				time.sleep(1.0) #gotta give the system time to catch up and recognize if a dir is empty
 			os.rmdir(startObj)
 	
 	if options.lto is not 'None':
