@@ -38,15 +38,14 @@ def main():
 	captureDir = "R:/Cylinders/avlab/audio_captures/"
 	#recursively walk through the capture directory, finding all files and 1 layer of subfolders
 	for dirs, subdirs, files in os.walk(captureDir):
-		for file in files:
-			#get rid of the bs that wavelab creates
-			if file.endswith(".gpk") or file.endswith(".bak") or file.endswith(".mrk"):
-				os.remove(file)
 		#for each folder in our capture directory
 		for s in subdirs:
 			#cd into it
 			with cd(os.path.join(captureDir, s)):
 				print "Processing Cylinder" + s
+				for f in os.listdir(os.getcwd()):
+					if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"):
+						os.remove(f)
 				#initialize
 				startObj = 'cusb-cyl' + s + 'b.wav'
 				interObj = 'cusb-cyl' + s + 'c.wav'
@@ -68,7 +67,8 @@ def main():
 			else:
 				endDirThousand = endDirThousand[:2] + "000"
 			endDir = os.path.abspath(os.path.join("R:/Cylinders",endDirThousand,s)) #set a destination
-			subprocess.call(['python','S:/avlab/microservices/hashmove.py',s,endDir]) #hashmove the file to its destination
+			hmstr = "python S:/avlab/microservices/hashmove.py " + s + " " + endDir
+			subprocess.call(['python','hashmove.py',os.path.join(dirs,s),endDir]) #hashmove the file to its destination
 	return
 
 dependencies()
