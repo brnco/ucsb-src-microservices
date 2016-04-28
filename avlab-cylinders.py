@@ -9,7 +9,8 @@ import subprocess
 import sys
 import glob
 import re
-import argparse
+import ConfigParser
+import getpass
 from distutils import spawn
 
 #Context manager for changing the current working directory
@@ -35,7 +36,12 @@ def dependencies():
 	
 def main():
 	#initialize a capture directory
-	captureDir = "R:/Cylinders/avlab/audio_captures/"
+	config = ConfigParser.ConfigParser()
+	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
+	captureDir = config.get('cylinders','cylCaptureDir')
+	repoDir = config.get('cylinders','cylRepoDir')
+	logDir = config.get('cylinders','cylLogDir')
+	mmrepo = config.get('global','scriptRepo')
 	#recursively walk through the capture directory, finding all files and 1 layer of subfolders
 	for dirs, subdirs, files in os.walk(captureDir):
 		#for each folder in our capture directory
@@ -43,9 +49,9 @@ def main():
 			#cd into it
 			with cd(os.path.join(captureDir, s)):
 				print "Processing Cylinder" + s
-				for f in os.listdir(os.getcwd()):
-					if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"):
-						os.remove(f)
+				for f in os.listdir(os.getcwd()): #first
+					if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"): #if the files in each capture dir end with some bs
+						os.remove(f) #delete it
 				#initialize
 				startObj = 'cusb-cyl' + s + 'b.wav'
 				interObj = 'cusb-cyl' + s + 'c.wav'
@@ -53,12 +59,12 @@ def main():
 					print "Buddy, somethings not right here"
 					sys.exit()
 				else:
-					subprocess.call(['python','S:/avlab/microservices/makebroadcast.py',startObj,'-ff']) #calls makebroadcast.py and tells it to insert 2s fades
+					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),startObj,'-ff']) #calls makebroadcast.py and tells it to insert 2s fades
 					os.remove(startObj) #deletes the raw broadcast capture
 					os.rename(interObj, startObj) #renames the itnermediate files as the broadcast master
-					subprocess.call(['python','S:/avlab/microservices/makemp3.py',startObj]) #calls makemp3.py on the new broadcast master
+					subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
 			#opens a log and write "Cylinder12345" for each cylinder processed so we can change their catalog records later
-			with open('R:/Cylinders/avlab/to-update.txt','a') as t:
+			with open(os.path.join(logDir,'to-update.txt'),'a') as t:
 				t.write("Cylinder" + s + "\n")
 			#based on how we have our repo set up, find which set of 1000 files this cylinder belongs in
 			endDirThousand = str(s)
@@ -66,8 +72,7 @@ def main():
 				endDirThousand = endDirThousand[:1] + "000"
 			else:
 				endDirThousand = endDirThousand[:2] + "000"
-			endDir = os.path.abspath(os.path.join("R:/Cylinders",endDirThousand,s)) #set a destination
-			hmstr = "python S:/avlab/microservices/hashmove.py " + s + " " + endDir
+			endDir = os.path.abspath(os.path.join(repoDir,endDirThousand,s)) #set a destination
 			subprocess.call(['python','hashmove.py',os.path.join(dirs,s),endDir]) #hashmove the file to its destination
 	return
 
