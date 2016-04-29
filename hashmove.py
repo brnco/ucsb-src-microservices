@@ -69,8 +69,8 @@ def main():
 	#initialize all of the things
 	usage = "Usage: python %prog [-options] source destination"
 	parser = OptionParser(usage=usage) #crate a parser object
-	parser.add_option('-c','--copy',action='store_true',dest='c',default='None',help="copy, don't delete from source") #add an option to our parser object, in this case '-c' for copy
-	parser.add_option('-l','--lto',action='store_true',dest='lto',default='None',help="write to lto, asks for lto barcode and logs files written")
+	parser.add_option('-c','--copy',action='store_true',dest='c',default=False,help="copy, don't delete from source") #add an option to our parser object, in this case '-c' for copy
+	parser.add_option('-l','--lto',action='store_true',dest='lto',default=False,help="write to lto, asks for lto barcode and logs files written")
 	parser.add_option('-q','--quiet',action='store_true',dest='q',default=False,help="quiet mode, don't print anything to console")
 	(options, args) = parser.parse_args() #parse the parser object, return list of options followed by positional parameters
 	#args[] is the index of a positional argument, 0=source, 1=destination, in this case
@@ -78,6 +78,8 @@ def main():
 	dest = args[1].replace("\\","/") # just easier to replace these slashes for windows sry
 	if not os.path.exists(dest): # make the destination dir if it don't already exist
 		os.makedirs(dest)
+	
+	#quiet mode redirects standard out to nul
 	if options.q is True:
 		f = open(os.devnull,'w')
 		sys.stdout = f
@@ -107,32 +109,32 @@ def main():
 		#to change the hashing algorithm just replace MD5 with SHA256 or whatever, remember to change extensions up top too!
 		sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
 	
-	
-	if options.c is 'None': #if we are moving not copying, as declared by flag -c, delete the start object
-		#compare and delete them
-		for sf, ef in flist:
+	#compare start and end hashes
+	for sf, ef in flist:
+		print ""
+		print "verifying source and destination hashes..."
+		sfhash = sf + ".md5"
+		efhash = ef + ".md5"
+		delyn = compare(sfhash,efhash)
+		if options.c is False and delyn is True:
 			print ""
-			print "verifying source and destination hashes..."
-			sfhash = sf + ".md5"
-			efhash = ef + ".md5"
-			delyn = compare(sfhash,efhash)
-			if delyn is True:
-				os.remove(sf)
-				os.remove(sfhash)
+			print "deleting verified files..."
+			os.remove(sf)
+			os.remove(sfhash)
 			
 		#if we hashmoved a dir, try to delete the now empty dir
-		if soisdir is True:
-			rmDirList = []
-			for dirs, subdirs, files, in os.walk(startObj):
-				for x in subdirs: #delete subdirs
-					rmDirList.append(os.path.join(dirs,x))
-					#os.rmdir(os.path.join(dirs,x))
-			for rm in reversed(rmDirList):
-				os.rmdir(rm)
-				time.sleep(1.0) #gotta give the system time to catch up and recognize if a dir is empty
-			os.rmdir(startObj)
+	if options.c is False and soisdir is True:
+		rmDirList = []
+		for dirs, subdirs, files, in os.walk(startObj):
+			for x in subdirs: #delete subdirs
+				rmDirList.append(os.path.join(dirs,x))
+				#os.rmdir(os.path.join(dirs,x))
+		for rm in reversed(rmDirList):
+			os.rmdir(rm)
+			time.sleep(1.0) #gotta give the system time to catch up and recognize if a dir is empty
+		os.rmdir(startObj)
 	
-	if options.lto is not 'None':
+	if options.lto is True:
 		ltoNumber = raw_input("What is the barcode of this LTO? ")
 		usr = getpass.getuser()
 		if usr == 'opencube':
