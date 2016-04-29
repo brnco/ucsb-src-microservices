@@ -12,7 +12,7 @@ from optparse import OptionParser #OpenCube uses python 2.6 so has to be compati
 import getpass
 
 #figure out if arguments given are files or dirs, generate list of files and destinations to work on
-def makelist(startObj,dest,flist=[],soisdir=''):
+def makelist(startObj,dest,flist=[]):
 	if os.path.isfile(startObj):#if first argument is a file it's p easy
 		soisdir = False
 		endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that we wanted to move, in its destination
@@ -72,12 +72,16 @@ def main():
 	parser.add_option('-c','--copy',action='store_true',dest='c',default=False,help="copy, don't delete from source") #add an option to our parser object, in this case '-c' for copy
 	parser.add_option('-l','--lto',action='store_true',dest='lto',default=False,help="write to lto, asks for lto barcode and logs files written")
 	parser.add_option('-q','--quiet',action='store_true',dest='q',default=False,help="quiet mode, don't print anything to console")
+	parser.add_option('-v','--verify',action='store_true',dest='v',default=False,help="verify mode, verifies sidecar hash(es) for file or dir")
 	(options, args) = parser.parse_args() #parse the parser object, return list of options followed by positional parameters
+	
 	#args[] is the index of a positional argument, 0=source, 1=destination, in this case
 	startObj = args[0].replace("\\","/") # fun fact, windows lets you type both fwd and back slashes in pathnames
-	dest = args[1].replace("\\","/") # just easier to replace these slashes for windows sry
-	if not os.path.exists(dest): # make the destination dir if it don't already exist
-		os.makedirs(dest)
+	
+	if options.v is True: #if we're verifying then the start and end objects are the same
+		dest = startObj
+	else:
+		dest = args[1].replace("\\","/")
 	
 	#quiet mode redirects standard out to nul
 	if options.q is True:
@@ -107,7 +111,9 @@ def main():
 		print ""
 		print "hashing source and destination " + os.path.basename(sf)
 		#to change the hashing algorithm just replace MD5 with SHA256 or whatever, remember to change extensions up top too!
-		sf, hashfile(open(sf, 'rb'), hashlib.md5()), ef, hashfile(open(ef, 'rb'), hashlib.md5())
+		sf, hashfile(open(sf, 'rb'), hashlib.md5())
+		if options.v is False:
+			ef, hashfile(open(ef, 'rb'), hashlib.md5())
 	
 	#compare start and end hashes
 	for sf, ef in flist:
@@ -122,7 +128,7 @@ def main():
 			os.remove(sf)
 			os.remove(sfhash)
 			
-		#if we hashmoved a dir, try to delete the now empty dir
+	#if we hashmoved a dir, try to delete the now empty dir
 	if options.c is False and soisdir is True:
 		rmDirList = []
 		for dirs, subdirs, files, in os.walk(startObj):
@@ -151,6 +157,5 @@ def main():
 		ltoLog.write("\n")
 		ltoLog.close()
 	return
-
 
 main()
