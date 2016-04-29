@@ -50,28 +50,20 @@ def hashfile(afile, hasher, blocksize=65536):
 	return
 
 #open the hash files and compare their contents
-def compareDelete(bar):
-	so, eo = bar #unpack tuples into startObject and endObject
-	soMD = so + ".md5" #add md5 extensions
-	eoMD = eo + ".md5"
+def compare(sfhashfile, efhashfile):
 	#open both md5 files
-	with open(soMD,'r') as f1:
-		with open(eoMD,'r') as f2:
-			sf1 = re.search('\w{32}',f1.read()) #this searches for a 32char alphanumeric string (the md5 hash)
-			ef2 = re.search('\w{32}',f2.read())
-			print "srce " + os.path.basename(so) + " " + sf1.group().lower()
-			print "dest " + os.path.basename(eo) + " " + ef2.group().lower()
-			if sf1.group().lower() == ef2.group().lower(): #if they're the same that's great
-				delyn = 1 # set an error level
+	with open(sfhashfile,'r') as f1:
+		with open(efhashfile,'r') as f2:
+			sfhash = re.search('\w{32}',f1.read()) #this searches for a 32char alphanumeric string (the md5 hash)
+			efhash = re.search('\w{32}',f2.read())
+			print "srce " + os.path.basename(sfhashfile) + " " + sfhash.group().lower()
+			print "dest " + os.path.basename(efhashfile) + " " + efhash.group().lower()
+			if sfhash.group().lower() == efhash.group().lower(): #if they're the same that's great
+				delyn = True # set an error level
 			else: #fine too but it means the files aren't the same on both ends of transfer
-				delyn = 0		
-	if delyn == 1: #if the strings match it's ok to delete these start file and its hash	
-		f1.close()
-		os.remove(so)
-		os.remove(soMD)
-	else:
-		print "uh there was an issue there"	
-	return
+				delyn = False
+	return delyn
+
 
 def main():
 	#initialize all of the things
@@ -79,13 +71,17 @@ def main():
 	parser = OptionParser(usage=usage) #crate a parser object
 	parser.add_option('-c','--copy',action='store_true',dest='c',default='None',help="copy, don't delete from source") #add an option to our parser object, in this case '-c' for copy
 	parser.add_option('-l','--lto',action='store_true',dest='lto',default='None',help="write to lto, asks for lto barcode and logs files written")
+	parser.add_option('-q','--quiet',action='store_true',dest='q',default=False,help="quiet mode, don't print anything to console")
 	(options, args) = parser.parse_args() #parse the parser object, return list of options followed by positional parameters
 	#args[] is the index of a positional argument, 0=source, 1=destination, in this case
 	startObj = args[0].replace("\\","/") # fun fact, windows lets you type both fwd and back slashes in pathnames
 	dest = args[1].replace("\\","/") # just easier to replace these slashes for windows sry
 	if not os.path.exists(dest): # make the destination dir if it don't already exist
 		os.makedirs(dest)
-		
+	if options.q is True:
+		f = open(os.devnull,'w')
+		sys.stdout = f
+	
 	#ok
 	#return a list of tuples, files to move and their destinations
 	flist, soisdir = makelist(startObj, dest)
@@ -114,10 +110,15 @@ def main():
 	
 	if options.c is 'None': #if we are moving not copying, as declared by flag -c, delete the start object
 		#compare and delete them
-		for f in flist:
+		for sf, ef in flist:
 			print ""
 			print "verifying source and destination hashes..."
-			compareDelete(f)
+			sfhash = sf + ".md5"
+			efhash = ef + ".md5"
+			delyn = compare(sfhash,efhash)
+			if delyn is True:
+				os.remove(sf)
+				os.remove(sfhash)
 			
 		#if we hashmoved a dir, try to delete the now empty dir
 		if soisdir is True:
