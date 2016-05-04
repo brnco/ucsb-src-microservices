@@ -55,22 +55,47 @@ def hashfile(afile, hashalg, blocksize=65536):
 	return hasher.hexdigest()
 
 def printhashes(sflist,shd,eflist,ehd,hashalg):
+	sfhflist = []
 	for sf in sflist: #loop thru list of start files
-			for sh in shd: #for each start hash
-				sfhfile = sf + "." + hashalg #make the filename for the sidecar file
-				if not os.path.isfile(sfhfile): #if it doesn't already exist
-					txt = open(sfhfile, "w") #old school
-					txt.write(shd[sh] + " *" + sh) #lmao at these var names, writes [the start hash from the start hash dict *the filename]
-					txt.close()
+		sfhfile = sf + "." + hashalg #make the filename for the sidecar file
+		sfhflist.extend([sfhfile])
+		if not os.path.isfile(sfhfile): #if it doesn't already exist
+			txt = open(sfhfile, "w") #old school
+			txt.write(shd[os.path.basename(sf)] + " *" + os.path.basename(sf)) #lmao at these var names, writes [the start hash from the start hash dict *the filename]
+			txt.close()
 	for ef in eflist: #repeat for endfiles
-		for eh in ehd:
-			efhfile = ef + "." + hashalg
-			if not os.path.isfile(efhfile):
-				txt = open(efhfile, "w")
-				txt.write(ehd[eh] + " *" + eh)
-				txt.close() 
+		efhfile = ef + "." + hashalg
+		if not os.path.isfile(efhfile):
+			txt = open(efhfile, "w")
+			txt.write(ehd[os.path.basename(ef)] + " *" + os.path.basename(ef))
+			txt.close() 
+	return sfhflist
+	
+def copyfiles(flist,startObjIsDir):
+	for f in flist:
+		sf, ef = f #break list of tuples up into startfile and endfile
+		print ""
+		print "copying " + os.path.basename(sf) + " from source to destination..."
+		if startObjIsDir is False: #if the startObject is not a directory
+			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
+		if startObjIsDir is True: #if the startObject is a directory
+			#make the subdirectories
+			_dest = os.path.dirname(os.path.normpath(ef)) 
+			if not os.path.exists(_dest):
+				os.makedirs(_dest)
+			shutil.copy2(sf,ef) #we use copy2 because it grabs all the registry metadata too
 	return
 	
+def compare(shd, ehd):
+	matches = []
+	mismatches = []
+	for skey in shd:
+		if not shd[skey] == ehd[skey]:
+			mismatches.extend([skey])
+		else:
+			matches.extend([skey])
+	return matches, mismatches
+
 def main():
 	#initialize arguments coming in from cli
 	parser = argparse.ArgumentParser()
@@ -110,19 +135,45 @@ def main():
 	eflist = [x for _,x in flist]
 
 	#placeholder: copy files goes here
+	if args.v is False:
+		copyfiles(flist, startObjIsDir)
 	
 	#make dicts of filenames : hashes
 	shd = makehlist(sflist, args.a, True)
 	ehd = makehlist(eflist, args.a, grip)
-	
+
 	#print the hashes
 	if args.np is False:
-		printhashes(sflist,shd,eflist,ehd,args.a)
-		
+		sfhflist = printhashes(sflist,shd,eflist,ehd,args.a)
+	
 	#compare the dict values and provide feedback
-	
+	matches, mismatches = compare(shd, ehd)
+		
 	#based on feedback, remove start objects
-	
+	if args.c is False and args.v is False:
+		delfiles = []
+		delhfiles = []
+		deldirs = []
+		for match in matches:
+			delfiles.extend([s for s in sflist if match in s])
+			delhfiles.extend([a for a in sfhflist if match in a])
+			print delfiles
+		if startObjIsDir is True:
+			for d in delfiles:
+				for match in matches:
+					deldirs.append(d.replace(match,""))
+		for rmf in delfiles:
+			print rmf
+			print id(rmf)
+			time.sleep(1.0)
+			os.remove(rmf)
+		for rmh in delhfiles:
+			print rmh
+			time.sleep(1.0)
+			os.remove(rmh)
+		for rmd in reversed(deldirs):
+			time.sleep(1.0)
+			os.rmdir(rmd)
 	#print log to cwd of what happened
 	return
 	
