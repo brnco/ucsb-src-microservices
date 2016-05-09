@@ -16,6 +16,8 @@ def makebarcodefile ():
 		title = raw_input("Title: ") #grab the title from the user input on the CLI
 		barcode = raw_input("Barcode: ") #grab the barcode from the user input on the CLI
 		#lol
+		if len(barcode) > 30:
+			print "Error: barcode must be 30 characters or fewer, please redo"
 		#this is the text string that the barcode printer understands
 		lol = ['\n','^XA','\n','^FO050,20^ADN,18,10','\n','^FD' + title + '^FS','\n','^FO050,44^ADN,18,10','\n','^FD' + barcode + '^FS','\n','^FO050,70^BY1','\n','^BCN,40,N,N,N','\n','^FD' + barcode + '^FS','\n','^XZ','\n','\n']
 		bcdf.writelines(lol) #write the List of Lines (lol) to the txt file
