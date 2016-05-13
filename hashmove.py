@@ -1,6 +1,21 @@
+#hashmove.py
 #better file movement
 #takes arguments for source or dest, source can be file or dir, dest must be dir
 #copies files, hashes pre and post copy, deletes if hashes match, deletes dir if empty
+
+############################################################################################################
+#here's a list of the lists used in this script because there's a lot
+#flist = file list. composed of string tuples of start and end file paths
+#sflist = start file list. strings of start file paths
+#eflist = end file list. strings of end file paths
+#sfhflist = start file hash file list. strings of the full paths of the sidecar hash files for source files
+#efhflist = end file hash file list. strings of the full paths of the sidecar hash files for destination
+#matches = list of filepaths whose hashes match, either after copy or after recalc (in the case of verifying)
+#mismatches = list of filepaths whose hashes don't match, either after copy or after recalc (in the case of verifying)
+#shd = start hash dictionary. filename.ext : hash-value pairs for start files
+#ehd = end hash dictionary. filename.ext : hash-value pairs for end files
+############################################################################################################
+
 
 import hashlib
 import os
@@ -86,6 +101,44 @@ def copyfiles(flist,startObjIsDir):
 			shutil.copy2(sf,ef) #we use copy2 because it grabs all the registry metadata too
 	return
 	
+def deletefiles(sflist,sfhflist,matches,startObjIsDir):
+	#initialize some lists
+	delfiles = []
+	delhfiles = []
+	deldirs = []
+	for match in matches:
+		delfiles.extend([s for s in sflist if match in s])
+		#^^^what this means is:
+		#for each full path (s) in the start file list (sflist)
+		#if the filename (match) is in full path (s)
+		#extend the list delfiles
+		delhfiles.extend([a for a in sfhflist if match in a])
+		#print delfiles
+	delfiles = list(set(delfiles)) #de-dupe
+	delhfiles = list(set(delhfiles)) #de-dupe
+	if startObjIsDir is True:
+		for d in delfiles:
+			deldirs.append(os.path.dirname(d))
+	#if startObjIsDir is True: #if we need to delete some dirs
+		#for match in matches: #loop through list of filenames.ext whose hashes match
+			#for d in delfiles: #loop through list of full paths of files to be deleted
+				#if match in d: #if the filename.ext is in the fullpath of the file to delete
+					#deldirs.append(d.replace(match,"")) #subtract the filename.ext from the full path and append that to a list of dirs
+	deldirs = list(set(deldirs)) #de-dupe
+	for rmf in delfiles:
+		#print rmf
+		#print id(rmf)
+		time.sleep(1.0)
+		os.remove(rmf)
+	for rmh in delhfiles:
+		#print rmh
+		time.sleep(1.0)
+		os.remove(rmh)
+	for rmd in reversed(sorted(deldirs, key=len)):
+		time.sleep(1.0)
+		os.rmdir(rmd)	
+	return
+	
 def compare(shd, ehd):
 	matches = []
 	mismatches = []
@@ -96,6 +149,19 @@ def compare(shd, ehd):
 			matches.extend([skey])
 	return matches, mismatches
 
+def log(matches,mismatches,ehd):
+	txtFile = open("log_" + time.strftime("%Y-%m-%d_%H%M%S") + ".txt", "w") #name log file log_YYYY-MM-DD_HourMinSec.txt
+	txtFile.write("The following were successful:\n")
+	for match in matches:
+		if match in ehd:
+			txtFile.write(match + " : " + ehd[match] + "\n")
+	txtFile.write("The following were unsuccessful:")
+	for mis in mismatches:
+		if mis in ehd:
+			txtfile.write(mis + " : " + ehd[mis] + "\n")
+	txtFile.close()
+	return
+	
 def main():
 	#initialize arguments coming in from cli
 	parser = argparse.ArgumentParser()
@@ -134,7 +200,7 @@ def main():
 	sflist = [x for x,_ in flist]
 	eflist = [x for _,x in flist]
 
-	#placeholder: copy files goes here
+	#copy files from source to destination
 	if args.v is False:
 		copyfiles(flist, startObjIsDir)
 	
@@ -148,33 +214,17 @@ def main():
 	
 	#compare the dict values and provide feedback
 	matches, mismatches = compare(shd, ehd)
-		
+	for m in mismatches:
+		print "The following file hash did not match: " + m
+	
 	#based on feedback, remove start objects
-	if args.c is False and args.v is False:
-		delfiles = []
-		delhfiles = []
-		deldirs = []
-		for match in matches:
-			delfiles.extend([s for s in sflist if match in s])
-			delhfiles.extend([a for a in sfhflist if match in a])
-			print delfiles
-		if startObjIsDir is True:
-			for d in delfiles:
-				for match in matches:
-					deldirs.append(d.replace(match,""))
-		for rmf in delfiles:
-			print rmf
-			print id(rmf)
-			time.sleep(1.0)
-			os.remove(rmf)
-		for rmh in delhfiles:
-			print rmh
-			time.sleep(1.0)
-			os.remove(rmh)
-		for rmd in reversed(deldirs):
-			time.sleep(1.0)
-			os.rmdir(rmd)
+	if args.c is False or args.v is False:
+		deletefiles(sflist,sfhflist,matches,startObjIsDir)
+		
 	#print log to cwd of what happened
+	if args.l is True:
+		log(matches,mismatches,ehd)
+	
 	return
 	
 
