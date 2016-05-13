@@ -2,8 +2,14 @@
 #better file movement
 #takes arguments for source or dest, source can be file or dir, dest must be dir
 #copies files, hashes pre and post copy, deletes if hashes match, deletes dir if empty
+#you can also:
+#verify against another directory or the given directory (-v)
+#copy files, don't delete from source directory (-c)
+#quiet mode (-q)
+#don't print sidecar files (-np)
+#print logs to current directory (-l)
 
-############################################################################################################
+#######################################################################################################################
 #here's a list of the lists used in this script because there's a lot
 #flist = file list. composed of string tuples of start and end file paths
 #sflist = start file list. strings of start file paths
@@ -14,7 +20,7 @@
 #mismatches = list of filepaths whose hashes don't match, either after copy or after recalc (in the case of verifying)
 #shd = start hash dictionary. filename.ext : hash-value pairs for start files
 #ehd = end hash dictionary. filename.ext : hash-value pairs for end files
-############################################################################################################
+#######################################################################################################################
 
 
 import hashlib
