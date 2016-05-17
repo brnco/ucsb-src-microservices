@@ -47,6 +47,7 @@ def main():
 	v = vNum[1:]
 	startObj = 'R:/Visual/avlab/new_ingest/' + vNum
 	endObj = 'R:/Visual/0000/' + vNum
+	ltoObj = 'R:/Visual/avlab/lto-stage/' + vNum
 	if not os.path.isdir(startObj):
 		print "Buddy, that's not a directory"
 		sys.exit()
@@ -54,23 +55,25 @@ def main():
 		os.makedirs(endObj)
 	#verify that all the right extensions are in there	
 	with cd(startObj):
-		extList = ['-pres.mxf','-acc.mp4','-pres.mxf.PBCore2.xml','-pres.mxf.framemd5','-pres.mxf.md5','-pres.mxf.qctools.xml.gz',]
-		flist = []
-		for file in os.listdir(startObj): #mak a list of the files in our startdir
-			flist.append(file)
-		for x in extList: #loop through boths lists that we made and if anything is missing say so
-			if not any(x in f for f in flist): 
-				print "Buddy, you're missing a sidecar file with a " + x + " extension"
-				sys.exit()
-		manifest = open(vNum + '-manifest.txt','w') #initialize a text file that we'll use to log what ~should~ be in this folder
-		for f in flist:
-			manifest.write(f + "\n")
-		manifest.close()
-		#copy to the access repo in R:/Visual
-		for f in flist:
-			if not f.endswith('.mxf'): #don't copy the preservation master
-				print "Copying " + f
-				shutil.copy2(f,endObj) #copy2 grabs the registry metadata which is cool and good
+		while True:
+			extList = ['-pres.mxf','-acc.mp4','-pres.mxf.PBCore2.xml','-pres.mxf.framemd5','-pres.mxf.md5','-pres.mxf.qctools.xml.gz',]
+			flist = []
+			for file in os.listdir(startObj): #mak a list of the files in our startdir
+				flist.append(file)
+			for x in extList: #loop through boths lists that we made and if anything is missing say so
+				if not any(x in f for f in flist): 
+					print "Buddy, you're missing a sidecar file with a " + x + " extension"
+					break
+			manifest = open(vNum + '-manifest.txt','w') #initialize a text file that we'll use to log what ~should~ be in this folder
+			for f in flist:
+				manifest.write(f + "\n")
+			manifest.close()
+			#copy to the access repo in R:/Visual
+			for f in flist:
+				if not f.endswith('.mxf'): #don't copy the preservation master
+					print "Copying " + f
+					shutil.copy2(f,endObj) #copy2 grabs the registry metadata which is cool and good
+			subprocess.call(['python','hashmove.py',startObj,ltoObj])
 	#turn it into a tarball then gzip it
 	with cd('R:/Visual/avlab/new_ingest/'):
 		tar = tarfile.open(vNum + ".tar.gz","w:gz")
