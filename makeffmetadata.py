@@ -1,4 +1,4 @@
-#coding=UTF-8
+﻿#coding=UTF-8
 import os
 import sys
 import shutil
@@ -15,11 +15,11 @@ def main():
 	parser.add_argument('-tape','--magneticTape',action='store_true',dest='tape',default=False,help="make metadata file using cylinder template")
 	parser.add_argument('-disc','--disc',action='store_true',dest='disc',default=False,help="make metadata file using disc template")
 	parser.add_argument('-so','--startObj',dest='so',help="the asset that we want to make metadata for")
-	parser.add_argument('-t','--title',dest='t',help="the tile of the asset, roughly the 245 |a field")	
-	parser.add_argument('-a','--album',dest='a',help="the intellectual parent unit of the start object")
-	parser.add_argument('-p','--performer',dest='p',help="the main talent on the object")
+	parser.add_argument('-t','--title',dest='t',default="",help="the tile of the asset, roughly the 245 |a field")	
+	parser.add_argument('-a','--album',dest='a',default="",help="the intellectual parent unit of the start object")
+	parser.add_argument('-p','--performer',dest='p',default="",help="the main talent on the object")
 	parser.add_argument('-r','--rights',dest='r',default="©2016 The Regents of the University of California",help="a copyright statement for the asset")
-	parser.add_argument('-d','--date',dest='d',help="the four digit year in which the object was created")
+	parser.add_argument('-d','--date',dest='d',default="",help="the four digit year in which the object was created")
 	args = parser.parse_args()
 	config = ConfigParser.ConfigParser()
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
@@ -54,7 +54,7 @@ def main():
 		broadcastDir = config.get("discs","broadcastDir")
 		mtdObj = os.path.join(broadcastDir,args.so + "-mtd.txt")
 		pub = "UCSB Library, Special Research Collections"
-		if not os.path.isfile(os.path.join(broadcastDir,args.so + ".wav")):
+		if not os.path.exists(os.path.join(broadcastDir,args.so + ".wav")):
 			print "Buddy, this disc hasn't been digitized yet"
 			print "When it is digitized we'll worry about making ID3 tags for it"
 			foo = raw_input("Press any key to quit")

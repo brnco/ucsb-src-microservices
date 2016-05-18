@@ -18,7 +18,7 @@ set qualityControlDir=!processingMainDir!pre-ingest-qc\
 CALL S:\avlab\microservices\rename_ucsbtocusb.cmd !processingMainDir!
 CALL :delete-bs
 CALL :process_intermediates
-CALL :makemp3s
+::CALL :makemp3s
 CALL :put_broadcast_inQC
 CALL :put_mp3_inQC
 CALL ::put_andRen_archival_inQC
@@ -46,9 +46,9 @@ pushd !rawBroadDir!
 ::for files rooted at the raw broadcast directory directory that are wavs
 for /r %%j in (*.wav) do (
 	echo processing %%~nj
-	CALL makebroadcast %%~nj%%~xj
+	CALL python S:/avlab/microservices/makebroadcast.py -ff -mp3 %%~nj%%~xj
 	::rename our newly minted broadcast master with a use character to reflect that
-	ren %%j %%~njb%%~xj
+	::ren %%j %%~njb%%~xj
 )
 popd
 GOTO :eof
@@ -62,7 +62,7 @@ popd
 
 :put_broadcast_inQC
 pushd !rawbroadDir!
-for /R %%j in (*.wav) do (
+for /R %%j in (*b.wav) do (
 	set _name=%%~nj%%~xj
 	set name=!_name:b.wav=!
 	set qcNamedDir=!qualityControlDir!!name!\
