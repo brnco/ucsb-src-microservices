@@ -1,0 +1,22 @@
+
+^XA
+^FO050,20^ADN,18,10
+^FDChuzhie goroda^FS
+^FO050,44^ADN,18,10
+^FDcusb_fox_at005_822_00^FS
+^FO050,70^BY1
+^BCN,40,N,N,N
+^FDcusb_fox_at005_822_00^FS
+^XZ
+
+
+^XA
+^FO050,20^ADN,18,10
+^FDPalestinskeo tango^FS
+^FO050,44^ADN,18,10
+^FDcusb_fox_at005_116_00^FS
+^FO050,70^BY1
+^BCN,40,N,N,N
+^FDcusb_fox_at005_116_00^FS
+^XZ
+

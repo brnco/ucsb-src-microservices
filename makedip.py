@@ -9,8 +9,8 @@ import glob
 import re
 import argparse
 import shutil
-import tarfile
-import gzip
+import zipfile
+import zlib
 import time
 from distutils import spawn
 import ConfigParser
@@ -109,9 +109,7 @@ def main():
 	for dir in startDirs:
 		for file in os.listdir(dir):
 			if file.endswith(".mp3") and file not in m:
-				print file
 				veggies.append(os.path.join(dir,file))
-	print veggies
 	#hashmove to dir on desktop named for TN
 	dipDir = os.path.join("C:/Users",getpass.getuser(),"Desktop",args.tn)
 	if not os.path.isdir(dipDir):
@@ -120,9 +118,10 @@ def main():
 		subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),'-c',f,dipDir])
 	#compress dir on desktop
 	with cd("C:/Users/" + getpass.getuser() + "/Desktop"):
-		tar = tarfile.open(args.tn + ".tar.gz","w:gz")
-		tar.add(args.tn)
-		tar.close()
+		zf = zipfile.ZipFile(args.tn + ".zip","w")
+		for f in os.listdir(args.tn):
+			zf.write(os.path.join(dipDir,f),compress_type=zipfile.ZIP_DEFLATED)
+		zf.close()
 
 dependencies()
 main()
