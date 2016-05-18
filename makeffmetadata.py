@@ -50,7 +50,6 @@ def main():
 		mtdObj = os.path.join(startDir,"cusb-" + args.so + "-mtd.txt") #init a metadata object
 		pub = "UCSB Library, Special Research Collections" #name SRC as publisher
 	#print that info to a text file in the FFMETADATA format	
-	ff = raw_input("eh")
 	tf = open(mtdObj, "w")
 	tf.write(";FFMETADATA1\ntitle=" + args.t + "\nalbum=" + args.a + "\nartist=" + args.p + "\ndate=" + args.d + "\npublisher=" + pub + "\ncopyright=" + args.r)
 	tf.close()

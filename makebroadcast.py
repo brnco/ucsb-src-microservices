@@ -93,8 +93,10 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 			ffdata.close() #housekeeping
 			os.remove(startObj + '.ffdata.txt') #housekeeping
 		#subprocess.call(['ffmpeg','-i',startObj,'-ar',ar,'-sample_fmt',sfmt,'-ac',ac,'-id3v2_version','3','-write_id3v1','1','-y',assetName + EuseChar + '.wav'])
-		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + fadestring + '-id3v2_version 3 -write_id3v1 1 -y ' + assetName + EuseChar + '.wav'
+		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + fadestring + '-id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
 		subprocess.call(ffmpegstring)
+		if args['mp3'] is True:
+			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
 	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
@@ -133,9 +135,10 @@ def handling():
 	#initialize a buncha crap
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('startObj',nargs ='?',help='the file to be transcoded',)
-	parser.add_argument('-ff','--fades',action='store_true',help='adds 2s heads and tails fades to black/ silence')
-	parser.add_argument('-s','--stereo',action='store_true',help='outputs to stereo (mono is default)')
-	parser.add_argument('-nj','--nationaljukebox',action='store_true',help='extra processing step for National Jukebox files')
+	parser.add_argument('-ff','--fades',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
+	parser.add_argument('-s','--stereo',action='store_true',default=False,help='outputs to stereo (mono is default)')
+	parser.add_argument('-mp3','--mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
+	parser.add_argument('-nj','--nationaljukebox',action='store_true',default=False,help='extra processing step for National Jukebox files')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = args['startObj'].replace("\\",'/') #for the windows peeps
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
@@ -144,7 +147,6 @@ def handling():
 	fname, ext = os.path.splitext(fnamext) #splits filename and extension
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	startDir = os.path.abspath(os.path.join(startObj, os.pardir)) #grabs the directory that this object is in (we'll cd into it later)
-	
 	#start testing
 	if not os.path.isfile(startObj): #if it's not a file, say so
 		print "Buddy, that's not a file"
