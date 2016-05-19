@@ -25,10 +25,8 @@ def main():
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
 	
 	if args.cyl is True: #for cylinders, do this
-		ff = raw_input("got this far at least")
 		captureDir = config.get("cylinders","cylCaptureDir") #grab cylinder capture dir from config file
 		startDir = os.path.join(captureDir,args.so) #complete the path to the capture dir
-		print startDir
 		mtdObj = os.path.join(startDir,"cusb-cyl" + args.so + "-mtd.txt") #init a metadata object
 		pub = "UCSB Cylinder Audio Archive" #name the CAA as the publisher
 		if not os.path.isdir(startDir): #if the dir doesn't exist let's not go lookin for it"
