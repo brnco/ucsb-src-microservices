@@ -1,6 +1,7 @@
 #takes args for input file(s)
 #if 1 input file: splits to two stereo files
 #if two input files, combines to 1 stereo file
+#you can look up this ffmpeg calls here: https://trac.ffmpeg.org/wiki/AudioChannelManipulation
 
 import os
 import subprocess
@@ -20,21 +21,44 @@ def dependencies():
 def main():
 	#initialize arguments using argparse
 	parser = argparse.ArgumentParser(description="Channel manipulation for AVLab items")
-	parser.add_argument('-i1',help='input for the first file/ left stereo side/ channel 1/ side A')
-	parser.add_argument('-i2',help='input for the second file/ right stereo side/ channel 2/ side B')
-	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
-	args['i1'] = args['i1'].replace("\\",'/') #for the windows peeps
-	args['i2'] = args['i2'].replace("\\",'/')
-	if args['i2'] == None:
-		print "Split stereo to mono"
+	parser.add_argument('-so','--startObj',dest='so',nargs ='+',help='the file(s) to be transcoded',)
+	#parser.add_argument('-del','--delete',dest='del',choices=[1,2],help='the file(s) to be transcoded',)
+	args = parser.parse_args()#create a dictionary instead of leaving args in NAMESPACE land
+	
+	if len(args.so) == 1:
+		print "split stereo to mono"
+		for s in args.so:
+			if s.endswith("a.wav"):
+				i1 = s
+				endright = os.path.basename(os.path.abspath(s))
+				endright = endright.replace("a.wav","Ba.wav")
+				endleft = os.path.basename(os.path.abspath(s))
+				endleft = endleft.replace("a.wav","Aa.wav")
+		ffmpegstring = "ffmpeg -i " + i1 + " -map_channel 0.0.0 " + endleft + " -map_channel 0.0.1 " + endright
+
+	elif len(args.so) == 2:
+		print "combine multi monos to stereo"
+		for s in args.so:
+			if s.endswith("Aa.wav"):
+				i1 = s
+				endObj = s.replace("Aa.wav","a.wav")
+			elif s.endswith("Ba.wav"):
+				i2 = s
+				
+		ffmpegstring = "ffmpeg -i " + i1 + " -i " + i2 + ' -filter_complex "[0:a][1:a]amerge=inputs=2[aout]" -map "[aout]" -acodec pcm_s24le ' + endObj
+		
 	else:
-		print "Combine mono channels to stereo"
-		fnamext = os.path.basename(os.path.abspath(args['i1'])) #grab just filename + extension
-		fname, ext = os.path.splitext(fnamext) #split that too
-		aNum = fname[:-2] #lop off the use char and face char to get canonical name
-		endObj = os.path.join(os.path.dirname(args['i1']),aNum + 'a' + ext) #put it all back together with new name for output file
-		#you can look up this ffmpeg call here: https://trac.ffmpeg.org/wiki/AudioChannelManipulation
-		subprocess.call(['ffmpeg','-i',args['i1'],'-i',args['i2'],'-filter_complex','[0:a][1:a]amerge=inputs=2[aout]','-map','[aout]',endObj])
+		print "Buddy, your inputs are outta range"
+		print "Type 'python changechannels.py -h' for more info"
+		sys.exit()
+	
+	subprocess.call(ffmpegstring) #actually do the thing
+	
+	#delete the inputs because we dont need em
+	if os.path.exists(i1):
+		os.remove(i1)
+	if os.path.exists(i2):
+		os.remove(i2)
 	return
 
 dependencies()
