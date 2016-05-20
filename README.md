@@ -100,7 +100,7 @@ Also, for batches of cylinders, you're gonna want to NOT use this and write a cu
 ##avlab-discs
 Post-processing for discs that are not part of NJ process. Bundles makemp3 and makebroadcast with some hard-coded filepaths. Used for post-processing of patron requests, mostly, saves files to a QC directory on R:/
 
-##nj_discimg-out
+##avlab-discimg-out
 This script uses GraphicsMagick to transcode from .dng to .tif, cropping, rotating, and changing the dpi of the files in the process, according to LC's specs. It then hashmoves them to the avlab/new_ingest/pre-ingest-qc folder.
 
 ##avlab-video.py
