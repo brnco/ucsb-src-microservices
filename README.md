@@ -37,8 +37,15 @@ Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for c
 "python hashmove.py -h" for more info
 
 
-#makesomethings
+##makesomethings
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
+
+##makedip
+always makes me think of hummus
+Takes n input strings that are the canonical names for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server. Flags for "high quality" and "archival" not yet working (patrons sometimes request these).
+Has dependencies for ffmpeg, ffprobe
+Has flags for startObject (-so), transactionNumber (-tn)
+python makedip.py -h for more info
 
 ##makebroadcast
 Takes an input file, generally an archival master or raw-broadcast capture, inserts 2s fades, drops bitrate to 44.1k/16bit, embeds ID3 metadata, if source txt file is present.
