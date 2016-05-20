@@ -89,6 +89,15 @@ Takes an input file, generally a broadcast master, transcodes to 320kbps mp3. Em
 Has dependencies for ffmpeg, ffprobe, graphicsmagick. Takes 1 argument for full path of file to process.
 
 "python makemp3.py -h" for more info
+
+##makeffmetadata
+Takes input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and title, performer, album, and date, and makes an ;FFMETADATA text file suitable for ffmpeg to embed in a broadcast master or mp3 as ID3 tags. Is frequently called by filemaker, particularly for cylinders.
+
+Has dependencies for ffmpeg, ffprobe
+
+Has flags for cylinder (-cyl), disc (-disc), tape (-tape), that correspond to different ID3 templates. also has flags for title (-t), album (-a), performer (-p), copyright (-r), and date (-d)
+
+"python makeffmetadata.py -h" for more info
  
 ##makeqctoolsreport.py
 Takes an input video file, and outputs a compressed xml file that can be read by QCTools. It has to transcode it to a raw video format first so this script takes some time and processor space and is generally run Friday afternoon over a week of new captures, and runs into the weekend.
