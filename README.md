@@ -29,6 +29,8 @@ right-click "Autorun" in the regedit window and select "Edit"
 type "cd/ d [path to repo directory]"
 By doing this, you are set to open the cmd window in the directory with all the scripts so you don't have to type their full paths
  
+ 
+ 
 
 #hashmove
 hashmove takes two arguments: 1) the source file or directory and 2) the destination directory. For files, hashmove just copies from source to destination, writes md5 hashes of both source and destination files, compares the hashes, and if they're the same it deletes the source file and source file hash. If different it throws out a warning and does not delete. For directories, it does the same thing after making a list of every file in the source directory. If initial .md5 files are present in source, they are not overwritten (and are assumed to be correct and up-to-date). You can give it Windows or POSIX paths and it'll work (needs testing) and it can only handle 1 layer of subdirectories.
@@ -37,7 +39,9 @@ Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for c
 "python hashmove.py -h" for more info
 
 
-##makesomethings
+
+
+#makesomethings
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
 
 ##makedip
