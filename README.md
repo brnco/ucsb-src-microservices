@@ -12,21 +12,37 @@ After cloning from the github repo, there are a couple of steps necessary to mak
 
 ###The first is:
 set up a config file using the microservices-config-template.ini file found in the repo
+
 Move this file to C:/Users/[username]/
+
 rename it to microservices-config.ini
+
 open this file in a text editor and fill out the fields
+
 example, under global -> scriptRepo:
+
 put the full path to the directory in which you cloned the github repo
+
 this way python knows where to draw sub-scripts from
+
 Do the same for the paths of other workflow stages
+
 ###The second step (and this isn't strictly necessary) is to:
+
 change your default cmd.exe directory to the repo directory
+
 Start -> search "regedit" -> double-click "regedit.exe"
+
 HKEY_CURRENT_USER -> Software -> Microsoft -> Command Processor
+
 right click on the big empty space and select "new key"
+
 type "Autorun" and hit enter
+
 right-click "Autorun" in the regedit window and select "Edit"
+
 type "cd/ d [path to repo directory]"
+
 By doing this, you are set to open the cmd window in the directory with all the scripts so you don't have to type their full paths
  
  
