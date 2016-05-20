@@ -50,8 +50,11 @@ By doing this, you are set to open the cmd window in the directory with all the 
 
 #hashmove
 hashmove takes two arguments: 1) the source file or directory and 2) the destination directory. For files, hashmove just copies from source to destination, writes md5 hashes of both source and destination files, compares the hashes, and if they're the same it deletes the source file and source file hash. If different it throws out a warning and does not delete. For directories, it does the same thing after making a list of every file in the source directory. If initial .md5 files are present in source, they are not overwritten (and are assumed to be correct and up-to-date). You can give it Windows or POSIX paths and it'll work (needs testing) and it can only handle 1 layer of subdirectories.
+
 hashmove forms the basis of all asset-file-moving operations in these scripts. By doing this complicated routine, we can actually verify that the files we have are the ones we think they are. This is important for things like video, where, over the course of a 40GB transfer, the opportunities for things to get lost, and the costs of re-transfer, are high. There are utilities such as rsync, bbcp, and BagIt that do this kind of thing, but these were deemed too complicated to implement/ too blackbox-esque/ or were unavailable on Windows.
+
 Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for copy instead of move (-c).
+
 "python hashmove.py -h" for more info
 
 
@@ -62,29 +65,41 @@ the make-scripts are kind of the atomic units of our microservices. They work on
 
 ##makedip
 always makes me think of hummus
+
 Takes n input strings that are the canonical names for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server. Flags for "high quality" and "archival" not yet working (patrons sometimes request these).
+
 Has dependencies for ffmpeg, ffprobe
+
 Has flags for startObject (-so), transactionNumber (-tn)
+
 python makedip.py -h for more info
 
 ##makebroadcast
 Takes an input file, generally an archival master or raw-broadcast capture, inserts 2s fades, drops bitrate to 44.1k/16bit, embeds ID3 metadata, if source txt file is present.
+
 Has dependencies for ffmpeg, ffprobe. Takes 1 argument for file to process. Has flags for fades (-ff), national jukebox names (-nj), stereo (-s).
+
 "python makebroadcast.py -h" for more info
+
 For info on making ID3 source files see: http://jonhall.info/how_to/create_id3_tags_using_ffmpeg
  
 ##makemp3
 Takes an input file, generally a broadcast master, transcodes to 320kbps mp3. Embeds ID3 tags if present (either in source file or in sidecar txt file). Embeds png image of "Cover Art" if png or tif present in source directory.
+
 Has dependencies for ffmpeg, ffprobe, graphicsmagick. Takes 1 argument for full path of file to process.
+
 "python makemp3.py -h" for more info
  
 ##makeqctoolsreport.py
 Takes an input video file, and outputs a compressed xml file that can be read by QCTools. It has to transcode it to a raw video format first so this script takes some time and processor space and is generally run Friday afternoon over a week of new captures, and runs into the weekend.
+
 Has dependencies for ffmpeg, ffprobe. Takes argument for full path of file to be processed.
+
 "python makeqctoolsreport.py -h" for more info.
 
 ##makebarcodes.py
 This script is used to generate barcode files that can be printed by our Zebra barcode printers. It makes a temporary file in your current directory. Then, for each side of a record, it asks for the title of the content, then the barcode: cusb_[label-abbrev]_[issue-number]_[copy(optional)]_[matrix-number]_[take-number]. Used for patron requests mostly. Once done, follow steps outlined in Printing Barcodes
+
 Has 0 dependencies. Takes no arguments.
  
 
