@@ -134,11 +134,11 @@ I should really make a video tutorial for this.
 
 ##avlab-cylinders
 This script automates the post-processing of cylinders and the creation of derivative files for ingest to the R:\ drive/ site.
-The key here is that you have input some metadata by hand so that it embeds nicely in our downloadable mp3 files.
+The key here is that you have to export the metadata from fm via makeffmetadata and it embeds in our broadcast masters and everything else downstream.
 Also, for batches of cylinders, you're gonna want to NOT use this and write a custom script.
 
 ##avlab-discs
-Post-processing for discs that are not part of NJ process. Bundles makemp3 and makebroadcast with some hard-coded filepaths. Used for post-processing of patron requests, mostly, saves files to a QC directory on R:/
+Post-processing for discs that are not part of NJ process. Bundles makemp3 and makebroadcast with configurable filepaths. Used for post-processing of patron requests, mostly, saves files to a QC directory on R:/
 
 ##avlab-discimg-out
 This script uses GraphicsMagick to transcode from .dng to .tif, cropping, rotating, and changing the dpi of the files in the process, according to LC's specs. It then hashmoves them to the avlab/new_ingest/pre-ingest-qc folder.
@@ -156,60 +156,108 @@ Here's the scripts we use to process materials for the National Jukebox
 
 ##nj_audio
 This script processes the archival and broadcast master files we make for the National Jukebox. For more info on how files are created, see Digitizing 78s for The National Jukebox
+
 It has dependencies for ffmpeg and ffprobe. It takes no arguments
+
 The processing steps are:
+
 delete the bs sidecar files that Wavelab creates
+
 ending in .bak .gpk .mrk
+
 makebroadcast on the raw-broadcast-master files, inserting fades and renaming for nj
+
 here's what that command would look like if you typed it out for each file
+
 python makebroadcast.py [full path to input file] -ff -nj
+
 hashmove the now-processed broadcast masters to the qc directroy/ purgatory
+
 here's what that command would look like if you typed it out for each file
+
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
+
 use bwf metaedit to embed MD5 hashes into the MD5 chunk
+
 here's what that command would look like if you typed it out for each file
+
 bwfmetaedit --MD5-Embed [full path to input file]
+
 hashmove the now-processed archival masters to the qc directory/ purgatory
+
 here's what that command would look like if you typed it out for each file
+
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
 
 ##nj_discimg-capture-fm
 This script is used exclusively during disc label imaging and is called by FileMaker. It is run in conjunction with NJ Workflow DB's "discimg-in" script. For more info on the process of capturing disc label images, see Disc Imaging for National Jukebox
+
 It has 0 dependencies. It takes arguments for a barcode / filename (which Filemaker provides)
+
 The processing steps are:
+
 do a string substitution for "ucsb" to "cusb
+
 corrects a long-standing programming error in FM
+
 using the filename provided, check that it doesn't already exist in the capture directory
+
 return an error if it does
+
 sort the capture dir by file creation date
+
 rename the most recently created file to the barcode/filename provided
+
 walk through the capture directory and check to see that no files exist with their raw-capture names
+
 this indicates that we missed scanning a barcode
+
 return an error if true
 
 ##nj_discimg-out
 This script is used to process an intermediate set of disc label digital images (created with Adobe DNG converter). For more info, see Disc Imaging for National Jukebox
+
 It has 1 dependency for GraphicsMagick. It takes no arguments.
+
 The processing steps are:
+
 for each file in the intermediate directory
+
 call GraphicsMagick to crop, rotate, adjust ppi, and save as tif in a new folder
+
 here's what that command would look like if you typed it out for each file
+
 gm convert [full path to input file] -crop 3648x3648+920 -density 300x300 -rotate 180 [full path to output .tif]
+
 hashmove the raw-capture, dng intermediate, and broadcast tif to the qc directory/ purgatory
+
 here's what that command would look like if you typed it out for each file
+
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
 
 ##nj_qc
 This script is used to verify the contents of a directory in our qc holding pen. If it meets the requirements for filetypes necessary for SIPping to LC, move it to our batch folder.
+
 It has 0 dependencies. It takes no arguments.
+
 The processing steps are:
+
 make sure that everything has been renames from "ucsb" to "cusb"
+
 I can't stress enough what a bother this is
+
 walk through the subdirectories of the qc directory, which are named with the disc filenames
+
 verify that:
+
 an archival master exists (m.wav)
+
 a broadcast master exists (.wav)
+
 a broadcast image exists (.tif)
+
 If true, hashmove that directory to our batch folder (containing 1000 SIPs)
+
 here's what that command would look like if you typed it out for each file
+
 python hashmove.py [full path to input directory] [full path to batch directory]
