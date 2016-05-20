@@ -10,7 +10,7 @@ for .py extensions, you need to have python installed, and you type python [path
 #Configuration
 After cloning from the github repo, there are a couple of steps necessary to make these scripts go, on Windows. 
 
-##The first is:
+###The first is:
 set up a config file using the microservices-config-template.ini file found in the repo
 Move this file to C:/Users/[username]/
 rename it to microservices-config.ini
@@ -19,7 +19,7 @@ example, under global -> scriptRepo:
 put the full path to the directory in which you cloned the github repo
 this way python knows where to draw sub-scripts from
 Do the same for the paths of other workflow stages
-##The second step (and this isn't strictly necessary) is to:
+###The second step (and this isn't strictly necessary) is to:
 change your default cmd.exe directory to the repo directory
 Start -> search "regedit" -> double-click "regedit.exe"
 HKEY_CURRENT_USER -> Software -> Microsoft -> Command Processor
@@ -29,8 +29,8 @@ right-click "Autorun" in the regedit window and select "Edit"
 type "cd/ d [path to repo directory]"
 By doing this, you are set to open the cmd window in the directory with all the scripts so you don't have to type their full paths
  
-#Global scripts
-##hashmove
+
+#hashmove
 hashmove takes two arguments: 1) the source file or directory and 2) the destination directory. For files, hashmove just copies from source to destination, writes md5 hashes of both source and destination files, compares the hashes, and if they're the same it deletes the source file and source file hash. If different it throws out a warning and does not delete. For directories, it does the same thing after making a list of every file in the source directory. If initial .md5 files are present in source, they are not overwritten (and are assumed to be correct and up-to-date). You can give it Windows or POSIX paths and it'll work (needs testing) and it can only handle 1 layer of subdirectories.
 hashmove forms the basis of all asset-file-moving operations in these scripts. By doing this complicated routine, we can actually verify that the files we have are the ones we think they are. This is important for things like video, where, over the course of a 40GB transfer, the opportunities for things to get lost, and the costs of re-transfer, are high. There are utilities such as rsync, bbcp, and BagIt that do this kind of thing, but these were deemed too complicated to implement/ too blackbox-esque/ or were unavailable on Windows.
 Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for copy instead of move (-c).
