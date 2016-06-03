@@ -36,12 +36,9 @@ def main():
 		else:
 			endDirThousand = endDirThousand[:2] + "000"
 		startDir = os.path.join(archiveDir,endDirThousand,args.so) #booshh
-		#if not os.path.isdir(startDir): #again, if it doesn't exists let's not chase it
-			#print "Buddy, this tape hasn't been digitized yet"
-			#print "When it is digitized we'll worry about making ID3 tags for it"
-			#foo = raw_input("Press any key to quit")
-			#sys.exit()
 		mtdObj = os.path.join(startDir,"cusb-" + args.so + "-bext.txt") #init a metadata object
+		if not os.path.isdir(startDir):
+			os.makedirs(startDir)
 		originator = "US,CUSB,SRC"
 		originatorRef = "cusb-" + args.so
 		description = "Audio Number: " + args.so + "; MSS Number: " + args.mss + "; Collection: " + args.c + "; Tape Title: " + args.t + "; Master Key: " + args.mk

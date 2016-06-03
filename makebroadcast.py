@@ -102,12 +102,11 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makeid3(startDir, assetName):
 	#initialize some crap
-	print assetName
+	id3Obj = os.path.join(startDir, assetName + "-mtd.txt")
 	for dirs, subdirs, files in os.walk(startDir):
 		for f in files:
 			if f.endswith("-mtd.txt"):
 				id3Obj = os.path.join(startDir,f)			
-	#id3Obj = os.path.join(startDir, assetName + "-mtd.txt")
 	id3String = ""
 	print assetName
 	if not os.path.exists(id3Obj): #check to see if it exists alread
