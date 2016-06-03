@@ -102,10 +102,14 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makeid3(startDir, assetName):
 	#initialize some crap
-	id3Obj = os.path.join(startDir, assetName + "-mtd.txt")
+	print assetName
+	for dirs, subdirs, files in os.walk(startDir):
+		for f in files:
+			if f.endswith("-mtd.txt"):
+				id3Obj = os.path.join(startDir,f)			
+	#id3Obj = os.path.join(startDir, assetName + "-mtd.txt")
 	id3String = ""
 	print assetName
-	foo = raw_input("eh")
 	if not os.path.exists(id3Obj): #check to see if it exists alread
 		usrInput = ''
 		while usrInput not in ['y','n']: #gotta answer yes or no to this q
@@ -164,9 +168,6 @@ def handling():
 			if SuseChar == 'a':
 				print "archival master"
 				assetName = fname[:-1]
-				if assetName.endswith('A'):
-					print "channelled"
-					assetName = fname[:-2]
 				EuseChar = "b"
 			elif SuseChar == 'm':
 				print "archival master"
@@ -175,7 +176,7 @@ def handling():
 			elif SuseChar == 'b':
 				print "broadcast master"
 				assetName = fname[:-1]
-				EuseChar = "c"
+				Eus
 			elif SuseChar == 'c':
 				assetName = fname[:-1]
 				EuseChar = "e"
