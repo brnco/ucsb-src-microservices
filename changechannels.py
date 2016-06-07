@@ -22,6 +22,8 @@ def main():
 	#initialize arguments using argparse
 	parser = argparse.ArgumentParser(description="Channel manipulation for AVLab items")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='+',help='the file(s) to be transcoded',)
+	parser.add_argument('-r','--reverse',dest='r',help='which tape face to reverse, if necessary',)
+	parser.add_argument('-d','--delete',dest='d',help='which tape face to delete, if necessary',)
 	#parser.add_argument('-del','--delete',dest='del',choices=[1,2],help='the file(s) to be transcoded',)
 	args = parser.parse_args()#create a dictionary instead of leaving args in NAMESPACE land
 	
