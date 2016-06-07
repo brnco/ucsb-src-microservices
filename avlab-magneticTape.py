@@ -3,6 +3,7 @@
 import ConfigParser
 import getpass
 import os
+import subprocess
 
 #Context manager for changing the current working directory
 class cd:
@@ -19,7 +20,6 @@ class cd:
 #takes files rooted at capture dir
 def makelist(captureDir,toProcessDir,flist = {}):
 	for dirs, subdirs, files in os.walk(captureDir):
-		print files
 		for f in files:
 			fname,ext = os.path.splitext(f)
 			txtinfo = os.path.join(toProcessDir,fname + '.txt')
@@ -29,11 +29,22 @@ def makelist(captureDir,toProcessDir,flist = {}):
 					flist[fname] = opts
 	return flist
 
-def ffprocess(flist):
-	#move each wav in flist into working dir based on their name OR
-	#move each to their repo dir and process there?
-	
-	#with cd(whicheverDir):
+def ffprocess(flist,captureDir):
+	#make a processing directory named after first attr in fm export: aNumber
+	for f in flist:
+		aNumber = str(flist[f])
+		aNumber = aNumber.strip("['']")
+		processingDir = os.path.join(captureDir,aNumber)
+		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
+		if not os.path.exists(processingDir):
+			os.makedirs(processingDir)
+		#subprocess.call('ffmpeg -i ' + os.path.join(captureDir,f) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
+		#print 'ffmpeg -i ' + f + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
+		with cd(processingDir):
+			statinfo = os.stat(endObj1)
+			eo1size = statinfo.st_size
+			if eo1size >= 2147483648:
+				print "too big too wide"
 	
 	#silenceremove
 	#ffmpeg -i [input] -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le [output]
@@ -67,8 +78,7 @@ def main():
 	
 	flist = makelist(captureDir,toProcessDir)
 	
-	ffprocess(flist)
-	print flist
+	ffprocess(flist,captureDir)
 	
 	return
 
