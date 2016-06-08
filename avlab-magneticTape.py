@@ -35,12 +35,13 @@ def makelist(captureDir,toProcessDir,flist = {}):
 			fname,ext = os.path.splitext(f)
 			txtinfo = os.path.join(toProcessDir,fname + '.txt')
 			if os.path.exists(txtinfo):
-				with open(txtinfo) as f:
-					opts = f.readlines()
+				with open(txtinfo) as arb:
+					opts = arb.readlines()
 					opts = str(opts)
-					opts = opts.strip("['']")
+					foo = opts.strip("['']")
+					bar = foo.replace(r"\n","")
 					#sets up dict of raw-wavelab-output-name : aNumber-fromFM pairs
-					flist[fname] = opts
+					flist[fname] = "a" + bar
 	return flist
 
 def ffprocess(flist,captureDir):
@@ -111,10 +112,10 @@ def main():
 	bextsDir = config.get('magneticTape','magTapebexts')
 	logDir = config.get('magneticTape','magTapeLogs')
 	mmrepo = config.get('global','scriptRepo')
-	
+
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
-	
+
 	#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
 	ffprocess(flist,captureDir)
 	

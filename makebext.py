@@ -28,17 +28,8 @@ def main():
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
 	
 	if args.tape is True: #for tapes do this
-		archiveDir = config.get("magneticTape","magTapeArchDir") #grab archive directory for audio tapes
-		endDirThousand = args.so.replace("a","") #input arg here is a1234 but we want just the number
-		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
-		if len(endDirThousand) < 5:
-			endDirThousand = endDirThousand[:1] + "000"
-		else:
-			endDirThousand = endDirThousand[:2] + "000"
-		startDir = os.path.join(archiveDir,endDirThousand,args.so) #booshh
+		startDir = config.get("magneticTape","magTapebexts")
 		mtdObj = os.path.join(startDir,"cusb-" + args.so + "-bext.txt") #init a metadata object
-		if not os.path.isdir(startDir):
-			os.makedirs(startDir)
 		originator = "US,CUSB,SRC"
 		originatorRef = "cusb-" + args.so
 		description = "Audio Number: " + args.so + "; MSS Number: " + args.mss + "; Collection: " + args.c + "; Tape Title: " + args.t + "; Master Key: " + args.mk
@@ -48,8 +39,6 @@ def main():
 		f.write('--Originator=' + originator + ' --originatorReference=' + originatorRef + ' --Description="' + description + '"')
 		#this string is called by our tape processing script, it's concatenated with a bwfmetaedit call
 		f.close()
-		
-	
 	
 	return
 
