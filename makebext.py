@@ -45,7 +45,7 @@ def main():
 		if len(description) > 255:
 			description = description[:255]
 		f = open(mtdObj,'w')
-		f.write('--Originator ' + originator + ' --originatorReference ' + originatorRef + ' --Description "' + description + '"')
+		f.write('--Originator=' + originator + ' --originatorReference=' + originatorRef + ' --Description="' + description + '"')
 		#this string is called by our tape processing script, it's concatenated with a bwfmetaedit call
 		f.close()
 		
