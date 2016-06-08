@@ -26,7 +26,7 @@ def main():
 	args = parser.parse_args()
 	config = ConfigParser.ConfigParser()
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
-	
+
 	if args.tape is True: #for tapes do this
 		startDir = config.get("magneticTape","magTapebexts")
 		mtdObj = os.path.join(startDir,"cusb-" + args.so + "-bext.txt") #init a metadata object
