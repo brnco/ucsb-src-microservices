@@ -31,27 +31,30 @@ class cd:
 def makelist(captureDir,toProcessDir,flist = {}):
 	for dirs, subdirs, files in os.walk(captureDir):
 		for f in files:
+			#grab fname, initialize variable anme for text file containing aNumber from FM
 			fname,ext = os.path.splitext(f)
 			txtinfo = os.path.join(toProcessDir,fname + '.txt')
 			if os.path.exists(txtinfo):
 				with open(txtinfo) as f:
 					opts = f.readlines()
+					opts = str(opts)
+					opts = opts.strip("['']")
+					#sets up dict of raw-wavelab-output-name : aNumber-fromFM pairs
 					flist[fname] = opts
 	return flist
 
 def ffprocess(flist,captureDir):
-	#make a processing directory named after first attr in fm export: aNumber
 	for f in flist:
 		aNumber = str(flist[f])
-		aNumber = aNumber.strip("['']")
 		processingDir = os.path.join(captureDir,aNumber)
-		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
+		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav") #name of archival master when we're done
+		#make a processing directory named after first attr in fm export: aNumber
 		if not os.path.exists(processingDir):
 			os.makedirs(processingDir)
+			#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
 		subprocess.call('ffmpeg -i ' + os.path.join(captureDir,f) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
 		
-		
-		
+		#NOT FULLY IMPLEMENTED
 		with cd(processingDir):
 			#changechannels call
 				#loop through flist dict
@@ -64,13 +67,11 @@ def ffprocess(flist,captureDir):
 			eo1size = statinfo.st_size
 			if eo1size >= 2147483648:
 				print "too big too wide"
-		
 	return
 
 def bextprocess(flist,bextsDir,captureDir):
 	for f in flist:
 		aNumber = str(flist[f])
-		aNumber = aNumber.strip("['']")
 		processingDir = os.path.join(captureDir,aNumber)
 		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
 		#clear mtd already in there
@@ -89,7 +90,6 @@ def bextprocess(flist,bextsDir,captureDir):
 def move(flist,captureDir,mmrepo,archRepoDir):
 	for f in flist:
 		aNumber = str(flist[f])
-		aNumber = aNumber.strip("['']")
 		processingDir = os.path.join(captureDir,aNumber)
 		endDirThousand = aNumber.replace("a","") #input arg here is a1234 but we want just the number
 		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
@@ -100,8 +100,9 @@ def move(flist,captureDir,mmrepo,archRepoDir):
 		endDir = os.path.join(archRepoDir,endDirThousand,aNumber)
 		subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),processingDir,endDir])
 	return
+
 def main():
-	#initialize a capture directory
+	#initialize the stuff
 	config = ConfigParser.ConfigParser()
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
 	captureDir = config.get('magneticTape','magTapeCaptureDir')
@@ -111,12 +112,16 @@ def main():
 	logDir = config.get('magneticTape','magTapeLogs')
 	mmrepo = config.get('global','scriptRepo')
 	
+	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
 	
+	#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
 	ffprocess(flist,captureDir)
 	
+	#pop the bext info into each file
 	bextprocess(flist,bextsDir,captureDir)
 	
+	#hashmove them to the repo dir
 	move(flist,captureDir,mmrepo,archRepoDir)
 	
 	return
