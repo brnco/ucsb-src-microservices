@@ -39,7 +39,7 @@ def main():
 		f.write('--Originator=' + originator + ' --originatorReference=' + originatorRef + ' --Description="' + description + '"')
 		#this string is called by our tape processing script, it's concatenated with a bwfmetaedit call
 		f.close()
-	
+
 	return
 
 main()
