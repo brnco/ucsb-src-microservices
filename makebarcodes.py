@@ -27,7 +27,7 @@ def makebarcodefile ():
 			contd = raw_input("Buddy, just type y or n if do or don't wanna do another")
 		if contd == 'n': #if they answer no, they don't wanna continue, break the loop
 			break
-	outputPlace(tmpBcdFle) #save it somewhere
+	outputPlace(tmpBcdFile) #save it somewhere
 	return 
 
 def outputPlace(tmpBcdFile): #saves the output barcode file somewhere
