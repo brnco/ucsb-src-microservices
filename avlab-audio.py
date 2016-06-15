@@ -64,15 +64,16 @@ def ffprocess(flist,captureDir,mmrepo):
 		
 		#let's make sure the channels are right
 		with cd(processingDir):
+			#the following call pipes the ffprobe stream output back to this script
 			ffdata = subprocess.Popen(["ffprobe","-show_streams","-of","flat",endObj1],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-			data, err = ffdata.communicate()
+			data, err = ffdata.communicate() #separate it so it's useful
 			print channelConfig
-			if "stereo" in data:
+			if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
 				if channelConfig == '1/4-inch Half Track Mono':
-					subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1])
+					subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
 				if channelConfig == '1/4-inch Full Track Mono':
-					subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2])
-					os.remove(endObj1)
+					subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
+					os.remove(endObj1) #can't overwrite with ffmpeg it's trash
 					os.rename(endObj2,endObj1)
 				
 			#split files larger than 2GB	
@@ -90,7 +91,7 @@ def bextprocess(flist,bextsDir,captureDir):
 		dirNumber = aNumber
 		if aNumber.endswith("A") or aNumber.endswith("B"):
 			dirNumber = aNumber[:-1]
-		processingDir = os.path.join(captureDir,dirNumber)
+		processingDir = os.path.join("R:/audio/avlab/sandbox",dirNumber)
 		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
 		#clear mtd already in there
 		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
@@ -98,11 +99,14 @@ def bextprocess(flist,bextsDir,captureDir):
 		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1)
 		#embed bext metadata based on FM output
 		bextFile = os.path.join(bextsDir,'cusb-' + aNumber + '-bext.txt')
-		with open(bextFile) as bf:
-			bextlst = bf.readlines()
-			bextstr = str(bextlst)
-			bextstr = bextstr.strip("['']")
-			subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
+		if os.path.exists(bextFile):
+			with open(bextFile) as bf:
+				bextlst = bf.readlines()
+				bextstr = str(bextlst)
+				bextstr = bextstr.strip("['']")
+				bextstr = bextstr.replace('"','')
+				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
+		foo = raw_input("eh")
 	return
 
 #hashmove each file to the repo	
@@ -132,7 +136,7 @@ def move(flist,captureDir,mmrepo,archRepoDir):
 			os.remove(os.path.join(captureDir,f + ".wav"))
 			os.remove(os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt"))
 			os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt"))
-	foo = raw_input("eh")
+	
 	return
 
 def main():
@@ -148,13 +152,13 @@ def main():
 
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
-	
+
 	#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-	ffprocess(flist,captureDir,mmrepo)
+	#ffprocess(flist,captureDir,mmrepo)
 	
 	#pop the bext info into each file
 	bextprocess(flist,bextsDir,captureDir)
-	
+
 	#hashmove them to the repo dir
 	move(flist,captureDir,mmrepo,archRepoDir)
 	

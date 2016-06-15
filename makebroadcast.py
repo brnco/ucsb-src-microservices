@@ -175,7 +175,7 @@ def handling():
 			elif SuseChar == 'b':
 				print "broadcast master"
 				assetName = fname[:-1]
-				Eus
+				EuseChar = 'c'
 			elif SuseChar == 'c':
 				assetName = fname[:-1]
 				EuseChar = "e"
