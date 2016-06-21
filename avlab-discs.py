@@ -35,8 +35,12 @@ def main():
 	captureDir = config.get('discs','captureDir')
 	archRepoDir = config.get('discs','archRepoDir')
 	bextsDir = config.get('discs','mtdCaptures')
-
+	mmrepo = config.get('global','scriptRepo')
 	for dirs, subdirs, files in os.walk(captureDir):
+		for f in files:
+			if f.endswith(".gpk"):
+				with cd(os.pardir(f)):
+					os.remove(f)
 		for s in subdirs:
 			with cd(os.path.join(captureDir,s)):
 				endObj1 = s + "b.wav"

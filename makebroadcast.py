@@ -102,13 +102,12 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makeid3(startDir, assetName):
 	#initialize some crap
-	id3Obj = os.path.join(startDir, assetName + "-mtd.txt")
+	id3Obj = os.path.join(startDir, assetName + "-mtd.txt") #in same dir as audio object should be a -mtd.txt object with a ;FFMETADATA1 id3 tags inside
 	for dirs, subdirs, files in os.walk(startDir):
 		for f in files:
 			if f.endswith("-mtd.txt"):
 				id3Obj = os.path.join(startDir,f)			
 	id3String = ""
-	print assetName
 	if not os.path.exists(id3Obj): #check to see if it exists alread
 		usrInput = ''
 		while usrInput not in ['y','n']: #gotta answer yes or no to this q
@@ -116,15 +115,17 @@ def makeid3(startDir, assetName):
 			usrInput = usrInput.lower()
 		#this promts the user to make a txt file with this formatting
 		if usrInput == 'y':
+			print " "
 			print "Great, thank you! Here's how"
 			print "1)Open a new text file and save it in the same folder as the thing you're trying to broadcast"
 			print "2)Type the following into the empty text file, keep the new lines and punctuation"
 			print ";FFMETADATA1"
 			print "title= "
 			print "artist= "
-			print "album- "
+			print "album= "
 			print "date= "
 			print "publisher=UCSB Special Research Collections"
+			print " "
 			print "3)Ok, don't type this part. Now, the best you can, fill out those fields in the text file"
 			print "4)Lastly, save it as " + assetName + "-mtd.txt"
 			donezo = raw_input("Press 'Enter' when you've finished the above process") #pauses script until the user says they're done
@@ -183,6 +184,11 @@ def handling():
 				assetName = fname
 				EuseChar = "b"
 			makeAudio(args, startObj, startDir, assetName, EuseChar) #actually make the thing
+	if SuseChar == 'b':
+		with cd (startDir):
+			if os.path.exists(assetName + "b.wav") and os.path.exists(assetName + "c.wav"):
+				os.remove(assetName + "b.wav")
+				os.rename(assetName + "c.wav", assetName + "b.wav")
 	if args['nationaljukebox'] is True:
 		with cd(startDir):
 			os.remove(startObj)

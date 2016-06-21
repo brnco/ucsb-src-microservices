@@ -5,6 +5,7 @@ import getpass
 import os
 import subprocess
 import csv
+import re
 from distutils import spawn
 
 #check that we have the required software to run this script
@@ -60,7 +61,8 @@ def ffprocess(flist,captureDir,mmrepo):
 		if not os.path.exists(processingDir):
 			os.makedirs(processingDir)
 			#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
-		subprocess.call('ffmpeg -i ' + os.path.join(captureDir,f) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
+		if not os.path.exists(endObj1):
+			subprocess.call('ffmpeg -i ' + os.path.join(captureDir,f) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
 		
 		#let's make sure the channels are right
 		with cd(processingDir):
@@ -88,10 +90,11 @@ def bextprocess(flist,bextsDir,captureDir):
 	for f in flist:
 		opts = flist[f]
 		aNumber = "a" + str(opts[0])
+		print "embedding bext in " + aNumber
 		dirNumber = aNumber
 		if aNumber.endswith("A") or aNumber.endswith("B"):
 			dirNumber = aNumber[:-1]
-		processingDir = os.path.join("R:/audio/avlab/sandbox",dirNumber)
+		processingDir = os.path.join(captureDir,dirNumber)
 		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
 		#clear mtd already in there
 		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
@@ -154,7 +157,7 @@ def main():
 	flist = makelist(captureDir,toProcessDir)
 
 	#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-	#ffprocess(flist,captureDir,mmrepo)
+	ffprocess(flist,captureDir,mmrepo)
 	
 	#pop the bext info into each file
 	bextprocess(flist,bextsDir,captureDir)

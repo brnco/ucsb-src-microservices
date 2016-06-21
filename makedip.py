@@ -75,6 +75,14 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 			for v in a:
 				if assetName.group() in v:
 					a.remove(v)
+		for f in b:
+			assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
+			for v in u:
+				if assetName.group() in v:
+					u.remove(v)
+			for v in a:
+				if assetName.group() in v:
+					a.remove(v)
 	elif mediatype == 'isdisc':
 		for obj in startObjs:
 			startDir = os.path.join(archiveDir,obj)
@@ -93,7 +101,7 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 						i.append(os.path.join(os.getcwd(),file))
 		#find
 		for obj in startObjs:
-			for f in m:
+			for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
 				assetName = re.search(obj,f) #grab just the canonical name part
 				for v in u: #loop thru found mp3s in dir
 					if assetName.group() in v: #if the string cubs-a1234 is in the list of mp3s
@@ -101,6 +109,14 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 				for v in b:
 					if assetName.group() in v:
 						b.remove(v)
+				for v in a:
+					if assetName.group() in v:
+						a.remove(v)
+			for f in b: #loop thru broadcast master list and delete from other lists (transcoding from broadcast preferred)
+				assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
+				for v in u:
+					if assetName.group() in v:
+						u.remove(v)
 				for v in a:
 					if assetName.group() in v:
 						a.remove(v)
@@ -133,7 +149,7 @@ def main():
 	
 	if args.disc is True:
 		isdisc = 'isdisc'
-		archiveDir = config.get("discs","repo")
+		archiveDir = config.get("discs","archRepoDir")
 		a,b,u,m,i,startDirs = makeTranscodeList(args.so, archiveDir, isdisc) #make a dictionary of files to work with
 	#transcode where necessary
 	for f in a:
