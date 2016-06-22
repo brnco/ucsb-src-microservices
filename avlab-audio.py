@@ -90,7 +90,7 @@ def bextprocess(flist,bextsDir,captureDir):
 	for f in flist:
 		opts = flist[f]
 		aNumber = "a" + str(opts[0])
-		print "embedding bext in " + aNumber
+		
 		dirNumber = aNumber
 		if aNumber.endswith("A") or aNumber.endswith("B"):
 			dirNumber = aNumber[:-1]
@@ -99,17 +99,20 @@ def bextprocess(flist,bextsDir,captureDir):
 		#clear mtd already in there
 		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
 		#embed checksums
+		print "hashing data chunk of " + aNumber
 		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1)
 		#embed bext metadata based on FM output
 		bextFile = os.path.join(bextsDir,'cusb-' + aNumber + '-bext.txt')
 		if os.path.exists(bextFile):
+			print "embedding bext in " + aNumber
 			with open(bextFile) as bf:
 				bextlst = bf.readlines()
 				bextstr = str(bextlst)
 				bextstr = bextstr.strip("['']")
-				bextstr = bextstr.replace('"','')
+				#bextstr = bextstr.replace('"','')
+				foo = 'bwfmetaedit ' + bextstr + ' ' + endObj1
 				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
-		foo = raw_input("eh")
+				#print foo
 	return
 
 #hashmove each file to the repo	
