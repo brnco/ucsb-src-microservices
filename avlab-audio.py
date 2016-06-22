@@ -96,6 +96,8 @@ def bextprocess(flist,bextsDir,captureDir):
 			dirNumber = aNumber[:-1]
 		processingDir = os.path.join(captureDir,dirNumber)
 		endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
+		endObj1A = os.path.join(processingDir,"cusb-" + aNumber + "Aa.wav")
+		endObj1B = os.path.join(processingDir,"cusb-" + aNumber + "Ba.wav")
 		#clear mtd already in there
 		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
 		#embed checksums
@@ -111,7 +113,12 @@ def bextprocess(flist,bextsDir,captureDir):
 				bextstr = bextstr.strip("['']")
 				#bextstr = bextstr.replace('"','')
 				foo = 'bwfmetaedit ' + bextstr + ' ' + endObj1
-				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
+				if os.path.exists(endObj1):
+					subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
+				elif os.path.exists(endObj1A):
+					subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1A)
+				elif os.path.exists(endObj1B):
+					subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1B)
 				#print foo
 	return
 

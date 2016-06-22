@@ -35,6 +35,7 @@ def main():
 		description = "Audio Number: " + args.so + "; MSS Number: " + args.mss + "; Collection: " + args.c + "; Tape Title: " + args.t + "; Master Key: " + args.mk
 		if len(description) > 255:
 			description = description[:255]
+		description = description.strip('"') #do this now or the quotes we put on it later will cause fail
 		f = open(mtdObj,'w')
 		f.write('--Originator=' + originator + ' --originatorReference=' + originatorRef + ' --Description="' + description + '"')
 		#this string is called by our tape processing script, it's concatenated with a bwfmetaedit call
