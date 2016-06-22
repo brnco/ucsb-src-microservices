@@ -60,8 +60,8 @@ def main():
 					sys.exit()
 				else:
 					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),startObj,'-ff']) #calls makebroadcast.py and tells it to insert 2s fades
-					os.remove(startObj) #deletes the raw broadcast capture
-					os.rename(interObj, startObj) #renames the itnermediate files as the broadcast master
+					#os.remove(startObj) #deletes the raw broadcast capture
+					#os.rename(interObj, startObj) #renames the itnermediate files as the broadcast master
 					subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
 			#opens a log and write "Cylinder12345" for each cylinder processed so we can change their catalog records later
 			with open(os.path.join(logDir,'to-update.txt'),'a') as t:
