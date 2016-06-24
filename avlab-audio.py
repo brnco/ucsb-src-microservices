@@ -145,10 +145,14 @@ def move(flist,captureDir,mmrepo,archRepoDir):
 		desthash = re.search('dest\s\S+\s\w{32}',foo)
 		dh = desthash.group()
 		sh = sourcehash.group()
+		bexttxt = os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt")
+		startObj1 = os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt")
 		if sh[-32:] == dh[-32:]:
 			os.remove(os.path.join(captureDir,f + ".wav"))
-			os.remove(os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt"))
-			os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt"))
+			if os.path.exists(bexttxt): #can't give os.remove a file obvject it's gotta be a string grrrrr
+				os.remove(os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt"))
+			if os.path.exists(startObj1):
+				os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt"))
 	
 	return
 
@@ -170,7 +174,7 @@ def main():
 	ffprocess(flist,captureDir,mmrepo)
 	
 	#pop the bext info into each file
-	bextprocess(flist,bextsDir,captureDir)
+	#bextprocess(flist,bextsDir,captureDir)
 
 	#hashmove them to the repo dir
 	move(flist,captureDir,mmrepo,archRepoDir)

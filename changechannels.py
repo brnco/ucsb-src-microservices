@@ -36,7 +36,7 @@ def main():
 				endright = endright.replace("a.wav","Ba.wav")
 				endleft = os.path.basename(os.path.abspath(s))
 				endleft = endleft.replace("a.wav","Aa.wav")
-		ffmpegstring = "ffmpeg -i " + i1 + " -map_channel 0.0.0 " + endleft + " -map_channel 0.0.1 " + " -acodec pcm_s24le " + endright
+		ffmpegstring = "ffmpeg -i " + i1 + " -map_channel 0.0.0 " + " -acodec pcm_s24le " + endleft + " -map_channel 0.0.1 " + " -acodec pcm_s24le " + endright
 
 	elif len(args.so) == 2:
 		print "combine multi monos to stereo"
