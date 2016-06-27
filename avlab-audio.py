@@ -29,6 +29,13 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+def deletebs(captureDir):
+	for dirs,subdirs,files in os.walk(captureDir):
+		for f in files:
+			if f.endwith(".gpk"):
+				os.remove(os.path.join(captureDir,f))
+	return
+		
 #make list of files to process
 def makelist(captureDir,toProcessDir,flist = {}):
 	for dirs, subdirs, files in os.walk(captureDir):
@@ -131,28 +138,29 @@ def move(flist,captureDir,mmrepo,archRepoDir):
 		if aNumber.endswith("A") or aNumber.endswith("B"):
 			dirNumber = aNumber[:-1]
 		processingDir = os.path.join(captureDir,dirNumber)
-		endDirThousand = aNumber.replace("a","") #input arg here is a1234 but we want just the number
-		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
-		if len(endDirThousand) < 5:
-			endDirThousand = endDirThousand[:1] + "000"
-		else:
-			endDirThousand = endDirThousand[:2] + "000"
-		endDir = os.path.join(archRepoDir,endDirThousand,dirNumber)
-		#hashmove it and grip the output so we can delete the raw files YEAHHH BOY
-		output = subprocess.Popen(['python',os.path.join(mmrepo,'hashmove.py'),processingDir,endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		foo,err = output.communicate()
-		sourcehash = re.search('srce\s\S+\s\w{32}',foo)
-		desthash = re.search('dest\s\S+\s\w{32}',foo)
-		dh = desthash.group()
-		sh = sourcehash.group()
-		bexttxt = os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt")
-		startObj1 = os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt")
-		if sh[-32:] == dh[-32:]:
-			os.remove(os.path.join(captureDir,f + ".wav"))
-			if os.path.exists(bexttxt): #can't give os.remove a file obvject it's gotta be a string grrrrr
-				os.remove(os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt"))
-			if os.path.exists(startObj1):
-				os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt"))
+		if os.path.isdir(processingDir):
+			endDirThousand = aNumber.replace("a","") #input arg here is a1234 but we want just the number
+			#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
+			if len(endDirThousand) < 5:
+				endDirThousand = endDirThousand[:1] + "000"
+			else:
+				endDirThousand = endDirThousand[:2] + "000"
+			endDir = os.path.join(archRepoDir,endDirThousand,dirNumber)
+			#hashmove it and grip the output so we can delete the raw files YEAHHH BOY
+			output = subprocess.Popen(['python',os.path.join(mmrepo,'hashmove.py'),processingDir,endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+			foo,err = output.communicate()
+			sourcehash = re.search('srce\s\S+\s\w{32}',foo)
+			desthash = re.search('dest\s\S+\s\w{32}',foo)
+			dh = desthash.group()
+			sh = sourcehash.group()
+			bexttxt = os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt")
+			startObj1 = os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt")
+			if sh[-32:] == dh[-32:]:
+				os.remove(os.path.join(captureDir,f + ".wav"))
+				if os.path.exists(bexttxt): #can't give os.remove a file object it's gotta be a string grrrrr
+					os.remove(os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt"))
+				if os.path.exists(startObj1):
+					os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt"))
 	
 	return
 
@@ -167,6 +175,9 @@ def main():
 	logDir = config.get('magneticTape','magTapeLogs')
 	mmrepo = config.get('global','scriptRepo')
 
+	#get rid of the crap
+	deletebs(captureDir)
+	
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
 
