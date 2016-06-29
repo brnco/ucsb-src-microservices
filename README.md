@@ -56,12 +56,11 @@ Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for c
 
 "python hashmove.py -h" for more info
 
-Examples:
+**Examples:**
 
 move a file:
 
-python hashmove.py C:/path/to/source/file/a.txt C:/path/to/parent/dir/
-
+python hashmove.py C:/path/to/source/file/a.txt "C:/path/to parent/dir/"
 
 move a whole directory:
 
@@ -72,24 +71,20 @@ python hasmove.py C:/path/to/dir/a C:/path/to/dir/b
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
 
 ##makedip
-always makes me think of hummus
-
 Takes n input strings that are the canonical names for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server. Flags for "high quality" and "archival" not yet working (patrons sometimes request these).
 
 Has dependencies for ffmpeg, ffprobe
 
-Has flags for startObject (-so), transactionNumber (-tn)
+Has flags for startObject (-so), transactionNumber (-tn), mode (-tape for tapes, -disc coming soon)
 
 python makedip.py -h for more info
 
 ##makebroadcast
-Takes an input file, generally an archival master or raw-broadcast capture, inserts 2s fades, drops bitrate to 44.1k/16bit, embeds ID3 metadata, if source txt file is present.
+Takes an input file, generally an archival master or raw-broadcast capture, inserts 2s fades, drops bitrate to 44.1k/16bit, embeds ID3 metadata if source txt file is present.
 
 Has dependencies for ffmpeg, ffprobe. Takes 1 argument for file to process. Has flags for fades (-ff), national jukebox names (-nj), stereo (-s).
 
 "python makebroadcast.py -h" for more info
-
-For info on making ID3 source files see: http://jonhall.info/how_to/create_id3_tags_using_ffmpeg
  
 ##makemp3
 Takes an input file, generally a broadcast master, transcodes to 320kbps mp3. Embeds ID3 tags if present (either in source file or in sidecar txt file). Embeds png image of "Cover Art" if png or tif present in source directory.
@@ -99,7 +94,7 @@ Has dependencies for ffmpeg, ffprobe, graphicsmagick. Takes 1 argument for full 
 "python makemp3.py -h" for more info
 
 ##makeffmetadata
-Takes input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and title, performer, album, and date, and makes an ;FFMETADATA text file suitable for ffmpeg to embed in a broadcast master or mp3 as ID3 tags. Is frequently called by filemaker, particularly for cylinders.
+Takes input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and title, performer, album, and date, and makes an ;FFMETADATA text file suitable for ffmpeg to embed in a broadcast master or mp3 as ID3 tags. Is most often called by FileMaker, particularly for cylinders, or by makebroadcast
 
 Has dependencies for ffmpeg, ffprobe
 
@@ -107,18 +102,38 @@ Has flags for cylinder (-cyl), disc (-disc), tape (-tape), that correspond to di
 
 "python makeffmetadata.py -h" for more info
  
-##makeqctoolsreport.py
+For info on making ID3 source files see: http://jonhall.info/how_to/create_id3_tags_using_ffmpeg
+
+##makebext
+Takes an input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and a set of strings to be concatenated into a call to bwfmetaedit, prints a text file to given directory for asset type (tape, disc, etc). Used almost exclusively to format FileMaker outputs.
+
+Has 0 dependencies
+
+Has flags for start object (-so), tape (-tape, disc and cylinder coming soon), date (-d), master key (-mk), title (-t), manuscript number (-mss), collection name (-c).
+
+ 
+##makeqctoolsreport
 Takes an input video file, and outputs a compressed xml file that can be read by QCTools. It has to transcode it to a raw video format first so this script takes some time and processor space and is generally run Friday afternoon over a week of new captures, and runs into the weekend.
 
 Has dependencies for ffmpeg, ffprobe. Takes argument for full path of file to be processed.
 
 "python makeqctoolsreport.py -h" for more info.
 
-##makebarcodes.py
+##makebarcodes
 This script is used to generate barcode files that can be printed by our Zebra barcode printers. It makes a temporary file in your current directory. Then, for each side of a record, it asks for the title of the content, then the barcode: cusb_[label-abbrev]_[issue-number]_[copy(optional)]_[matrix-number]_[take-number]. Used for patron requests mostly. Once done, follow steps outlined in Printing Barcodes
 
 Has 0 dependencies. Takes no arguments.
+
+##makevideoslices
+Slices preservation and access transfers of videos with more than 1 asset on the tape (eg. vm1234 also contains vm5678 and vm9101). Takes no arguments but you have to edit the in and out points in a list in the script, as well as corresponding vNums. Needs to be better, OpenCube editing interface is crappy and Premiere doesn't accept our preservation masters so.....
+
+Has dependencies for ffmpeg, ffprobe
  
+##makevideoSIP (DEPRECATED)
+Take an argument of the vNumber (accession number for video) and outputs .tar.gz file for storage on LTO.
+
+Has dependencies for ffmpeg, ffprobe
+
 
 
 #avlab
