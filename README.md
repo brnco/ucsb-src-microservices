@@ -1,16 +1,15 @@
 This document contains an overview of the various post-processing scripts we use here in the AVLab at UCSB.
-Please see AVLab Utility Software List & Installation Instructions for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of these software functionalities.
+Please see AVLab Utility Software List & Installation Instructions (on the wiki) for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of those software functionalities.
  
 #Intro
 We use the microservices structure here, which breaks down complicated programs and processing steps into small, discreet, modular scripts, which can then be daisy-chained to fit particular applications.
 
-for programs with .exe extensions you can simply type their full path into the cmd.exe window and they'll go
-for .py extensions, you need to have python installed, and you type python [path of python file] [arguments]
+To run these scripts, type python [path of python file] [arguments]
  
 #Configuration
 After cloning from the github repo, there are a couple of steps necessary to make these scripts go, on Windows. 
 
-###The first is:
+###The first step is:
 set up a config file using the microservices-config-template.ini file found in the repo
 
 Move this file to C:/Users/[username]/
@@ -57,7 +56,16 @@ Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for c
 
 "python hashmove.py -h" for more info
 
+Examples:
 
+move a file:
+
+python hashmove.py C:/path/to/source/file/a.txt C:/path/to/parent/dir/
+
+
+move a whole directory:
+
+python hasmove.py C:/path/to/dir/a C:/path/to/dir/b
 
 
 #makesomethings
