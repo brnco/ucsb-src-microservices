@@ -139,38 +139,34 @@ Has dependencies for ffmpeg, ffprobe
 #avlab
 These processes deal with all of the audio objects created in the AVLab, not part of the Jukebox
 
-##avlab-magneticTape
-This was the hardest one to write because there's so many moving parts.
-It consists of a FOR loop that: goes through our default directory, file by file;
-asks if a file is mono or stereo;
-if mono, asks if it's longer than 2hrs and breaks it into 2hr chunks if it is; 
-if stereo, asks if a file is longer than 1hr, breaks it into 1hr long chunks if it is; 
-if it has been sliced in this way it also deletes the raw transfer; leaves the file alone if it doesn't meet those conditions; 
-embeds bwf data where it exists; 
-embeds a checksum for audio data; 
-copies the file to the appropriate directory on the R:\ drive; 
-writes whole-file checksums of both the local and repository copies of the files; 
-compares the whole-file checksums, and if they match, deletes the local copy; 
-and on exit it deletes the empty directories left behind by that other deletion process.
-I should really make a video tutorial for this.
+##avlab-audio
+Post-processing for magnetic-tape materials. Takes no arguments, has dependencies for ffmpeg, ffprobe, bwfmetaedit
+Deletes sidecar files that Wavelab generates
 
+makes a lsit of files to process based on FileMaker outputs (see staff wiki)
+
+Deletes silences of longer than 10s, calls changechannels to correct any channel configuration mismatches
+
+Embeds bext info, data chunk md5
+
+hashmoves it to the repo directory, greps the output of hashmove and, if successful, deletes raw capture and assocaited txt files
 
 ##avlab-cylinders
-This script automates the post-processing of cylinders and the creation of derivative files for ingest to the R:\ drive/ site.
+Post-processing of cylinders and the creation of derivative files for ingest to the R:/ drive/ site.
 The key here is that you have to export the metadata from fm via makeffmetadata and it embeds in our broadcast masters and everything else downstream.
-Also, for batches of cylinders, you're gonna want to NOT use this and write a custom script.
 
 ##avlab-discs
-Post-processing for discs that are not part of NJ process. Bundles makemp3 and makebroadcast with configurable filepaths. Used for post-processing of patron requests, mostly, saves files to a QC directory on R:/
+Post-processing for discs that are not part of NJ process. Bundles makemp3 and makebroadcast with configurable filepaths. Used for post-processing of patron requests, mostly, saves files to a QC directory on R:/. Has dependencies for ffmpeg, ffprobe, bwfmetaedit
 
 ##avlab-discimg-out
-This script uses GraphicsMagick to transcode from .dng to .tif, cropping, rotating, and changing the dpi of the files in the process, according to LC's specs. It then hashmoves them to the avlab/new_ingest/pre-ingest-qc folder.
+This script uses GraphicsMagick to transcode from .dng to .tif, cropping, rotating, and changing the dpi of the files in the process, according to LC's specs. It then hashmoves them to the avlab/new_ingest/pre-ingest-qc folder. For more info, see Imaging Disc Labels on the staff wiki
 
-##avlab-video.py
+##avlab-video
 post-processing for archival master video files. bundles makeqctoolsreport; generates frame level checksums with framemd5; makes a PBCore2.0 compliant xml file of technical metadata.
 
-##changechannels.py
+##changechannels
 This script is used to edit the channel configuration of raw audio captures.
+
 Has 1 dependency for ffmpeg. Takes arguments for file(s) to be processed.
 
 
@@ -178,7 +174,7 @@ Has 1 dependency for ffmpeg. Takes arguments for file(s) to be processed.
 Here's the scripts we use to process materials for the National Jukebox
 
 ##nj_audio
-This script processes the archival and broadcast master files we make for the National Jukebox. For more info on how files are created, see Digitizing 78s for The National Jukebox
+This script processes the archival and broadcast master files we make for the National Jukebox. For more info on how files are created, see Digitizing 78s for The National Jukebox on the wiki
 
 It has dependencies for ffmpeg and ffprobe. It takes no arguments
 
