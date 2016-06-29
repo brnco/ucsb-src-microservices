@@ -32,7 +32,7 @@ class cd:
 def deletebs(captureDir):
 	for dirs,subdirs,files in os.walk(captureDir):
 		for f in files:
-			if f.endwith(".gpk"):
+			if f.endswith(".gpk"):
 				os.remove(os.path.join(captureDir,f))
 	return
 		
