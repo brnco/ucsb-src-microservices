@@ -26,7 +26,8 @@ def main():
 	config = ConfigParser.ConfigParser()
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini") #read in the config file
 	vad = config.get('NationalJukebox','VisualArchRawDir') #set a var for the capture directory, mimics structure found in EOS util
-	vad = os.path.join(vad,time.strftime("%Y-%m-%d")) #actual capture directory has today's date in ISO format
+	vad = os.path.join(vad,time.strftime("%Y-%m-%d"))
+	print vad#actual capture directory has today's date in ISO format
 	barcode = sys.argv[1] #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename

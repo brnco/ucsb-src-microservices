@@ -32,7 +32,7 @@ class cd:
 def deletebs(captureDir):
 	for dirs,subdirs,files in os.walk(captureDir):
 		for f in files:
-			if f.endswith(".gpk"):
+			if f.endswith(".gpk") of f.endswith(".mrk") or f.endswith(".bak"):
 				os.remove(os.path.join(captureDir,f))
 	return
 		
@@ -51,7 +51,7 @@ def makelist(captureDir,toProcessDir,flist = {}):
 
 #do the ffmpeg stuff to each file	
 def ffprocess(flist,captureDir,mmrepo):
-	for f in flist:
+	for f in sorted(flist):
 		opts = flist[f]
 		aNumber = "a" + str(opts[0])
 		dirNumber = aNumber
@@ -70,7 +70,6 @@ def ffprocess(flist,captureDir,mmrepo):
 			#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
 		if not os.path.exists(endObj1):
 			subprocess.call('ffmpeg -i ' + os.path.join(captureDir,f) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
-		
 		#let's make sure the channels are right
 		with cd(processingDir):
 			#the following call pipes the ffprobe stream output back to this script
