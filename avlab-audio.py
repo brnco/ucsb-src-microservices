@@ -167,7 +167,7 @@ def main():
 	mmrepo = config.get('global','scriptRepo')
 
 	#get rid of the crap
-	#deletebs(captureDir)
+	deletebs(captureDir)
 	
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
@@ -175,14 +175,23 @@ def main():
 	for f in flist:
 		opts = flist[f]
 		#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-		ffprocess(f,opts,captureDir,mmrepo)
-	
-		#pop the bext info into each file
-		bextprocess(f,opts,bextsDir,captureDir)
-
-		#hashmove them to the repo dir
-		move(f,opts,captureDir,mmrepo,archRepoDir)
-	
+		
+		try:
+			ffprocess(f,opts,captureDir,mmrepo)
+		except:
+			pass
+		
+		try:
+			#pop the bext info into each file
+			bextprocess(f,opts,bextsDir,captureDir)
+		except:
+			pass
+		
+		try:
+			#hashmove them to the repo dir
+			move(f,opts,captureDir,mmrepo,archRepoDir)
+		except:
+			pass
 	return
 
 dependencies()
