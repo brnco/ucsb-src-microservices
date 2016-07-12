@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 This document contains an overview of the various post-processing scripts we use here in the AVLab at UCSB.
 Please see AVLab Utility Software List & Installation Instructions (on the wiki) for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of those software functionalities.
  
@@ -48,24 +49,31 @@ By doing this, you are set to open the cmd window in the directory with all the 
  
 
 #hashmove
-hashmove takes two arguments: 1) the source file or directory and 2) the destination directory. For files, hashmove just copies from source to destination, writes md5 hashes of both source and destination files, compares the hashes, and if they're the same it deletes the source file and source file hash. If different it throws out a warning and does not delete. For directories, it does the same thing after making a list of every file in the source directory. If initial .md5 files are present in source, they are not overwritten (and are assumed to be correct and up-to-date). You can give it Windows or POSIX paths and it'll work (needs testing) and it can only handle 1 layer of subdirectories.
+better file movement
 
-hashmove forms the basis of all asset-file-moving operations in these scripts. By doing this complicated routine, we can actually verify that the files we have are the ones we think they are. This is important for things like video, where, over the course of a 40GB transfer, the opportunities for things to get lost, and the costs of re-transfer, are high. There are utilities such as rsync, bbcp, and BagIt that do this kind of thing, but these were deemed too complicated to implement/ too blackbox-esque/ or were unavailable on Windows.
+**General Usage**
 
-Has 0 dependencies. Takes 2 arguments for source and destination. Has flag for copy instead of move (-c).
+python hashmove.py [source file or directory full path] [destination parent directory full path] [flags]
 
-"python hashmove.py -h" for more info
+**to move a file**
 
-**Examples:**
+python hashmove.py C:/path/to/file.ext C:/path/to/parent/dir
 
-move a file:
+**to move a directory**
 
-python hashmove.py C:/path/to/source/file/a.txt "C:/path/to parent/dir/"
+python hashmove.py /home/path/to/dir/a /home/path/to/dir/b
 
-move a whole directory:
+**to copy a file**
 
-python hasmove.py C:/path/to/dir/a C:/path/to/dir/b
+python hashmove.py C:/path/to/file.ext C:/path/to/parent/dir -c
 
+**log the transfer**
+
+python hashmove.py /home/path/to/dir/a /home/path/to/dir/b -l
+
+**verify against another hash or set of hashes**
+
+python hashmove.py "/home/path to/dir/you question" /home/path/to/dir/with/hashes -v
 
 #makesomethings
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
@@ -280,3 +288,4 @@ If true, hashmove that directory to our batch folder (containing 1000 SIPs)
 here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input directory] [full path to batch directory]
+

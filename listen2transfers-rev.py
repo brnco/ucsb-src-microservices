@@ -51,7 +51,7 @@ def doit(sd,start):
 	
 def main():
 	#initialize a buncha crap
-	parser = argparse.ArgumentParser(description="Listen to statistically significant random sampling of recent transfers")
+	parser = argparse.ArgumentParser(description="Listen to a batch of transfers to find issues")
 	#parser.add_argument('-t','--tapes',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
 	parser.add_argument('-b','--batch',help='the batch, in thousands, to lsiten to, eg: 27000')
 	parser.add_argument('-s','--start',type=int,default=0,help='the audioNumber you left off with')
