@@ -66,10 +66,13 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		ar = '44100' #audio rate
 		sfmt = 's16' #sample_fmt, signed 16-bit in this case
 		fadestring = '' #placeholder for fades, if we make em
+		normstring = '' #placeholder for loudnorm
 		if args['nationaljukebox'] is False: #sorts out the jukebox stuff which doesn't get this treatment
 			id3string = makeid3(startDir, assetName) #calls our id3 function
 		else:
 			id3string = ''
+		if args['normalize'] is True:
+			normstring = "-af loudnorm=I=-16:TP=-1.5:LRA=11"
 		#get the right channel config
 		if args['stereo'] is not False:
 			ac = '2'
@@ -93,7 +96,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 			ffdata.close() #housekeeping
 			os.remove(startObj + '.ffdata.txt') #housekeeping
 		#subprocess.call(['ffmpeg','-i',startObj,'-ar',ar,'-sample_fmt',sfmt,'-ac',ac,'-id3v2_version','3','-write_id3v1','1','-y',assetName + EuseChar + '.wav'])
-		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + fadestring + '-id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
+		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + normstring + ' ' + fadestring + '-id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
 		subprocess.call(ffmpegstring)
 		if args['mp3'] is True:
 			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
@@ -144,6 +147,7 @@ def handling():
 	parser.add_argument('-ff','--fades',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
 	parser.add_argument('-s','--stereo',action='store_true',default=False,help='outputs to stereo (mono is default)')
 	parser.add_argument('-mp3','--mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
+	parser.add_argument('-n','--normalize',action='store_true',default=False,help='EBU r128 normalization with true peaks at -1.5dB, defaults to ON')
 	parser.add_argument('-nj','--nationaljukebox',action='store_true',default=False,help='extra processing step for National Jukebox files')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = args['startObj'].replace("\\",'/') #for the windows peeps

@@ -15,6 +15,8 @@ import argparse
 import shutil
 import tarfile
 import gzip
+import ConfigParser
+import getpass
 
 class cd:
     #Context manager for changing the current working directory
@@ -43,20 +45,27 @@ def main():
 	#parser.add_argument('-ff','--fades',action='store_true',help='adds 2s heads and tails fades to black/ silence')
 	#parser.add_argument('-s','--stereo',action='store_true',help='outputs to stereo (mono is default)')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
+	config = ConfigParser.ConfigParser()
+	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
+	newIngest = config.get('video','newIngest')
+	ltoStage = config.get('video','ltoStage')
+	accDir = config.get('video','accessDir')
+	mmrepo = config.get('global','scriptRepo')
 	vNum = args['vNum']
 	v = vNum[1:]
-	startObj = 'R:/Visual/avlab/new_ingest/' + vNum
-	endObj = 'R:/Visual/0000/' + vNum
-	ltoObj = 'R:/Visual/avlab/lto-stage/' + vNum
+	vthousand = v[:1] + '000'
+	startObj = os.path.join(newIngest,vNum)
+	accDir = os.path.join(accDir,vthousand,vNum)
+	ltoObj = os.path.join(ltoStage,vNum)
 	if not os.path.isdir(startObj):
 		print "Buddy, that's not a directory"
 		sys.exit()
-	if not os.path.exists(endObj):
-		os.makedirs(endObj)
+	if not os.path.exists(accDir):
+		os.makedirs(accDir)
 	#verify that all the right extensions are in there	
 	with cd(startObj):
 		while True:
-			extList = ['-pres.mxf','-acc.mp4','-pres.mxf.PBCore2.xml','-pres.mxf.framemd5','-pres.mxf.md5','-pres.mxf.qctools.xml.gz',]
+			extList = ['-pres.mxf','-acc.mp4','-pres.mxf.PBCore2.xml','-pres.mxf.framemd5','-pres.mxf.qctools.xml.gz',]#deleted '-pres.mxf.md5' for testing
 			flist = []
 			for file in os.listdir(startObj): #mak a list of the files in our startdir
 				flist.append(file)
@@ -64,21 +73,31 @@ def main():
 				if not any(x in f for f in flist): 
 					print "Buddy, you're missing a sidecar file with a " + x + " extension"
 					break
-			manifest = open(vNum + '-manifest.txt','w') #initialize a text file that we'll use to log what ~should~ be in this folder
-			for f in flist:
-				manifest.write(f + "\n")
-			manifest.close()
+			manifest = open(os.path.join(accDir,vNum + '-manifest.txt'),'w') #init a text file to write to
+			manifest.write("Access dir hashes\n")
 			#copy to the access repo in R:/Visual
 			for f in flist:
 				if not f.endswith('.mxf'): #don't copy the preservation master
 					print "Copying " + f
-					shutil.copy2(f,endObj) #copy2 grabs the registry metadata which is cool and good
-			subprocess.call(['python','hashmove.py',startObj,ltoObj])
-	#turn it into a tarball then gzip it
-	with cd('R:/Visual/avlab/new_ingest/'):
-		tar = tarfile.open(vNum + ".tar.gz","w:gz")
-		tar.add(startObj)
-		tar.close()
+					output = subprocess.Popen(['python',os.path.join(mmrepo,'hashmove.py'),'-c',os.path.join(os.getcwd(),f),accDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+					foo,err = output.communicate()
+					sourcehash = re.search('srce\s\S+\s\w{32}',foo)
+					desthash = re.search('dest\s\S+\s\w{32}',foo)
+					dh = desthash.group()
+					sh = sourcehash.group()
+					if sh[-32:] == dh[-32:]:
+						manifest.write(sh + "\n")
+			manifest.write("\n")
+			manifest.write("LTO Hashes\n")
+			output = subprocess.Popen(['python',os.path.join(mmrepo,'hashmove.py'),startObj,ltoObj],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+			foo,err = output.communicate()
+			sourcehash = re.search('srce\s\S+\s\w{32}',foo)
+			desthash = re.search('dest\s\S+\s\w{32}',foo)
+			dh = desthash.group()
+			sh = sourcehash.group()
+			if sh[-32:] == dh[-32:]:
+				manifest.write(sh + "\n")
+				manifest.close()
 	return
 
 main()

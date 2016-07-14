@@ -44,7 +44,7 @@ def main():
 			if s.endswith("Aa.wav"):
 				i1 = s
 				endObj = s.replace("Aa.wav","a.wav")
-			elif s.endswith("Ba.wav"):
+			if s.endswith("Ba.wav"):
 				i2 = s
 				
 		ffmpegstring = "ffmpeg -i " + i1 + " -i " + i2 + ' -filter_complex "[0:a][1:a]amerge=inputs=2[aout]" -map "[aout]" -acodec pcm_s24le ' + endObj

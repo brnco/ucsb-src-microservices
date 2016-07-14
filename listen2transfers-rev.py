@@ -57,8 +57,6 @@ def main():
 	parser.add_argument('-s','--start',type=int,default=0,help='the audioNumber you left off with')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	searchDirs = os.path.join("R:/audio",args['batch'])
-	print searchDirs
-	blah = raw_input("eh")
 	doit(searchDirs,args['start'])
 	return
 
