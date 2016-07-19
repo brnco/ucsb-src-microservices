@@ -129,7 +129,7 @@ def main():
 	parser.add_argument('-d','--disc',action='store_true',dest='disc',default=False,help="make a dip with disc template")
 	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")	
-	parser.add_argument('-hq','--highquality',dest='hq',help="don't transcode to mp3, dip a cd-quality wave")
+	parser.add_argument('-hq','--highquality',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	#parser.add_argument('-a','--archival',dest='a',help="don't transcode a broadcast master or mp3, dip the archival master")
 	parser.add_argument('-comp','--compress',action='store_true',dest='compress',default=False,help="compress the dip folder when everything is in there")
 	#parser.add_argument('-r','--rights',dest='r',default="©2016 The Regents of the University of California",help="a copyright statement for the asset")

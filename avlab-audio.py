@@ -126,9 +126,9 @@ def bextprocess(f,opts,bextsDir,captureDir):
 #hashmove each file to the repo	
 def move(f,opts,captureDir,mmrepo,archRepoDir):
 	aNumber = "a" + str(opts[0])
-	dirNumber = aNumber
 	if aNumber.endswith("A") or aNumber.endswith("B"):
-		dirNumber = aNumber[:-1]
+		aNumber = aNumber[:-1]
+	dirNumber = aNumber
 	processingDir = os.path.join(captureDir,dirNumber)
 	if os.path.isdir(processingDir):
 		endDirThousand = aNumber.replace("a","") #input arg here is a1234 but we want just the number

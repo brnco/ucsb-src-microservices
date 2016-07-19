@@ -59,7 +59,7 @@ def main():
 					print "Buddy, somethings not right here"
 					sys.exit()
 				else:
-					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),startObj,'-ff']) #calls makebroadcast.py and tells it to insert 2s fades
+					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),startObj,'-ff','-n']) #calls makebroadcast.py and tells it to insert 2s fades and normalize to -1.5db
 					#os.remove(startObj) #deletes the raw broadcast capture
 					#os.rename(interObj, startObj) #renames the itnermediate files as the broadcast master
 					subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
