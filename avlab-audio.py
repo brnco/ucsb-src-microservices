@@ -165,7 +165,7 @@ def main():
 	bextsDir = config.get('magneticTape','magTapebexts')
 	logDir = config.get('magneticTape','magTapeLogs')
 	mmrepo = config.get('global','scriptRepo')
-
+	#htm-update test
 	#get rid of the crap
 	deletebs(captureDir)
 	
