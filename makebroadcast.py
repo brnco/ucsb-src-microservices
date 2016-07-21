@@ -147,7 +147,7 @@ def handling():
 	parser.add_argument('-ff','--fades',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
 	parser.add_argument('-s','--stereo',action='store_true',default=False,help='outputs to stereo (mono is default)')
 	parser.add_argument('-mp3','--mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
-	parser.add_argument('-n','--normalize',action='store_true',default=False,help='EBU r128 normalization with true peaks at -1.5dB, defaults to ON')
+	parser.add_argument('-n','--normalize',action='store_true',default=False,help='EBU r128 normalization with true peaks at -1.5dB, defaults to off')
 	parser.add_argument('-nj','--nationaljukebox',action='store_true',default=False,help='extra processing step for National Jukebox files')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = args['startObj'].replace("\\",'/') #for the windows peeps
