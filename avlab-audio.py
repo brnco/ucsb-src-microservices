@@ -38,55 +38,65 @@ def deletebs(captureDir):
 		
 #make list of files to process
 def makelist(captureDir,toProcessDir,flist = {}):
-	for dirs, subdirs, files in os.walk(captureDir):
+	for dirs, subdirs, files in os.walk(toProcessDir):
 		for f in files:
-			rawfname,ext = os.path.splitext(f) #grab raw file name from os.walk
-			txtinfo = os.path.join(toProcessDir,rawfname + '.txt') #init var for txt file that tells us how to process
-			if os.path.exists(txtinfo): #if said text file exists
-				with open(txtinfo) as arb:
-					fulline = csv.reader(arb, delimiter=",") #use csv lib to read it line by line
-					for x in fulline: #result is list
-						flist[rawfname] = x #makes dict of rawfilename : [anumber(wihtout the 'a'),track configuration] values
+			aNum,ext = os.path.splitext(f) #grab aNum
+			with open(os.path.join(dirs,f)) as arb:
+				fulline = csv.reader(arb, delimiter=",") #use csv lib to read it line by line
+				for x in fulline: #result is list
+					flist[aNum] = x #makes dict of aNumber : [rawfname,track configuration] values
 	return flist
 
 #do the ffmpeg stuff to each file	
-def ffprocess(f,opts,captureDir,mmrepo):
-	aNumber = "a" + str(opts[0])
-	dirNumber = aNumber
-	if aNumber.endswith("A") or aNumber.endswith("B"):
-		dirNumber = aNumber[:-1]
+def ffprocess(aNumber,process,captureDir,mmrepo):
+	rawfname = process[0]
 	try:
-		channelConfig = str(opts[1])
+		channelConfig = process[1]
 	except IndexError:
 		channelConfig = "nothing"
+	try:
+		reverseA = process[2]
+	except IndexError:
+		reverseA = "nothing"
+	try:
+		reverseB = process[3]
+	except IndexError:
+		reverseB = "nothing"
+	dirNumber = aNumber	
+	if aNumber.endswith("A") or aNumber.endswith("B"):
+		dirNumber = aNumber[:-1]
 	processingDir = os.path.join(captureDir,dirNumber)
 	endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav") #name of archival master when we're done
 	endObj2 = os.path.join(processingDir,"cusb-" + aNumber + "e.wav")
+
 	#make a processing directory named after first attr in fm export: aNumber
-	if not os.path.exists(processingDir):
-		os.makedirs(processingDir)
-		#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
-	if not os.path.exists(endObj1):
-		subprocess.call('ffmpeg -i ' + os.path.join(captureDir,f) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
+	#if not os.path.exists(processingDir):
+		#os.makedirs(processingDir)
+	#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
+	#if not os.path.exists(endObj1):
+		#subprocess.call('ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
 	#let's make sure the channels are right
-	with cd(processingDir):
+	#with cd(processingDir):
 		#the following call pipes the ffprobe stream output back to this script
-		ffdata = subprocess.Popen(["ffprobe","-show_streams","-of","flat",endObj1],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		data, err = ffdata.communicate() #separate it so it's useful
-		print channelConfig
-		if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
-			if channelConfig == '1/4-inch Half Track Mono':
-				subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
-			if channelConfig == '1/4-inch Full Track Mono':
-				subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
-				os.remove(endObj1) #can't overwrite with ffmpeg it's trash
-				os.rename(endObj2,endObj1)
-			
-		#split files larger than 2GB	
-		#statinfo = os.stat(endObj1)
-		#eo1size = statinfo.st_size
-		#if eo1size >= 2147483648:
-			#print "too big too wide"
+		#ffdata = subprocess.Popen(["ffprobe","-show_streams","-of","flat",endObj1],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		#data, err = ffdata.communicate() #separate it so it's useful
+		#print channelConfig
+		#if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
+			#if channelConfig == '1/4-inch Half Track Mono':
+				#subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
+				#if not 
+				#if not reverseA == 'nothing':
+					#subprocess.call("ffmpeg -i " + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2)
+					#os.remove(endObj1)
+					#os.rename(endObj2, endObj1)
+				#if not reverseB == 'nothing':
+					#subprocess.call("ffmpeg -i " + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2)
+					#os.remove(endObj1)
+					#os.rename(endObj2, endObj1)
+			#if channelConfig == '1/4-inch Full Track Mono':
+				#subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
+				#os.remove(endObj1) #can't overwrite with ffmpeg it's trash
+				#os.rename(endObj2,endObj1)
 	return
 
 #do the fancy library thing to each file	
@@ -167,31 +177,30 @@ def main():
 	mmrepo = config.get('global','scriptRepo')
 	#htm-update test
 	#get rid of the crap
-	deletebs(captureDir)
+	#deletebs(captureDir)
 	
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
 	
-	for f in flist:
-		opts = flist[f]
+	for aNumber, process in flist.iteritems():
+
 		#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
+		#try:
+			ffprocess(aNumber,process,captureDir,mmrepo)
+		#except:
+			#pass
 		
-		try:
-			ffprocess(f,opts,captureDir,mmrepo)
-		except:
-			pass
-		
-		try:
+		#try:
 			#pop the bext info into each file
-			bextprocess(f,opts,bextsDir,captureDir)
-		except:
-			pass
+			#bextprocess(f,opts,bextsDir,captureDir)
+		#except:
+			#pass
 		
-		try:
+		#try:
 			#hashmove them to the repo dir
-			move(f,opts,captureDir,mmrepo,archRepoDir)
-		except:
-			pass
+			#move(f,opts,captureDir,mmrepo,archRepoDir)
+		#except:
+			#pass
 	return
 
 dependencies()
