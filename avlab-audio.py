@@ -84,15 +84,21 @@ def ffprocess(aNumber,process,captureDir,mmrepo):
 		#if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
 			#if channelConfig == '1/4-inch Half Track Mono':
 				#subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
-				#if not 
-				#if not reverseA == 'nothing':
-					#subprocess.call("ffmpeg -i " + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2)
-					#os.remove(endObj1)
-					#os.rename(endObj2, endObj1)
-				#if not reverseB == 'nothing':
-					#subprocess.call("ffmpeg -i " + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2)
-					#os.remove(endObj1)
-					#os.rename(endObj2, endObj1)
+				#if deleteA == '1':
+					#os.remove("cusb-" + aNumber "Aa.wav")
+				#if deleteB == '1':
+					#os.remove("cusb-" + aNumber "Ba.wav")
+				#try:
+					#if reverseA == '1':
+						#subprocess.call("ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2)
+						#os.remove(endObj1)
+						#os.rename(endObj2, endObj1)
+					#if reverseB == '1':
+						#subprocess.call("ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2)
+						#os.remove(endObj1)
+						#os.rename(endObj2, endObj1)
+				#except:
+					#pass
 			#if channelConfig == '1/4-inch Full Track Mono':
 				#subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
 				#os.remove(endObj1) #can't overwrite with ffmpeg it's trash
@@ -100,8 +106,7 @@ def ffprocess(aNumber,process,captureDir,mmrepo):
 	return
 
 #do the fancy library thing to each file	
-def bextprocess(f,opts,bextsDir,captureDir):
-	aNumber = "a" + str(opts[0])
+def bextprocess(aNumber,process,bextsDir,captureDir):
 	dirNumber = aNumber
 	if aNumber.endswith("A") or aNumber.endswith("B"):
 		dirNumber = aNumber[:-1]
