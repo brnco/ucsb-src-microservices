@@ -70,39 +70,38 @@ def ffprocess(aNumber,process,captureDir,mmrepo):
 	endObj2 = os.path.join(processingDir,"cusb-" + aNumber + "e.wav")
 
 	#make a processing directory named after first attr in fm export: aNumber
-	#if not os.path.exists(processingDir):
-		#os.makedirs(processingDir)
-	#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
-	#if not os.path.exists(endObj1):
-		#subprocess.call('ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
+	if not os.path.exists(processingDir):
+		os.makedirs(processingDir)
+	remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
+	if not os.path.exists(endObj1):
+		subprocess.call('ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
 	#let's make sure the channels are right
-	#with cd(processingDir):
+	with cd(processingDir):
 		#the following call pipes the ffprobe stream output back to this script
-		#ffdata = subprocess.Popen(["ffprobe","-show_streams","-of","flat",endObj1],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		#data, err = ffdata.communicate() #separate it so it's useful
-		#print channelConfig
-		#if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
-			#if channelConfig == '1/4-inch Half Track Mono':
-				#subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
-				#if deleteA == '1':
-					#os.remove("cusb-" + aNumber "Aa.wav")
-				#if deleteB == '1':
-					#os.remove("cusb-" + aNumber "Ba.wav")
-				#try:
-					#if reverseA == '1':
-						#subprocess.call("ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2)
-						#os.remove(endObj1)
-						#os.rename(endObj2, endObj1)
-					#if reverseB == '1':
-						#subprocess.call("ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2)
-						#os.remove(endObj1)
-						#os.rename(endObj2, endObj1)
-				#except:
-					#pass
-			#if channelConfig == '1/4-inch Full Track Mono':
-				#subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
-				#os.remove(endObj1) #can't overwrite with ffmpeg it's trash
-				#os.rename(endObj2,endObj1)
+		ffdata = subprocess.Popen(["ffprobe","-show_streams","-of","flat",endObj1],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		data, err = ffdata.communicate() #separate it so it's useful
+		if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
+			if channelConfig == '1/4-inch Half Track Mono':
+				subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
+				if deleteA == '1':
+					os.remove("cusb-" + aNumber "Aa.wav")
+				if deleteB == '1':
+					os.remove("cusb-" + aNumber "Ba.wav")
+				try:
+					if reverseA == '1':
+						subprocess.call("ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2)
+						os.remove(endObj1)
+						os.rename(endObj2, endObj1)
+					if reverseB == '1':
+						subprocess.call("ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2)
+						os.remove(endObj1)
+						os.rename(endObj2, endObj1)
+				except:
+					pass
+			if channelConfig == '1/4-inch Full Track Mono': #we can really only downmix to mono for speech, it's not preservation best practice for music
+				subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
+				os.remove(endObj1) #can't overwrite with ffmpeg it's trash
+				os.rename(endObj2,endObj1)
 	return
 
 #do the fancy library thing to each file	
@@ -115,10 +114,19 @@ def bextprocess(aNumber,process,bextsDir,captureDir):
 	endObj1A = os.path.join(processingDir,"cusb-" + aNumber + "Aa.wav")
 	endObj1B = os.path.join(processingDir,"cusb-" + aNumber + "Ba.wav")
 	#clear mtd already in there
-	subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
+	
 	#embed checksums
 	print "hashing data chunk of " + aNumber
-	subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1)
+	if os.path.exists(endObj1):
+		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
+		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1)
+	if os.path.exists(endObj1A):
+		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1A)
+		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1A)
+	if os.path.exists(endObj1B):
+		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1B)
+		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1B)
+	
 	#embed bext metadata based on FM output
 	bextFile = os.path.join(bextsDir,'cusb-' + aNumber + '-bext.txt')
 	if os.path.exists(bextFile):
@@ -138,7 +146,7 @@ def bextprocess(aNumber,process,bextsDir,captureDir):
 			#print foo
 	return
 
-#hashmove each file to the repo	
+#hashmove processing folder to the repo	
 def move(f,opts,captureDir,mmrepo,archRepoDir):
 	aNumber = "a" + str(opts[0])
 	if aNumber.endswith("A") or aNumber.endswith("B"):
@@ -192,6 +200,7 @@ def main():
 		#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
 		#try:
 			ffprocess(aNumber,process,captureDir,mmrepo)
+			foo = raw_input("eh")
 		#except:
 			#pass
 		
