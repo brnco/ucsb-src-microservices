@@ -98,7 +98,11 @@ def copyfiles(flist,startObjIsDir):
 		print ""
 		print "copying " + os.path.basename(sf) + " from source to destination..."
 		if startObjIsDir is False: #if the startObject is not a directory
-			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
+			#make the subdirectories
+			_dest = os.path.dirname(os.path.normpath(ef)) 
+			if not os.path.exists(_dest):
+				os.makedirs(_dest)
+			shutil.copy2(sf,ef)
 		if startObjIsDir is True: #if the startObject is a directory
 			#make the subdirectories
 			_dest = os.path.dirname(os.path.normpath(ef)) 
