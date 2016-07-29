@@ -48,8 +48,10 @@ def main():
 		with cd(vid):
 			for f in files:
 				fname, ext = os.path.splitext(f)
-				subprocess.call(['gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180',os.path.join(vpd,fname + ".tif")]) #convert them and save them to a diff folder (mimicing the bespoke processes of yore)
-				subprocess.call(['gm','convert',os.path.join(vpd,fname + ".tif"),'-resize','800x800',os.path.join(vpd,fname + ".jpg")])
+				if not os.path.exists(os.path.join(vpd,fname + ".tif")):
+					subprocess.call(['gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180',os.path.join(vpd,fname + ".tif")]) #convert them and save them to a diff folder (mimicing the bespoke processes of yore)
+				if not os.path.exists(os.path.join(vpd,fname + ".jpg")):
+					subprocess.call(['gm','convert',os.path.join(vpd,fname + ".tif"),'-resize','800x800',os.path.join(vpd,fname + ".jpg")])
 	#move all the files
 	for r in vislist:
 		subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),r]) #deal with the stupid cusb bug	

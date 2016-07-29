@@ -50,7 +50,7 @@ def main():
 				if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"):
 					os.remove(f)
 				else:
-					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),f,'-ff','-nj'])
+					#subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),f,'-ff','-nj'])
 					fname, ext = os.path.splitext(f)
 					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),f,os.path.join(qcDir,fname)])
 	with cd(archDir):
