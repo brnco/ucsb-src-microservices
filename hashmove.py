@@ -97,13 +97,13 @@ def copyfiles(flist,startObjIsDir):
 		sf, ef = f #break list of tuples up into startfile and endfile
 		print ""
 		print "copying " + os.path.basename(sf) + " from source to destination..."
+		#make the subdirectories
+		_dest = os.path.dirname(os.path.normpath(ef)) 
+		if not os.path.exists(_dest):
+			os.makedirs(_dest)
 		if startObjIsDir is False: #if the startObject is not a directory
 			shutil.copy2(sf,ef) #if it's just a single file do a straight copy
 		if startObjIsDir is True: #if the startObject is a directory
-			#make the subdirectories
-			_dest = os.path.dirname(os.path.normpath(ef)) 
-			if not os.path.exists(_dest):
-				os.makedirs(_dest)
 			shutil.copy2(sf,ef) #we use copy2 because it grabs all the registry metadata too
 	return
 	
