@@ -6,6 +6,7 @@ import os
 import subprocess
 import csv
 import re
+import time
 from distutils import spawn
 
 #check that we have the required software to run this script
@@ -38,7 +39,7 @@ def deletebs(captureDir):
 		
 #make list of files to process
 def makelist(captureDir,toProcessDir,flist = {}):
-	for dirs, subdirs, files in os.walk(captureDir):
+	for dirs, subdirs, files in os.walk(toProcessDir):
 		for f in files:
 			if not f.endswith(".txt"): #SOMETIMES FILEMAKER DOESN'T EXPORT THE .TXT PART BECAUSE IT'S GREAT AND I LOVE IT
 				f = f + ".txt"
@@ -52,21 +53,21 @@ def makelist(captureDir,toProcessDir,flist = {}):
 	return flist
 
 #do the ffmpeg stuff to each file	
-def ffprocess(rawfName,process,captureDir,mmrepo):
-	aNumber = "a" + process[0]
+def ffprocess(aNumber,rawfname,process,captureDir,mmrepo):
 	dirNumber = aNumber	
 	if aNumber.endswith("A") or aNumber.endswith("B") or aNumber.endswith("C") or aNumber.endswith("D"):
 		dirNumber = aNumber[:-1]
 	processingDir = os.path.join(captureDir,dirNumber)
 	endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav") #name of archival master when we're done
 	endObj2 = os.path.join(processingDir,"cusb-" + aNumber + "e.wav")
-
+	
 	#make a processing directory named after first attr in fm export: aNumber
 	if not os.path.exists(processingDir):
 		os.makedirs(processingDir)
-		
+
 	#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
 	if not os.path.exists(endObj1):
+		#print 'ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1
 		subprocess.call('ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
 	
 	#let's make sure the channels are right
@@ -79,39 +80,28 @@ def ffprocess(rawfName,process,captureDir,mmrepo):
 				subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
 				if 'del_fA' in process:
 					os.remove("cusb-" + aNumber + "Aa.wav")
-					print "remove cusb-" + aNumber + "Aa.wav"
 				if 'del_fB' in process:
 					os.remove("cusb-" + aNumber + "Ba.wav")
-					print "remove cusb-" + aNumber + "Ba.wav"
 				if 'del_fC' in process:
 					os.remove("cusb-" + aNumber + "Ca.wav")
-					print "remove cusb-" + aNumber + "Ca.wav"
 				if 'del_fD' in process:
 					os.remove("cusb-" + aNumber + "Da.wav")
-					print "remove cusb-" + aNumber + "Da.wav"
-				try:
-					if 'rev_fA' in process:
-						print "ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2
-						subprocess.call("ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a copy -af areverse " + endObj2)
-						os.remove(endObj1)
-						os.rename(endObj2, endObj1)
-					if 'rev_fB' in process:
-						print "ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2
-						subprocess.call("ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a copy -af areverse " + endObj2)
-						os.remove(endObj1)
-						os.rename(endObj2, endObj1)
-					if 'rev_fC' in process:
-						print "ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a copy -af areverse " + endObj2
-						subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a copy -af areverse " + endObj2)
-						os.remove(endObj1)
-						os.rename(endObj2, endObj1)
-					if 'rev_fD' in process:
-						print "ffmpeg -i cusb-" + aNumber + "Da.wav -c:a copy -af areverse " + endObj2
-						subprocess.call("ffmpeg -i cusb-" + aNumber + "Da.wav -c:a copy -af areverse " + endObj2)
-						os.remove(endObj1)
-						os.rename(endObj2, endObj1)
-				except:
-					pass
+				if 'rev_fA' in process:
+					subprocess.call("ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a pcm_s24le -af areverse " + endObj2)
+					os.remove("cusb-" + aNumber + "Aa.wav")
+					os.rename(endObj2, "cusb-" + aNumber + "Aa.wav")
+				if 'rev_fB' in process:
+					subprocess.call("ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a pcm_s24le -af areverse " + endObj2)
+					os.remove("cusb-" + aNumber + "Ba.wav")
+					os.rename(endObj2, "cusb-" + aNumber + "Ba.wav")
+				if 'rev_fC' in process:
+					subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a pcm_s24le -af areverse " + endObj2)
+					os.remove("cusb-" + aNumber + "Ca.wav")
+					os.rename(endObj2, "cusb-" + aNumber + "Ca.wav")
+				if 'rev_fD' in process:
+					subprocess.call("ffmpeg -i cusb-" + aNumber + "Da.wav -c:a pcm_s24le -af areverse " + endObj2)
+					os.remove("cusb-" + aNumber + "Da.wav")
+					os.rename(endObj2, "cusb-" + aNumber + "Da.wav")
 			if '1/4-inch Full Track Mono' in process: #we can really only downmix to mono for speech, it's not preservation best practice for music
 				print "ffmpeg -i " + endObj1 + " -ac 1 " + endObj2
 				subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
@@ -119,18 +109,18 @@ def ffprocess(rawfName,process,captureDir,mmrepo):
 				os.rename(endObj2,endObj1)
 			if 'rev_fAB' in process and os.path.exists("cusb-" + aNumber + "a.wav"):
 				print "ffmpeg -i cusb-" + aNumber + "a.wav -c:a copy -af areverse " + endObj2
-				subprocess.call("ffmpeg -i cusb-" + aNumber + "a.wav -c:a copy -af areverse " + endObj2)
+				subprocess.call("ffmpeg -i cusb-" + aNumber + "a.wav -c:a pcm_s24le -af areverse " + endObj2)
 				os.remove(endObj1)
 				os.rename(endObj2, endObj1)
 			if 'rev_fCD' in process and os.path.exists("cusb-" + aNumber + "Ca.wav"):
 				print "ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a copy -af areverse " + "cusb-" + aNumber + "Ea.wav"
-				subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a copy -af areverse " + "cusb-" + aNumber + "Ea.wav")
+				subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a pcm_s24le -af areverse " + "cusb-" + aNumber + "Ea.wav")
 				os.remove(endObj1)
 				os.rename("cusb-" + aNumber + "Ea.wav", endObj1)
 	return
 
 #do the fancy library thing to each file	
-def bextprocess(aNumber,process,bextsDir,captureDir):
+def bextprocess(aNumber,bextsDir,captureDir):
 	dirNumber = aNumber
 	if aNumber.endswith("A") or aNumber.endswith("B"):
 		dirNumber = aNumber[:-1]
@@ -138,6 +128,8 @@ def bextprocess(aNumber,process,bextsDir,captureDir):
 	endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
 	endObj1A = os.path.join(processingDir,"cusb-" + aNumber + "Aa.wav")
 	endObj1B = os.path.join(processingDir,"cusb-" + aNumber + "Ba.wav")
+	endObj1C = os.path.join(processingDir,"cusb-" + aNumber + "Ca.wav")
+	endObj1D = os.path.join(processingDir,"cusb-" + aNumber + "Da.wav")
 	#clear mtd already in there
 	
 	#embed checksums
@@ -151,6 +143,12 @@ def bextprocess(aNumber,process,bextsDir,captureDir):
 	if os.path.exists(endObj1B):
 		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1B)
 		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1B)
+	if os.path.exists(endObj1C):
+		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1C)
+		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1C)
+	if os.path.exists(endObj1D):
+		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1D)
+		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1D)
 	
 	#embed bext metadata based on FM output
 	bextFile = os.path.join(bextsDir,'cusb-' + aNumber + '-bext.txt')
@@ -164,16 +162,18 @@ def bextprocess(aNumber,process,bextsDir,captureDir):
 			foo = 'bwfmetaedit ' + bextstr + ' ' + endObj1
 			if os.path.exists(endObj1):
 				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
-			elif os.path.exists(endObj1A):
+			if os.path.exists(endObj1A):
 				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1A)
-			elif os.path.exists(endObj1B):
+			if os.path.exists(endObj1B):
 				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1B)
-			#print foo
+			if os.path.exists(endObj1C):
+				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1C)
+			if os.path.exists(endObj1D):
+				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1D)
 	return
 
 #hashmove processing folder to the repo	
-def move(f,opts,captureDir,mmrepo,archRepoDir):
-	aNumber = "a" + str(opts[0])
+def move(rawfname,aNumber,captureDir,mmrepo,archRepoDir):
 	if aNumber.endswith("A") or aNumber.endswith("B"):
 		aNumber = aNumber[:-1]
 	dirNumber = aNumber
@@ -189,18 +189,19 @@ def move(f,opts,captureDir,mmrepo,archRepoDir):
 		#hashmove it and grip the output so we can delete the raw files YEAHHH BOY
 		output = subprocess.Popen(['python',os.path.join(mmrepo,'hashmove.py'),processingDir,endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 		foo,err = output.communicate()
+		print foo
 		sourcehash = re.search('srce\s\S+\s\w{32}',foo)
 		desthash = re.search('dest\s\S+\s\w{32}',foo)
 		dh = desthash.group()
 		sh = sourcehash.group()
 		bexttxt = os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt")
-		startObj1 = os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt")
+		startObj1 = os.path.join("R:/audio/avlab/fm-exports/to_process",rawfname + ".txt")
 		if sh[-32:] == dh[-32:]:
-			os.remove(os.path.join(captureDir,f + ".wav"))
+			os.remove(os.path.join(captureDir,rawfname + ".wav"))
 			if os.path.exists(bexttxt): #can't give os.remove a file object it's gotta be a string grrrrr
 				os.remove(os.path.join("R:/audio/avlab/fm-exports/bexttxts","cusb-" + dirNumber + "-bext.txt"))
 			if os.path.exists(startObj1):
-				os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",f + ".txt"))
+				os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",rawfname + ".txt"))
 	return
 
 def main():
@@ -216,30 +217,24 @@ def main():
 	#htm-update test
 	#get rid of the crap
 	#deletebs(captureDir)
-	
+
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
-	
-	for rawfName, process in flist.iteritems():
+
+	for rawfname, process in flist.iteritems():
+		aNumber = "a" + process[0]
 
 		#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-		#try:
-			ffprocess(rawfName,process,captureDir,mmrepo)
-			foo = raw_input("eh")
-		#except:
-			#pass
+		try:
+			ffprocess(aNumber,rawfname,process,captureDir,mmrepo)
 		
-		#try:
 			#pop the bext info into each file
-			#bextprocess(f,opts,bextsDir,captureDir)
-		#except:
-			#pass
-		
-		#try:
+			bextprocess(aNumber,bextsDir,captureDir)
+
 			#hashmove them to the repo dir
-			#move(f,opts,captureDir,mmrepo,archRepoDir)
-		#except:
-			#pass
+			move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
+		except:
+			pass
 	return
 
 dependencies()
