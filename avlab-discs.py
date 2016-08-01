@@ -32,7 +32,7 @@ def main():
 	#initialize the stuff
 	config = ConfigParser.ConfigParser()
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
-	captureDir = config.get('discs','captureDir')
+	captureDir = config.get('discs','rawArchDir')
 	archRepoDir = config.get('discs','archRepoDir')
 	bextsDir = config.get('discs','mtdCaptures')
 	mmrepo = config.get('global','scriptRepo')
