@@ -29,6 +29,7 @@ def main():
 	
 	if len(args.so) == 1:
 		print "split stereo to mono"
+		i2 = "foo"
 		for s in args.so:
 			if s.endswith("a.wav"):
 				i1 = s
@@ -36,6 +37,15 @@ def main():
 				endright = endright.replace("a.wav","Ba.wav")
 				endleft = os.path.basename(os.path.abspath(s))
 				endleft = endleft.replace("a.wav","Aa.wav")
+			if s.endswith("Ca.wav"):
+				blah = s
+				blah = blah.replace("Ca.wav","Ea.wav")
+				os.rename(s,blah)
+				i1 = blah
+				endright = os.path.basename(os.path.abspath(s))
+				endright = endright.replace("Ca.wav","Da.wav")
+				endleft = os.path.basename(os.path.abspath(s))
+				endleft = endleft.replace("Ea.wav","Ca.wav")
 		ffmpegstring = "ffmpeg -i " + i1 + " -map_channel 0.0.0 " + " -acodec pcm_s24le " + endleft + " -map_channel 0.0.1 " + " -acodec pcm_s24le " + endright
 
 	elif len(args.so) == 2:
