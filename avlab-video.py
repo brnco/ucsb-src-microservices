@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import glob
+import ConfigParser
 from distutils import spawn
 
 #Context manager for changing the current working directory
@@ -33,8 +34,9 @@ def dependencies():
 
 
 def main():
-	#move through the new_ingest directory tree
-	rootdir = 'R:/Visual/avlab/new_ingest'
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
+	rootdir = config.get('video','new_ingest')
 	for subdir, dirs, files in os.walk(rootdir):
 		#cd into subdirs
 		with cd(subdir):

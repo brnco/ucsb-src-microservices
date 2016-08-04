@@ -46,10 +46,11 @@ def main():
 	#parser.add_argument('-s','--stereo',action='store_true',help='outputs to stereo (mono is default)')
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
-	newIngest = config.get('video','newIngest')
-	ltoStage = config.get('video','ltoStage')
-	accDir = config.get('video','accessDir')
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
+	newIngest = config.get('video','new_ingest')
+	ltoStage = config.get('video','lto_stage')
+	accDir = config.get('video','repo')
 	mmrepo = config.get('global','scriptRepo')
 	vNum = args['vNum']
 	v = vNum[1:]
