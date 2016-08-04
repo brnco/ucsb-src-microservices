@@ -39,9 +39,9 @@ def main():
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
-	captureDir = config.get('cylinders','cylCaptureDir')
-	repoDir = config.get('cylinders','cylRepoDir')
-	logDir = config.get('cylinders','cylLogDir')
+	captureDir = config.get('cylinders','new_ingest')
+	repoDir = config.get('cylinders','repo')
+	logDir = config.get('cylinders','avlab')
 	mmrepo = config.get('global','scriptRepo')
 	#recursively walk through the capture directory, finding all files and 1 layer of subfolders
 	for dirs, subdirs, files in os.walk(captureDir):
