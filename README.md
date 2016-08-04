@@ -11,9 +11,9 @@ To run these scripts, type python [path of python file] [arguments]
 After cloning from the github repo, there are a couple of steps necessary to make these scripts go, on Windows. 
 
 ###The first step is:
-set up a config file using the microservices-config-template.ini file found in the repo
+set up a config file using the microservices-config-template.txt file found in the repo
 
-Move this file to C:/Users/[username]/
+Save it in the same dir as this repo
 
 rename it to microservices-config.ini
 

@@ -139,12 +139,13 @@ def main():
 	
 	#initialize our parser for the config file so we can get paths later
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
 	mmrepo = config.get('global','scriptRepo')
 	#find resources
 	if args.tape is True:
 		istape = "istape"
-		archiveDir = config.get("magneticTape","magTapeArchDir") #grab archive directory for audio tapes
+		archiveDir = config.get("magneticTape","repo") #grab archive directory for audio tapes
 		a,b,u,m,i,startDirs = makeTranscodeList(args.so, archiveDir, istape) #make a dictionary of files to work with
 	
 	if args.disc is True:
