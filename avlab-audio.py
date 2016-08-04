@@ -158,12 +158,13 @@ def move(f,opts,captureDir,mmrepo,archRepoDir):
 def main():
 	#initialize the stuff
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
-	captureDir = config.get('magneticTape','magTapeCaptureDir')
-	archRepoDir = config.get('magneticTape','magTapeArchDir')
-	toProcessDir = config.get('magneticTape','magTapeToProcessDir')
-	bextsDir = config.get('magneticTape','magTapebexts')
-	logDir = config.get('magneticTape','magTapeLogs')
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
+	captureDir = config.get('magneticTape','new_ingest')
+	archRepoDir = config.get('magneticTape','repo')
+	avlab = config.get('magneticTape','avlab')
+	bextsDir = config.get('magneticTape','bexttxts')
+	toProcessDir = config.get('magneticTape','to_process')
 	mmrepo = config.get('global','scriptRepo')
 
 	#get rid of the crap
