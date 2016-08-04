@@ -22,10 +22,11 @@ def main():
 	parser.add_argument('-d','--date',dest='d',default="",help="the four digit year in which the object was created")
 	args = parser.parse_args()
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
 	
 	if args.cyl is True: #for cylinders, do this
-		captureDir = config.get("cylinders","cylCaptureDir") #grab cylinder capture dir from config file
+		captureDir = config.get("cylinders","new_ingest") #grab cylinder capture dir from config file
 		startDir = os.path.join(captureDir,args.so) #complete the path to the capture dir
 		mtdObj = os.path.join(startDir,"cusb-cyl" + args.so + "-mtd.txt") #init a metadata object
 		pub = "UCSB Cylinder Audio Archive" #name the CAA as the publisher
