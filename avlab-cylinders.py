@@ -37,7 +37,8 @@ def dependencies():
 def main():
 	#initialize a capture directory
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
 	captureDir = config.get('cylinders','cylCaptureDir')
 	repoDir = config.get('cylinders','cylRepoDir')
 	logDir = config.get('cylinders','cylLogDir')
