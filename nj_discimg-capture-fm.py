@@ -24,7 +24,8 @@ class cd:
 def main():
 	#initialize via the config file
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini") #read in the config file
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
 	vad = config.get('NationalJukebox','VisualArchRawDir') #set a var for the capture directory, mimics structure found in EOS util
 	vad = os.path.join(vad,time.strftime("%Y-%m-%d"))
 	print vad#actual capture directory has today's date in ISO format

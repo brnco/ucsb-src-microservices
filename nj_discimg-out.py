@@ -34,7 +34,8 @@ def dependencies():
 def main():
 	#initialize from the config file
 	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	config.read(os.path.join(dn,"microservices-config.ini"))
 	qcDir = config.get('NationalJukebox','PreIngestQCDir')
 	batchDir = config.get('NationalJukebox','BatchDir')
 	mmrepo = config.get('global','scriptRepo')
