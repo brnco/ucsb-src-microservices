@@ -1,0 +1,33 @@
+#template configuration file for microservices
+#save as "microservices-config.ini" in the same dir as your script repo
+#HINT: use forward slashes on all paths to make life EASY windows peeps
+
+[global]
+scriptRepo:
+
+[NationalJukebox]
+AudioArchDir: 
+AudioBroadDir:
+PreIngestQCDir:
+VisualArchRawDir:
+VisualIntermedDir:
+VisualProcessedDir:
+BatchDir:
+
+[cylinders]
+new_ingest:
+repo:
+avlab:
+
+[video]
+new_ingest:
+lto_stage:
+repo:
+avlab:
+
+[magneticTape]
+new_ingest:
+repo:
+avlab:
+bexttxts:
+to_process:
