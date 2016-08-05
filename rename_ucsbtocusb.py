@@ -1,12 +1,11 @@
 #rename_ucsbtocusb
-#takes the input string "ucsb" and converts it to "cusb"
-#for both files and folders
+#takes the input string for directory path with files/ subdirs named "ucsb" and converts them to "cusb"
 #legacy programming error causes barcodes and filenames to print with ucsb so this script fixes it in post
 
 import os
 import sys
-import fnmatch
 import time
+import argparse
 
 #Context manager for changing the current working directory
 class cd:
@@ -20,29 +19,30 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
-def findfiles(pattern, path):
-	filelist = []
-	dirlist = []
-	for root, dirs, files in os.walk(path): #recursively walk thru the dirtree
-		for fname in files: #for each file found
-			if fnmatch.fnmatch(fname, pattern): #if the filename contains the string in "pattern" (which is 'ucsb')
-				with cd(root): #cd into the dir
-					os.rename(fname,'cusb' + fname[4:])	#rename it with the new string in the first four chars		
-
+def dofiles(where):
+	for dirs, subdirs, files in os.walk(where):
+		for f in files:
+			if f.startswith("ucsb"):
+				with cd(dirs):
+					os.rename(f, 'cusb' + f[4:]) #stronger ways to do this
 	return
 
-def finddirs(pattern, path):
-	for root, dirs, files in os.walk(path):
-		for dname in dirs:
-			if fnmatch.fnmatch(dname, pattern):
-				with cd(root):
-					os.rename(dname,'cusb' + dname[4:])
+def dodirs(where):
+	for dirs, subdirs, files in os.walk(where):
+		for s in subdirs:
+				if s.startswith("ucsb"):
+					with cd(dirs):
+						os.rename(s, 'cusb' + s[4:])
+	return
+	
+def main():
+	parser = argparse.ArgumentParser(description="renames everything in [path] from ucsb to cusb")
+	parser.add_argument('where',help='the path to rename')
+	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
+	where = args['where'].replace("\\","/") #for the windows peeps
+	dofiles(where) #does it for files
+	time.sleep(3) #give the os time to recooperate
+	dodirs(where) #does it for dirs
 	return
 
-where = sys.argv[1]
-where = where.replace("\\","/") #for the windows peeps
-if not where.endswith("/"): #this is old
-	where = where + "/" #ugh
-findfiles('ucsb*', where) #does it for files
-time.sleep(5) #give the os time to recooperate
-finddirs('ucsb*', where) #calls the function
+main()
