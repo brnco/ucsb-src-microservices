@@ -1,0 +1,1 @@
+--Originator=US,CUSB,SRC --originatorReference=cusb-a0028 --Description="Audio Number: a0028; MSS Number: CEMA 104; Collection: Clark (Tom) Archive; Tape Title: Naropa Poetry Wars; Master Key: 10341"

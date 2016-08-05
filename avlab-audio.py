@@ -124,6 +124,66 @@ def ffprocess(aNumber,rawfname,process,captureDir,mmrepo):
 				subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a pcm_s24le -af areverse " + "cusb-" + aNumber + "Ea.wav")
 				os.remove(endObj1)
 				os.rename("cusb-" + aNumber + "Ea.wav", endObj1)
+			if 'hlvspd_fA' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Aa.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Aa.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'hlvspd_fB' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ba.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Ba.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ba.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'hlvspd_fC' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Ca.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ca.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'hlvspd_fD' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Da.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Da.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Da.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'hlvspd_fAB' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Aa.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Aa.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'hlvspd_fCD' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Ca.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ca.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'dblspd_fA' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Aa.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Aa.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'dblspd_fB' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ba.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Ba.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ba.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'dblspd_fC' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Ca.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ca.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'dblspd_fD' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Da.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Da.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Da.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'dblspd_fAB' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Aa.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Aa.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
+			if 'dblspd_fCD' in process:
+				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
+				os.remove('cusb-' + aNumber + 'Ca.wav')
+				subprocess.call('ffmpeg -i cusb-' aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ca.wav')
+				os.remove('cusb-' + aNumber + 'Ea.wav')
 	return
 
 #do the fancy library thing to each file	
