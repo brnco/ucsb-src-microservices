@@ -46,9 +46,7 @@ def main():
 	mmrepo = config.get('global','scriptRepo')
 	extlist = ['m.wav','.wav','.tif']
 
-	#with cd(qcDir):
 	subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),qcDir]) #rename them from ucsb to cusb
-	foor = raw_input("eh")
 	
 	dirlist = makelist(qcDir, batchDir, extlist)
 	
