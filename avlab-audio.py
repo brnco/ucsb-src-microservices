@@ -30,13 +30,7 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
-		def isFloat(string):
-	try:
-		float(string)
-		return True
-	except ValueError:
-		return False
-		
+	
 def deletebs(captureDir):
 	for dirs,subdirs,files in os.walk(captureDir):
 		for f in files:
