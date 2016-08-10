@@ -67,7 +67,7 @@ def main():
 	subprocess.call(ffmpegstring) #actually do the thing
 	
 	#delete the inputs because we dont need em
-	if os.path.exists(endright) or if os.path.exists(endleft) or if os.path.exists(endObj):
+	if os.path.exists(endright) or os.path.exists(endleft) or os.path.exists(endObj):
 		if os.path.exists(i1):
 			os.remove(i1)
 		if os.path.exists(i2):
