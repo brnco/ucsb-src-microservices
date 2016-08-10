@@ -13,6 +13,7 @@ VisualArchRawDir:
 VisualIntermedDir:
 VisualProcessedDir:
 BatchDir:
+scratch:
 
 [cylinders]
 new_ingest:
