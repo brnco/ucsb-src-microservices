@@ -65,7 +65,8 @@ def ffprocess(aNumber,rawfname,process,captureDir,mmrepo):
 	#make a processing directory named after first attr in fm export: aNumber
 	if not os.path.exists(processingDir):
 		os.makedirs(processingDir)
-
+	#add test here for files greater than 4GB
+	
 	#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
 	if not os.path.exists(endObj1):
 		#print 'ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1
