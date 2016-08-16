@@ -54,131 +54,56 @@ def makelist(captureDir,toProcessDir,flist = {}):
 	return flist
 
 #do the ffmpeg stuff to each file	
-def ffprocess(aNumber,rawfname,process,captureDir,mmrepo):
-	dirNumber = aNumber	
-	if aNumber.endswith("A") or aNumber.endswith("B") or aNumber.endswith("C") or aNumber.endswith("D"):
-		dirNumber = aNumber[:-1]
-	processingDir = os.path.join(captureDir,dirNumber)
-	endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav") #name of archival master when we're done
-	endObj2 = os.path.join(processingDir,"cusb-" + aNumber + "e.wav")
-	
-	#make a processing directory named after first attr in fm export: aNumber
-	if not os.path.exists(processingDir):
-		os.makedirs(processingDir)
-	#add test here for files greater than 4GB
-	
-	#remove silence from raw transfer if audio quieter than -50dB, longer than 10s of silence
-	if not os.path.exists(endObj1):
-		#print 'ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1
-		subprocess.call('ffmpeg -i ' + os.path.join(captureDir,rawfname) + '.wav -af silenceremove=0:0:-50dB:-10:1:-50dB -acodec pcm_s24le ' + endObj1) 
-
-	#let's make sure the channels are right
-	with cd(processingDir):
-		#the following call pipes the ffprobe stream output back to this script
-		ffdata = subprocess.Popen(["ffprobe","-show_streams","-of","flat",endObj1],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		data, err = ffdata.communicate() #separate it so it's useful
-		if "stereo" in data: #ok so all of our raw captures are stereo so this ~should~ always trigger
-			if '1/4-inch Half Track Mono' in process:
-				subprocess.call(["python",os.path.join(mmrepo,"changechannels.py"),"-so",endObj1]) #call change channels to split streams to separate files, renaming them correctly
-				if 'del_fA' in process:
-					os.remove("cusb-" + aNumber + "Aa.wav")
-				if 'del_fB' in process:
-					os.remove("cusb-" + aNumber + "Ba.wav")
-				if 'del_fC' in process:
-					os.remove("cusb-" + aNumber + "Ca.wav")
-				if 'del_fD' in process:
-					os.remove("cusb-" + aNumber + "Da.wav")
-				if 'rev_fA' in process:
-					subprocess.call("ffmpeg -i cusb-" + aNumber + "Aa.wav -c:a pcm_s24le -af areverse " + endObj2)
-					os.remove("cusb-" + aNumber + "Aa.wav")
-					os.rename(endObj2, "cusb-" + aNumber + "Aa.wav")
-				if 'rev_fB' in process:
-					subprocess.call("ffmpeg -i cusb-" + aNumber + "Ba.wav -c:a pcm_s24le -af areverse " + endObj2)
-					os.remove("cusb-" + aNumber + "Ba.wav")
-					os.rename(endObj2, "cusb-" + aNumber + "Ba.wav")
-				if 'rev_fC' in process:
-					subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a pcm_s24le -af areverse " + endObj2)
-					os.remove("cusb-" + aNumber + "Ca.wav")
-					os.rename(endObj2, "cusb-" + aNumber + "Ca.wav")
-				if 'rev_fD' in process:
-					subprocess.call("ffmpeg -i cusb-" + aNumber + "Da.wav -c:a pcm_s24le -af areverse " + endObj2)
-					os.remove("cusb-" + aNumber + "Da.wav")
-					os.rename(endObj2, "cusb-" + aNumber + "Da.wav")
-			if '1/4-inch Full Track Mono' in process: #we can really only downmix to mono for speech, it's not preservation best practice for music
-				print "ffmpeg -i " + endObj1 + " -ac 1 " + endObj2
-				subprocess.call(["ffmpeg","-i",endObj1,"-ac","1",endObj2]) #downmix to mono
-				os.remove(endObj1) #can't overwrite with ffmpeg it's trash
-				os.rename(endObj2,endObj1)
-			if 'rev_fAB' in process and os.path.exists("cusb-" + aNumber + "a.wav"):
-				print "ffmpeg -i cusb-" + aNumber + "a.wav -c:a copy -af areverse " + endObj2
-				subprocess.call("ffmpeg -i cusb-" + aNumber + "a.wav -c:a pcm_s24le -af areverse " + endObj2)
-				os.remove(endObj1)
-				os.rename(endObj2, endObj1)
-			if 'rev_fCD' in process and os.path.exists("cusb-" + aNumber + "Ca.wav"):
-				print "ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a copy -af areverse " + "cusb-" + aNumber + "Ea.wav"
-				subprocess.call("ffmpeg -i cusb-" + aNumber + "Ca.wav -c:a pcm_s24le -af areverse " + "cusb-" + aNumber + "Ea.wav")
-				os.remove(endObj1)
-				os.rename("cusb-" + aNumber + "Ea.wav", endObj1)
-			if 'hlvspd_fA' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Aa.wav')
-				subprocess.call(['ffmpeg','-i','cusb-' + aNumber + 'Ea.wav','-filter:a','"aresample=96000"','-c:a', 'pcm_s24le','-ac','1','cusb-' + aNumber + 'Aa.wav'])
-				os.remove('cusb-' + aNumber + 'Ea.wav')			
-			if 'hlvspd_fB' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ba.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Ba.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ba.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'hlvspd_fC' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Ca.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ca.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'hlvspd_fD' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Da.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Da.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Da.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'hlvspd_fAB' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Aa.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Aa.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'hlvspd_fCD' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=48000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Ca.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ca.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'dblspd_fA' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Aa.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Aa.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'dblspd_fB' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ba.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Ba.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ba.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'dblspd_fC' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Ca.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ca.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'dblspd_fD' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Da.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Da.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 1 cusb-' + aNumber + 'Da.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'dblspd_fAB' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Aa.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Aa.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Aa.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
-			if 'dblspd_fCD' in process:
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ca.wav -filter:a "asetrate=192000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ea.wav')
-				os.remove('cusb-' + aNumber + 'Ca.wav')
-				subprocess.call('ffmpeg -i cusb-' + aNumber + 'Ea.wav -filter:a "aresample=96000" -c:a pcm_s24le -ac 2 cusb-' + aNumber + 'Ca.wav')
-				os.remove('cusb-' + aNumber + 'Ea.wav')
+def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
+	processDir = os.path.join(captureDir,aNumber)
+	output = subprocess.Popen(['python',os.path.join(mmrepo,'fm-ffhandler.py'),rawfname + ".txt"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+	ffmpegstring,err = output.communicate()
+	ffmpeglist = ffmpegstring.split()
+	if not os.path.exists(processDir):
+		os.makedirs(processDir)
+	with cd(processDir):
+		returncode = 0
+		try:
+			output = subprocess.check_output(ffmpeglist,shell=True)
+			returncode = 0
+		except subprocess.CalledProcessError,e:
+			output = e.output
+			returncode = output
+		if returncode == 0:
+			os.remove(os.path.join(captureDir,rawfname + ".wav"))
+		else:
+			return
+			
+		revstr0 = ''
+		revstr1 = ''
+		revstr01 = ''
+		match = ''
+		#check for reverse
+		if "rev_fA" in process:
+			revstr0 = ",areverse"
+		if "rev_fC" in process:
+			revstr0 = ",areverse"
+		if "rev_fB" in process:
+			revstr1 = ",areverse"
+		if "rev_fD" in process:
+			revstr1 = ",areverse"
+		if "rev_fAB" in process:
+			revstr01 = ',areverse'
+		if 'rev_fCD' in process:
+			revstr01 = ',areverse'
+		if 'rev_str01':
+			subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),rawfname + "-processed.wav"])
+		if 'rev_str0':
+			subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),"left.wav"])
+		if 'rev_str1':
+			subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),"right.wav"])
+		
+		#ok so by now every file is correct BUT
+		#we need to normalize to 96kHz
+		for f in os.listdir(os.getcwd()): #for each file in the processing dir
+			if f.endswith("-processed.wav") or f.endswith("-reversed.wav"):
+				print "ffprobe and resample if necessary"
+		
 	return
 
 #do the fancy library thing to each file	
@@ -288,16 +213,17 @@ def main():
 		aNumber = "a" + process[0]
 
 		#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-		try:
-			ffprocess(aNumber,rawfname,process,captureDir,mmrepo)
+		#try:
+		ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
 		
 			#pop the bext info into each file
-			bextprocess(aNumber,bextsDir,captureDir)
+			#bextprocess(aNumber,bextsDir,captureDir)
 
 			#hashmove them to the repo dir
-			move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
-		except:
-			pass
+			#move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
+		#except:
+			#pass
+		foo = raw_input("eh")
 	return
 
 dependencies()
