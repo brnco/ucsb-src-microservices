@@ -59,10 +59,17 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	output = subprocess.Popen(['python',os.path.join(mmrepo,'fm-ffhandler.py'),rawfname + ".txt"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	ffmpegstring,err = output.communicate()
 	ffmpeglist = ffmpegstring.split()
+	returncode = 0
+	revstr0 = ''
+	revstr1 = ''
+	revstr01 = ''
+	match = ''
+	
 	if not os.path.exists(processDir):
 		os.makedirs(processDir)
+	
+	#do it
 	with cd(processDir):
-		returncode = 0
 		try:
 			output = subprocess.check_output(ffmpeglist,shell=True)
 			returncode = 0
@@ -70,42 +77,57 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 			output = e.output
 			returncode = output
 		if returncode == 0:
-			os.remove(os.path.join(captureDir,rawfname + ".wav"))
+			#os.remove(os.path.join(captureDir,rawfname + ".wav"))
+			print "foo"
 		else:
 			return
-			
-		revstr0 = ''
-		revstr1 = ''
-		revstr01 = ''
-		match = ''
-		#check for reverse
-		if "rev_fA" in process:
-			revstr0 = ",areverse"
-		if "rev_fC" in process:
-			revstr0 = ",areverse"
-		if "rev_fB" in process:
-			revstr1 = ",areverse"
-		if "rev_fD" in process:
-			revstr1 = ",areverse"
-		if "rev_fAB" in process:
-			revstr01 = ',areverse'
-		if 'rev_fCD' in process:
-			revstr01 = ',areverse'
-		if 'rev_str01':
-			subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),rawfname + "-processed.wav"])
-		if 'rev_str0':
-			subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),"left.wav"])
-		if 'rev_str1':
-			subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),"right.wav"])
+		returncode = 0	
 		
-		#ok so by now every file is correct BUT
+		#reverse if necessary
+		#input files are deleted by makereverse if the process was successful
+		for x in process:
+			if x == "rev_fAB":
+				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "-processed.wav")])
+			if x == "rev_fCD":
+				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "-processed.wav")])
+			if x == "rev_fA":
+				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "left.wav")])
+			if x == "rev_fB":
+				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "right.wav")])
+			if x == "rev_fC":
+				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "left.wav")])
+			if x == "rev_fD":
+				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "right.wav")])
+		
+		#give comp time to catch up
+		time.sleep(2)
+		
+		#ok so by now every file in the processing dir is the correct channel config & plays in correct direction BUT
 		#we need to normalize to 96kHz
 		for f in os.listdir(os.getcwd()): #for each file in the processing dir
 			if f.endswith("-processed.wav") or f.endswith("-reversed.wav"):
 				print "ffprobe and resample if necessary"
-		
+				output = subprocess.Popen(["ffprobe","-show_streams","-of","flat",f],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+				ffdata,err = output.communicate()
+				#grep the bit about the duiration, in seconds
+				match = ''
+				match = re.search(r".*sample_rate=.*",ffdata)
+				if match:
+					_sr = match.group().split('"')[1::2]
+					sr = _sr[0]
+				if not sr == "96000":
+					try:
+						output = subprocess.check_output(["ffmpeg","-i",f,"-ar","96000","-c:a","pcm_s24le",rawfname + "-resampled.wav"], shell=True)
+						returncode = 0
+					except subprocess.CalledProcessError,e:
+						output = e.output
+						returncode = output
+					if returncode == 0:
+						os.remove(os.path.join(os.getcwd(),f))
+					else:	
+						return
 	return
-
+				
 #do the fancy library thing to each file	
 def bextprocess(aNumber,bextsDir,captureDir):
 	dirNumber = aNumber
@@ -201,29 +223,32 @@ def main():
 	avlab = config.get('magneticTape','avlab')
 	bextsDir = config.get('magneticTape','bexttxts')
 	toProcessDir = config.get('magneticTape','to_process')
+	scratch = config.get('magneticTape','scratch')
 	mmrepo = config.get('global','scriptRepo')
 	#htm-update test
 	#get rid of the crap
-	#deletebs(captureDir)
-
+	deletebs(captureDir)
+	
+	#check for files that are too large
+	for f in os.listdir(captureDir):
+		if f.endswith(".wav"):
+			if os.path.getsize(os.path.join(captureDir,f)) > 4294967296:
+				subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])
+	
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
 
 	for rawfname, process in flist.iteritems():
-		aNumber = "a" + process[0]
-
-		#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-		#try:
-		ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
-		
+		if os.path.exists(os.path.join(captureDir,rawfname)):
+			aNumber = "a" + process[0]
+			#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
+			ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
+			
 			#pop the bext info into each file
 			#bextprocess(aNumber,bextsDir,captureDir)
 
 			#hashmove them to the repo dir
 			#move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
-		#except:
-			#pass
-		foo = raw_input("eh")
 	return
 
 dependencies()

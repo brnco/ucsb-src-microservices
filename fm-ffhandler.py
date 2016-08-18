@@ -7,6 +7,7 @@ import os
 import csv
 import re
 import subprocess
+
 def main():
 	parser = argparse.ArgumentParser(description="generates ffmpegstring based on filemaker output")
 	parser.add_argument('startObj',nargs ='?',help='the file to be transcoded',)
@@ -113,10 +114,10 @@ def main():
 					onestr = onestr + " -acodec pcm_s24le " + endObj + "right.wav "	
 				#print ffstr
 				ffstr = "ffmpeg -i " + startObj + ".wav " + zerostr + onestr
-				return ffstr,revstr01
+				return ffstr
 			if '1/4-inch Full Track Mono' in x:
 				ffstr = "ffmpeg -i " + startObj + ".wav " + silencestr + " -ac 1 -acodec pcm_s24le " + endObj + "-downmix.wav"
-				return ffstr,revstr01
+				return ffstr
 			else:
 				#hlvspd_fAB
 				if 'hlvspd_fAB' in x:
@@ -131,8 +132,8 @@ def main():
 				if 'dblspd_fAB' in x:
 					dblstr01 = ',"asetrate=192000"'
 				ffstr = "ffmpeg -i " + startObj + ".wav " + silencestr + hlvstr01 + dblstr01 + " -acodec pcm_s24le " + endObj + "-processed.wav"
-				return ffstr, revstr01
+				return ffstr
 	return
 
-ffmpegstring,revstr01 = main()
+ffmpegstring = main()
 print ffmpegstring
