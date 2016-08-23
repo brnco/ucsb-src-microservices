@@ -40,11 +40,13 @@ def deletebs(captureDir):
 		
 #make list of files to process
 def makelist(captureDir,toProcessDir,flist = {}):
+	print "in makeflist"
 	for dirs, subdirs, files in os.walk(toProcessDir):
 		for f in files:
 			if not f.endswith(".txt"): #SOMETIMES FILEMAKER DOESN'T EXPORT THE .TXT PART BECAUSE IT'S GREAT AND I LOVE IT
 				f = f + ".txt"
 			rawfname,ext = os.path.splitext(f) #grab raw file name from os.walk
+			print rawfname
 			txtinfo = os.path.join(toProcessDir,rawfname + '.txt') #init var for full path of txt file that tells us how to process
 			if os.path.exists(txtinfo): #if said text file exists
 				with open(txtinfo) as arb:
@@ -56,8 +58,11 @@ def makelist(captureDir,toProcessDir,flist = {}):
 #do the ffmpeg stuff to each file	
 def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	processDir = os.path.join(captureDir,aNumber)
+	if os.path.getsize(os.path.join(captureDir,rawfname + ".wav")) > 4294967296:
+		return
 	output = subprocess.Popen(['python',os.path.join(mmrepo,'fm-ffhandler.py'),rawfname + ".txt"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	ffmpegstring,err = output.communicate()
+	print err
 	ffmpeglist = ffmpegstring.split()
 	returncode = 0
 	revstr0 = ''
@@ -227,20 +232,22 @@ def main():
 	mmrepo = config.get('global','scriptRepo')
 	#htm-update test
 	#get rid of the crap
-	deletebs(captureDir)
-	
-	#check for files that are too large
+
+	#deletebs(captureDir)
+	'''#check for files that are too large
 	for f in os.listdir(captureDir):
 		if f.endswith(".wav"):
-			if os.path.getsize(os.path.join(captureDir,f)) > 4294967296:
-				subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])
+			if os.path.getsize(os.path.join(captureDir,rawfname)) > 4294967296:
+				subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])'''
 	
 	#make a list of files to work on
 	flist = makelist(captureDir,toProcessDir)
-
+	print flist
 	for rawfname, process in flist.iteritems():
-		if os.path.exists(os.path.join(captureDir,rawfname)):
+		print rawfname
+		if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
 			aNumber = "a" + process[0]
+			print aNumber
 			#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
 			ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
 			

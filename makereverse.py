@@ -43,7 +43,7 @@ def main():
 
 		try:
 			while (count < float(dur)):
-				ffmpegstring = "ffmpeg -i " + args['startObj'] + " -ss " + str(count) + " -t 600 -acodec pcm_s24le " + os.path.join(workingDir,"concat" + str(count) + ".wav")
+				ffmpegstring = "ffmpeg -i " + args['startObj'] + " -ss " + str(count) + " -t 600 -af areverse -acodec pcm_s24le " + os.path.join(workingDir,"concat" + str(count) + ".wav")
 				output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
 				concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
 				count = count + 300 #incrase seconds by 300 (10min)
