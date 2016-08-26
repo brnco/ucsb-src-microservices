@@ -1,6 +1,7 @@
 #avlab-magneticTape
 
 import ConfigParser
+import argparse
 import getpass
 import os
 import subprocess
@@ -37,10 +38,10 @@ def deletebs(captureDir):
 			if f.endswith(".gpk") or f.endswith(".mrk") or f.endswith(".bak"):
 				os.remove(os.path.join(captureDir,f))
 	return
-		
+
+	
 #make list of files to process
 def makelist(captureDir,toProcessDir,flist = {}):
-	print "in makeflist"
 	for dirs, subdirs, files in os.walk(toProcessDir):
 		for f in files:
 			if not f.endswith(".txt"): #SOMETIMES FILEMAKER DOESN'T EXPORT THE .TXT PART BECAUSE IT'S GREAT AND I LOVE IT
@@ -58,8 +59,6 @@ def makelist(captureDir,toProcessDir,flist = {}):
 #do the ffmpeg stuff to each file	
 def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	processDir = os.path.join(captureDir,aNumber)
-	if os.path.getsize(os.path.join(captureDir,rawfname + ".wav")) > 4294967296:
-		return
 	output = subprocess.Popen(['python',os.path.join(mmrepo,'fm-ffhandler.py'),rawfname + ".txt"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	ffmpegstring,err = output.communicate()
 	print err
@@ -72,7 +71,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	
 	if not os.path.exists(processDir):
 		os.makedirs(processDir)
-	
+	time.time
 	#do it
 	with cd(processDir):
 		try:
@@ -132,7 +131,25 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 					else:	
 						return
 	return
-				
+
+def ren(aNumber,captureDir,mmrepo):
+	with cd(os.path.join(captureDir,aNumber)):
+		for f in os.listdir(os.getcwd()):
+			if "left" in f:
+				if not os.path.exists("cusb-" + aNumber + "Aa.wav"):
+					os.rename(f, "cusb-" + aNumber + "Aa.wav")
+				else:
+					os.rename(f, "cusb-" + aNumber + "Ca.wav")
+			if "right" in f:
+				if not os.path.exists("cusb-" + aNumber + "Ba.wav"):
+					os.rename(f, "cusb-" + aNumber + "Ba.wav")
+				else:
+					os.rename(f, "cusb-" + aNumber + "Da.wav")
+			else:
+				if not os.path.exists("cusb-" + aNumber + "a.wav"):
+					os.rename(f, "cusb-" + aNumber + "a.wav")
+	return
+	
 #do the fancy library thing to each file	
 def bextprocess(aNumber,bextsDir,captureDir):
 	dirNumber = aNumber
@@ -220,6 +237,10 @@ def move(rawfname,aNumber,captureDir,mmrepo,archRepoDir):
 
 def main():
 	#initialize the stuff
+	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
+	parser.add_argument('-s',action="store_true",default=False,help='single mode, for processing a single transfer')
+	parser.add_argument('-i','--input',help="the aNumber to process")
+	args = vars(parser.parse_args())
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
@@ -230,32 +251,56 @@ def main():
 	toProcessDir = config.get('magneticTape','to_process')
 	scratch = config.get('magneticTape','scratch')
 	mmrepo = config.get('global','scriptRepo')
-	#htm-update test
-	#get rid of the crap
-
-	#deletebs(captureDir)
-	'''#check for files that are too large
-	for f in os.listdir(captureDir):
-		if f.endswith(".wav"):
-			if os.path.getsize(os.path.join(captureDir,rawfname)) > 4294967296:
-				subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])'''
 	
-	#make a list of files to work on
-	flist = makelist(captureDir,toProcessDir)
-	print flist
-	for rawfname, process in flist.iteritems():
-		print rawfname
-		if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
-			aNumber = "a" + process[0]
-			print aNumber
-			#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-			ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
-			
-			#pop the bext info into each file
-			#bextprocess(aNumber,bextsDir,captureDir)
+	#get rid of the crap
+	#deletebs(captureDir)
+	
+	#single mode check
+	if args['s'] is True:
+		flist = {}
+		number = args['input'].replace("a","")
+		for dirs, subdirs, files in os.walk(toProcessDir):
+			for f in files:
+				if not f.endswith(".txt"): #SOMETIMES FILEMAKER DOESN'T EXPORT THE .TXT PART BECAUSE IT'S GREAT AND I LOVE IT
+					f = f + ".txt"
+				rawfname,ext = os.path.splitext(f) #grab raw file name from os.walk
+				txtinfo = os.path.join(toProcessDir,rawfname + '.txt') #init var for full path of txt file that tells us how to process
+				if os.path.exists(txtinfo): #if said text file exists
+					with open(txtinfo) as arb:
+						fulline = csv.reader(arb, delimiter=",") #use csv lib to read it line by line
+						for x in fulline: #result is list
+							if x[0] == number:
+								flist[rawfname] = x #makes dict of rawfilename : [anumber(wihtout the 'a'),track configuration] values
+		for rawfname,process in flist.iteritems():
+			if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
+				aNumber = args['input']
+				ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
+				ren(aNumber,captureDir,mmrepo)
+	else:
+		#check for files that are too large
+		for f in os.listdir(captureDir):
+			if f.endswith(".wav"):
+				if os.path.getsize(os.path.join(captureDir,f)) > 4294967296:
+					subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])
+		
+		#make a list of files to work on
+		flist = makelist(captureDir,toProcessDir)
 
-			#hashmove them to the repo dir
-			#move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
+		for rawfname, process in flist.iteritems():
+			if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
+				aNumber = "a" + process[0]
+
+				#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
+				ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
+				
+				#rename the outputs from ffprocess
+				ren(aNumber,captureDir,mmrepo)
+				
+				#pop the bext info into each file
+				#bextprocess(aNumber,bextsDir,captureDir)
+
+				#hashmove them to the repo dir
+				#move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
 	return
 
 dependencies()

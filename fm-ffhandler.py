@@ -87,13 +87,7 @@ def main():
 				#for left channel, stream 0
 				if channel0:
 					zerostr = channel0
-					if revstr0:
-						zerostr = zerostr + silencestr + revstr0
-						if hlvstr0:
-							zerostr = zerostr + hlvstr0
-						if dblstr0:
-							zerostr = zerostr + dblstr0
-					elif hlvstr1:
+					if hlvstr1:
 						zerostr = zerostr + silencestr + hlvstr0
 					elif dblstr1:
 						zerostr = zerostr + silencestr + dblstr0
@@ -101,13 +95,7 @@ def main():
 				#for right channel, stream 1
 				if channel1:
 					onestr = channel1
-					if revstr1:
-						onestr = onestr + silencestr + revstr1
-						if hlvstr1:
-							onestr = onestr + hlvstr1
-						if dblstr1:
-							onestr = onestr + dblstr1
-					elif hlvstr1:
+					if hlvstr1:
 						onestr = onestr + silencestr + hlvstr1
 					elif dblstr1:
 						onestr = onestr + silencestr + dblstr1
@@ -116,7 +104,7 @@ def main():
 				ffstr = "ffmpeg -i " + startObj + ".wav " + zerostr + onestr
 				return ffstr
 			if '1/4-inch Full Track Mono' in x:
-				ffstr = "ffmpeg -i " + startObj + ".wav " + silencestr + " -ac 1 -acodec pcm_s24le " + endObj + "-downmix.wav"
+				ffstr = "ffmpeg -i " + startObj + ".wav " + silencestr + " -ac 1 -acodec pcm_s24le " + endObj + "-processed.wav"
 				return ffstr
 			else:
 				#hlvspd_fAB
