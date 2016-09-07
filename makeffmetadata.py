@@ -36,7 +36,7 @@ def main():
 			foo = raw_input("Press any key to quit")
 			sys.exit()
 	if args.tape is True: #for tapes do this
-		archiveDir = config.get("magneticTape","magTapeArchDir") #grab archive directory for audio tapes
+		archiveDir = config.get("magneticTape","repo") #grab archive directory for audio tapes
 		endDirThousand = args.so.replace("a","") #input arg here is a1234 but we want just the number
 		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
 		if len(endDirThousand) < 5:

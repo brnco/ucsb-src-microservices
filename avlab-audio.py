@@ -61,7 +61,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	processDir = os.path.join(captureDir,aNumber)
 	output = subprocess.Popen(['python',os.path.join(mmrepo,'fm-ffhandler.py'),rawfname + ".txt"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	ffmpegstring,err = output.communicate()
-	print err
+	print ffmpegstring
 	ffmpeglist = ffmpegstring.split()
 	returncode = 0
 	revstr0 = ''
@@ -111,22 +111,20 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 		for f in os.listdir(os.getcwd()): #for each file in the processing dir
 			if f.endswith("-processed.wav") or f.endswith("-reversed.wav"):
 				print "ffprobe and resample if necessary"
-				output = subprocess.Popen(["ffprobe","-show_streams","-of","flat",f],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+				output = subprocess.Popen("ffprobe -show_streams -of flat " + f,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 				ffdata,err = output.communicate()
 				#grep the bit about the duiration, in seconds
+				#for line in lines:
 				match = ''
+				sr = ''
 				match = re.search(r".*sample_rate=.*",ffdata)
 				if match:
 					_sr = match.group().split('"')[1::2]
 					sr = _sr[0]
 				if not sr == "96000":
-					try:
-						output = subprocess.check_output(["ffmpeg","-i",f,"-ar","96000","-c:a","pcm_s24le",rawfname + "-resampled.wav"], shell=True)
-						returncode = 0
-					except subprocess.CalledProcessError,e:
-						output = e.output
-						returncode = output
-					if returncode == 0:
+					output = subprocess.call("ffmpeg -i " + f + " -ar 96000 -c:a pcm_s24le " + f.replace(".wav","") + "-resampled.wav")
+					print f
+					if os.path.getsize(f.replace(".wav","") + "-resampled.wav") > 50000:
 						os.remove(os.path.join(os.getcwd(),f))
 					else:	
 						return
@@ -292,6 +290,9 @@ def main():
 
 				#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
 				ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
+				
+				#give comp time to catch up
+				time.sleep(2)
 				
 				#rename the outputs from ffprocess
 				ren(aNumber,captureDir,mmrepo)

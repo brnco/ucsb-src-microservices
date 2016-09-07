@@ -56,15 +56,16 @@ def main():
 		#concatenate the revsered output from slicer loop
 		ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy " + endObj + "-reversed.wav"
 		output = subprocess.call(ffmpegstring)
-		
 		if returncode == 0:	
 			for f in os.listdir(os.getcwd()):
+				print f
 				match = ''
 				match = re.match("concat",f)
 				if match:
 					os.remove(f)
 				elif os.path.exists(endObj + "-reversed.wav"):
-					os.remove(args['startObj'])
+					if os.path.exists(args['startObj']):
+						os.remove(args['startObj'])
 		else:
 			print "Buddy, there was a problem reversing that file"
 	return

@@ -66,23 +66,23 @@ def main():
 					
 				#check for halfspeed
 				if 'hlvspd_fA' in x:
-					hlvstr0 = ',"asetrate=48000"'
+					hlvstr0 = ',asetrate=48000'
 				if 'hlvspd_fC' in x:
-					hlvstr0 = ',"asetrate=48000"'
+					hlvstr0 = ',asetrate=48000'
 				if 'hlvspd_fB' in x:
-					hlvstr1 = ',"asetrate=48000"'
+					hlvstr1 = ',asetrate=48000'
 				if 'hlvspd_fD' in x:
-					hlvstr1 = ',"asetrate=48000"'
+					hlvstr1 = ',asetrate=48000'
 				
 				#check for double speed
 				if 'dblspd_fA' in x:
-					dblstr0 = ', "asetrate=192000"'
+					dblstr0 = ', asetrate=192000'
 				if 'dblspd_fC' in x:
-					dblstr0 = ', "asetrate=192000"'
+					dblstr0 = ', asetrate=192000'
 				if 'dblspd_fB' in x:
-					dblstr1 = ', "asetrate=192000"'
+					dblstr1 = ', asetrate=192000'
 				if 'dblspd_fD' in x:
-					dblstr1 = ', "asetrate=192000"'
+					dblstr1 = ', asetrate=192000'
 			
 				#for left channel, stream 0
 				if channel0:
