@@ -60,7 +60,7 @@ def makehlist(aflist,hashalg,grip):
 		afhashfile = af + "." + hashalg #make a name for the start file's hash file
 		if grip is True and os.path.isfile(afhashfile): #check to see if it exists (so we don't recalc)
 			with open(afhashfile,'r') as f: #open it
-				afhash = re.search('\w{40}',f.read()) #find an alphanumeric string that's 32 or 40 chars long (works for md5 or sha1)
+				afhash = re.search('\w{32}',f.read()) #find an alphanumeric string that's 32 or 40 chars long (works for md5 or sha1)
 			hd[os.path.basename(af)] = afhash.group() #append the key : value pairs to the start hash dictionary
 		else:
 			hd[os.path.basename(af)] = hashfile(open(af, 'rb'), hashalg)

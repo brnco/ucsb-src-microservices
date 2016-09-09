@@ -143,7 +143,10 @@ def ren(aNumber,captureDir,mmrepo):
 					os.rename(f, "cusb-" + aNumber + "Ba.wav")
 				else:
 					os.rename(f, "cusb-" + aNumber + "Da.wav")
-			else:
+		for f in os.listdir(os.getcwd()):	
+			match = ''
+			match = re.search("\w{8}-\w{4}-\w{4}-\w{4}-",f)
+			if match:
 				if not os.path.exists("cusb-" + aNumber + "a.wav"):
 					os.rename(f, "cusb-" + aNumber + "a.wav")
 	return

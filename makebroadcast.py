@@ -106,7 +106,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 def makeid3(startDir, assetName):
 	#initialize some crap
 	if assetName.endswith("A") or assetName.endswith("B"):
-		assetName = assetName[-1:]
+		assetName = assetName[:-1]
 	id3Obj = os.path.join(startDir, assetName + "-mtd.txt") #in same dir as audio object should be a -mtd.txt object with a ;FFMETADATA1 id3 tags inside
 	print id3Obj
 	for dirs, subdirs, files in os.walk(startDir):

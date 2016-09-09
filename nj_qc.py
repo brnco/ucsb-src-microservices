@@ -29,9 +29,10 @@ def makelist(qcDir, batchDir, extlist,mmrepo,scratch):
 			if os.path.exists(os.path.join(batchDir,s)): #if it already exsists in our dest that's bad figure it out
 				subprocess.call(['python',os.path.join(mmrepo,"hashmove.py"),os.path.join(dirs,s),scratch])
 			#ok, dirs that make it here aren't in our batch dir already
-			with cd(os.path.join(dirs,s)): #cd into each subdir
-				if os.path.isfile(s + extlist[0]) and os.path.isfile(s + extlist[1]) and os.path.isfile(s + extlist[2]): #if each file extension exists in there
-					dirlist.append(s) #append the subdir to the list of files we wanna move
+			else:
+				with cd(os.path.join(dirs,s)): #cd into each subdir
+					if os.path.isfile(s + extlist[0]) and os.path.isfile(s + extlist[1]) and os.path.isfile(s + extlist[2]): #if each file extension exists in there
+						dirlist.append(s) #append the subdir to the list of files we wanna move
 	return dirlist
 		
 def main():
