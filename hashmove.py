@@ -31,6 +31,7 @@ import time
 import re
 import argparse
 import getpass
+import subprocess
 
 #generate lists of pairs of start and end files
 def makeflist(startObj,dest,startObjIsDir,hashalg,flist=[]):
@@ -92,26 +93,32 @@ def printhashes(sflist,shd,eflist,ehd,hashalg):
 			txt.close() 
 	return sfhflist
 	
-def copyfiles(flist,startObjIsDir):
-	for f in flist:
-		sf, ef = f #break list of tuples up into startfile and endfile
+def copyfiles(flist):
+	win=mac=False
+	if sys.platform.startswith("darwin"):
+		mac=True
+	elif sys.platform.startswith("win"):
+		win=True
+	cmd=None
+
+	for sf,ef in flist:
 		print ""
 		print "copying " + os.path.basename(sf) + " from source to destination..."
-		if startObjIsDir is False: #if the startObject is not a directory
-			#make the subdirectories
-			_dest = os.path.dirname(os.path.normpath(ef)) 
-			if not os.path.exists(_dest):
-				os.makedirs(_dest)
-			shutil.copy2(sf,ef)
-		if startObjIsDir is True: #if the startObject is a directory
-			#make the subdirectories
-			_dest = os.path.dirname(os.path.normpath(ef)) 
-			if not os.path.exists(_dest):
-				os.makedirs(_dest)
-			shutil.copy2(sf,ef) #we use copy2 because it grabs all the registry metadata too
+		_dest = os.path.dirname(os.path.normpath(ef)) 
+		if not os.path.exists(_dest):
+			os.makedirs(_dest)
+		if mac:
+			cmd=['cp',sf,ef]
+		elif win:
+			srce = os.path.dirname(sf)
+			dest = os.path.dirname(ef)
+			name,ext = os.path.split(sf)
+			cmd=['robocopy',srce,dest,ext]
+			print cmd
+		subprocess.call(cmd)
 	return
 	
-def deletefiles(sflist,sfhflist,matches,startObjIsDir):
+def deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir):
 	#initialize some lists
 	delfiles = []
 	delhfiles = []
@@ -127,13 +134,9 @@ def deletefiles(sflist,sfhflist,matches,startObjIsDir):
 	delfiles = list(set(delfiles)) #de-dupe
 	delhfiles = list(set(delhfiles)) #de-dupe
 	if startObjIsDir is True:
-		for d in delfiles:
+		deldirs.append(startObj)	#controls for empty top-dirs
+		for d in delfiles:			#loop through file's we're going to delete and grip their containing folders
 			deldirs.append(os.path.dirname(d))
-	#if startObjIsDir is True: #if we need to delete some dirs
-		#for match in matches: #loop through list of filenames.ext whose hashes match
-			#for d in delfiles: #loop through list of full paths of files to be deleted
-				#if match in d: #if the filename.ext is in the fullpath of the file to delete
-					#deldirs.append(d.replace(match,"")) #subtract the filename.ext from the full path and append that to a list of dirs
 	deldirs = list(set(deldirs)) #de-dupe
 	for rmf in delfiles:
 		#print rmf
@@ -212,11 +215,12 @@ def main():
 
 	#copy files from source to destination
 	if args.v is False:
-		copyfiles(flist, startObjIsDir)
+		copyfiles(flist)
 	
 	#make dicts of filenames : hashes
-	shd = makehlist(sflist, args.a, True)
 	ehd = makehlist(eflist, args.a, grip)
+	shd = makehlist(sflist, args.a, True)
+	
 
 	#print the hashes
 	if args.np is False:
@@ -229,7 +233,7 @@ def main():
 	
 	#based on feedback, remove start objects
 	if args.c is False and args.v is False:
-		deletefiles(sflist,sfhflist,matches,startObjIsDir)
+		deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir)
 		
 	#print log to cwd of what happened
 	if args.l is True:
