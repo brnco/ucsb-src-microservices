@@ -1,5 +1,5 @@
 # hashmove
-better file movement
+file movement for people without rsync
 
 **General Usage**
 
