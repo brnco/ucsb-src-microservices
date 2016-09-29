@@ -156,7 +156,7 @@ def compare(shd, ehd):
 	matches = []
 	mismatches = []
 	for skey in shd:
-		if not shd[skey] == ehd[skey]:
+		if not shd[skey].lower() == ehd[skey].lower():
 			mismatches.extend([skey])
 		else:
 			matches.extend([skey])
