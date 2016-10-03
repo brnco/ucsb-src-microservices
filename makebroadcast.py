@@ -152,6 +152,7 @@ def handling():
 	parser.add_argument('-mp3','--mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
 	parser.add_argument('-n','--normalize',action='store_true',default=False,help='EBU r128 normalization with true peaks at -1.5dB, defaults to off')
 	parser.add_argument('-nj','--nationaljukebox',action='store_true',default=False,help='extra processing step for National Jukebox files')
+	parser.add_argument('-njnd','--njnodelete',action="store_true",default=False,help="don't delete startObjs for nj files, useful for making broadcasts from m.wavs")
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = args['startObj'].replace("\\",'/') #for the windows peeps
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
@@ -198,7 +199,8 @@ def handling():
 				os.rename(assetName + "c.wav", assetName + "b.wav")
 	if args['nationaljukebox'] is True:
 		with cd(startDir):
-			os.remove(startObj)
+			if args["njnodelete"] is False:
+				os.remove(startObj)
 			os.rename(assetName + EuseChar + '.wav',assetName + '.wav')
 	return 
 

@@ -86,19 +86,19 @@ def main():
 			
 				#for left channel, stream 0
 				if channel0:
-					zerostr = channel0
+					zerostr = channel0 + silencestr
 					if hlvstr1:
-						zerostr = zerostr + silencestr + hlvstr0
+						zerostr = zerostr + hlvstr0
 					elif dblstr1:
-						zerostr = zerostr + silencestr + dblstr0
+						zerostr = zerostr + dblstr0
 					zerostr = zerostr + " -acodec pcm_s24le " + endObj + "left.wav "
 				#for right channel, stream 1
 				if channel1:
-					onestr = channel1
+					onestr = channel1 + silencestr
 					if hlvstr1:
-						onestr = onestr + silencestr + hlvstr1
+						onestr = onestr + hlvstr1
 					elif dblstr1:
-						onestr = onestr + silencestr + dblstr1
+						onestr = onestr + dblstr1
 					onestr = onestr + " -acodec pcm_s24le " + endObj + "right.wav "	
 				#print ffstr
 				ffstr = "ffmpeg -i " + startObj + ".wav " + zerostr + onestr
@@ -109,16 +109,16 @@ def main():
 			else:
 				#hlvspd_fAB
 				if 'hlvspd_fAB' in x:
-					hlvstr01 = ',"asetrate=48000"'
+					hlvstr01 = ',asetrate=48000'
 				#hlvspd_fCD
 				if 'hlvspd_fCD' in x:
-					hlvstr01 = ',"asetrate=48000"'
+					hlvstr01 = ',asetrate=48000'
 				#dblspd_fAB
 				if 'dblspd_fAB' in x:
-					dblstr01 = ',"asetrate=192000"'
+					dblstr01 = ',asetrate=192000'
 				#dblspd_fCD
 				if 'dblspd_fAB' in x:
-					dblstr01 = ',"asetrate=192000"'
+					dblstr01 = ',asetrate=192000'
 				ffstr = "ffmpeg -i " + startObj + ".wav " + silencestr + hlvstr01 + dblstr01 + " -acodec pcm_s24le " + endObj + "-processed.wav"
 				return ffstr
 	return

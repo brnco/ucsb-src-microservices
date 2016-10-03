@@ -59,7 +59,7 @@ def main():
 					fname, ext = os.path.splitext(f) #separate just the name of the file
 					#pop them into the qc dir in a subdir named after their filename
 					#hashmove makes end dir if it doesnt exist already
-					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),f,os.path.join(qcDir,fname)]) 
+					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(broadDir,f),os.path.join(qcDir,fname)]) 
 	
 	#make the archival masters
 	with cd(archDir):
@@ -74,9 +74,10 @@ def main():
 					os.rename(f,mname)
 					#embed an md5 hash in the md5 chunk
 					print "embedding MD5 info in " + mname
+					subprocess.call(['bwfmetaedit','--in-core-remove',mname])
 					subprocess.call(['bwfmetaedit','--MD5-Embed',mname])
 					#move them to qc dir in subdir named after their canonical filename (actual file name has "m" at end)
-					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),mname,os.path.join(qcDir,fname)])
+					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(archDir,mname),os.path.join(qcDir,fname)])
 	return
 
 dependencies()

@@ -154,7 +154,7 @@ def ren(aNumber,captureDir,mmrepo):
 #do the fancy library thing to each file	
 def bextprocess(aNumber,bextsDir,captureDir):
 	dirNumber = aNumber
-	if aNumber.endswith("A") or aNumber.endswith("B"):
+	if aNumber.endswith("A") or aNumber.endswith("B") or aNumber.endswith("C") or aNumber.endswith("D"):
 		dirNumber = aNumber[:-1]
 	processingDir = os.path.join(captureDir,dirNumber)
 	endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
@@ -206,7 +206,7 @@ def bextprocess(aNumber,bextsDir,captureDir):
 
 #hashmove processing folder to the repo	
 def move(rawfname,aNumber,captureDir,mmrepo,archRepoDir):
-	if aNumber.endswith("A") or aNumber.endswith("B"):
+	if aNumber.endswith("A") or aNumber.endswith("B") or aNumber.endswith("C") or aNumber.endswith("D"):
 		aNumber = aNumber[:-1]
 	dirNumber = aNumber
 	processingDir = os.path.join(captureDir,dirNumber)
@@ -301,10 +301,10 @@ def main():
 				ren(aNumber,captureDir,mmrepo)
 				
 				#pop the bext info into each file
-				#bextprocess(aNumber,bextsDir,captureDir)
+				bextprocess(aNumber,bextsDir,captureDir)
 
 				#hashmove them to the repo dir
-				#move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
+				move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
 	return
 
 dependencies()
