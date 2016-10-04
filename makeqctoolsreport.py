@@ -1,8 +1,4 @@
-# for pres
-#mediainfo
-#jhove
-#framemd5
-#send acc to R:\Visual\[0000]
+#makeqctoolsreport.py v 0.2.0
 
 import os
 import subprocess
@@ -81,6 +77,7 @@ def makeReport():
 
 dependencies()
 startObj = sys.argv[1]
+startObj = startObj.replace("\\","/")
 inputCodec, filterstring = parseInput()
 transcode()
 makeReport()
