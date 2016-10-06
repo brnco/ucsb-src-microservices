@@ -67,9 +67,7 @@ def main():
 	with cd(startObj):
 		while True:
 			extList = ['-pres.mxf','-acc.mp4','-pres.mxf.PBCore2.xml','-pres.mxf.framemd5','-pres.mxf.qctools.xml.gz',]#deleted '-pres.mxf.md5' for testing
-			flist = []
-			for file in os.listdir(startObj): #mak a list of the files in our startdir
-				flist.append(file)
+			flist = os.listdir(startObj)
 			for x in extList: #loop through boths lists that we made and if anything is missing say so
 				if not any(x in f for f in flist): 
 					print "Buddy, you're missing a sidecar file with a " + x + " extension"
