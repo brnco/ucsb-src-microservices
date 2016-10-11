@@ -156,6 +156,8 @@ def compare(shd, ehd):
 	matches = []
 	mismatches = []
 	for skey in shd:
+		print "srce " + skey + " " + shd[skey]
+		print "dest " + skey + " " + ehd[skey]
 		if not shd[skey].lower() == ehd[skey].lower():
 			mismatches.extend([skey])
 		else:
