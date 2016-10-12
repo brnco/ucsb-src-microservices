@@ -18,6 +18,15 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+		#check that we have required software installed
+def dependencies():
+	depends = ['ffmpeg','ffprobe']
+	for d in depends:
+		if spawn.find_executable(d) is None:
+			print "Buddy, you gotta install " + d
+			sys.exit()
+	return
+	
 def main():
 	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
 	parser.add_argument('startObj',nargs ='?',help='the file to be reversed',)
@@ -70,4 +79,5 @@ def main():
 			print "Buddy, there was a problem reversing that file"
 	return
 
+dependencies()	
 main()

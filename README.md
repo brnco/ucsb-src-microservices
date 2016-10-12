@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-This document contains an overview of the various post-processing scripts we use here in the AVLab at UCSB.
+This document contains an overview of the various post-processing scripts we use here in the AVLab at UCSB's SRC.
 Please see AVLab Utility Software List & Installation Instructions (on the wiki) for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of those software functionalities.
  
 #Intro
@@ -44,48 +43,9 @@ right-click "Autorun" in the regedit window and select "Edit"
 type "cd/ d [path to repo directory]"
 
 By doing this, you are set to open the cmd window in the directory with all the scripts so you don't have to type their full paths
- 
- 
- 
-
-#hashmove
-better file movement
-
-**General Usage**
-
-python hashmove.py [source file or directory full path] [destination parent directory full path] [flags]
-
-**to move a file**
-
-python hashmove.py C:/path/to/file.ext C:/path/to/parent/dir
-
-**to move a directory**
-
-python hashmove.py /home/path/to/dir/a /home/path/to/dir/b
-
-**to copy a file**
-
-python hashmove.py C:/path/to/file.ext C:/path/to/parent/dir -c
-
-**log the transfer**
-
-python hashmove.py /home/path/to/dir/a /home/path/to/dir/b -l
-
-**verify against another hash or set of hashes**
-
-python hashmove.py "/home/path to/dir/you question" /home/path/to/dir/with/hashes -v
 
 #makesomethings
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
-
-##makedip
-Takes n input strings that are the canonical names for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server. Flags for "high quality" and "archival" not yet working (patrons sometimes request these).
-
-Has dependencies for ffmpeg, ffprobe
-
-Has flags for startObject (-so), transactionNumber (-tn), mode (-tape for tapes, -disc coming soon)
-
-python makedip.py -h for more info
 
 ##makebroadcast
 Takes an input file, generally an archival master or raw-broadcast capture, inserts 2s fades, drops bitrate to 44.1k/16bit, embeds ID3 metadata if source txt file is present.
@@ -100,6 +60,13 @@ Takes an input file, generally a broadcast master, transcodes to 320kbps mp3. Em
 Has dependencies for ffmpeg, ffprobe, graphicsmagick. Takes 1 argument for full path of file to process.
 
 "python makemp3.py -h" for more info
+
+##makereverse
+Takes an input file and stream-copies reversed slices of 600 seconds, then concatenates the slices back together. ffmpeg's areverse loads a whole ifle into memory, so for the large files we deal with we need this workaround.
+
+Has dependencies for ffmpeg. Takes 1 arg of the path to the file to process
+
+"python makereverse.py -h" for more info
 
 ##makeffmetadata
 Takes input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and title, performer, album, and date, and makes an ;FFMETADATA text file suitable for ffmpeg to embed in a broadcast master or mp3 as ID3 tags. Is most often called by FileMaker, particularly for cylinders, or by makebroadcast
@@ -118,7 +85,6 @@ Takes an input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and a s
 Has 0 dependencies
 
 Has flags for start object (-so), tape (-tape, disc and cylinder coming soon), date (-d), master key (-mk), title (-t), manuscript number (-mss), collection name (-c).
-
  
 ##makeqctoolsreport
 Takes an input video file, and outputs a compressed xml file that can be read by QCTools. It has to transcode it to a raw video format first so this script takes some time and processor space and is generally run Friday afternoon over a week of new captures, and runs into the weekend.
@@ -136,6 +102,15 @@ Has 0 dependencies. Takes no arguments.
 Slices preservation and access transfers of videos with more than 1 asset on the tape (eg. vm1234 also contains vm5678 and vm9101). Takes no arguments but you have to edit the in and out points in a list in the script, as well as corresponding vNums. Needs to be better, OpenCube editing interface is crappy and Premiere doesn't accept our preservation masters so.....
 
 Has dependencies for ffmpeg, ffprobe
+
+##makedip
+Takes n input strings that are the canonical names for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server. Flags for "high quality" and "archival" not yet working (patrons sometimes request these).
+
+Has dependencies for ffmpeg, ffprobe
+
+Has flags for startObject (-so), transactionNumber (-tn), mode (-tape for tapes, -disc coming soon)
+
+python makedip.py -h for more info
  
 ##makevideoSIP (DEPRECATED)
 Take an argument of the vNumber (accession number for video) and outputs .tar.gz file for storage on LTO.
@@ -177,6 +152,12 @@ This script is used to edit the channel configuration of raw audio captures.
 
 Has 1 dependency for ffmpeg. Takes arguments for file(s) to be processed.
 
+##listen2transfers-qc.py
+This script automatically walks you through the last n days of audio transfers, listening starting at the 1min mark. You listen to 1/3 of the total transfers with this.
+
+Has dependencies for ffplay.
+
+Has arguments: -t to listen to magnetic tape transfers; -c to lsiten to cylinder transfers; -nj to listen to National Jukebox transfers; -d followed by a number for the number of days back to look, default 7.
 
 #National Jukebox
 Here's the scripts we use to process materials for the National Jukebox
@@ -262,7 +243,7 @@ here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
 
-##nj_qc
+##nj_pre-SIP
 This script is used to verify the contents of a directory in our qc holding pen. If it meets the requirements for filetypes necessary for SIPping to LC, move it to our batch folder.
 
 It has 0 dependencies. It takes no arguments.
@@ -289,3 +270,30 @@ here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input directory] [full path to batch directory]
 
+#hashmove
+
+file movement for people wihtout rsync
+
+**General Usage**
+
+python hashmove.py [source file or directory full path] [destination parent directory full path] [flags]
+
+**to move a file**
+
+python hashmove.py C:/path/to/file.ext C:/path/to/parent/dir
+
+**to move a directory**
+
+python hashmove.py /home/path/to/dir/a /home/path/to/dir/b
+
+**to copy a file**
+
+python hashmove.py C:/path/to/file.ext C:/path/to/parent/dir -c
+
+**log the transfer**
+
+python hashmove.py /home/path/to/dir/a /home/path/to/dir/b -l
+
+**verify against another hash or set of hashes**
+
+python hashmove.py "/home/path to/dir/you question" /home/path/to/dir/with/hashes -v
