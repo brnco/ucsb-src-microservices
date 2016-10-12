@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #hashmove.py
 #better file movement
 #takes arguments for source or dest, source can be file or dir, dest must be dir

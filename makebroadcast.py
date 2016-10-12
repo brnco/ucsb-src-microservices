@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makebroadcast
 #this script takes a single input file and makes a file suitable for broadcast/ delivery to patrons
 #for audio this means 44.1kHz, 16bit, mono wav with ID3s (like a CD)

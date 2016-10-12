@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makemp3
 #does the best that it can
 #takes 1 argument for object to convert to mp3

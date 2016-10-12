@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #for pres mxf wrapped j2k files
 #qctoolsreport
 #pbcore2

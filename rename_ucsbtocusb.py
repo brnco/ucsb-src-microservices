@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #rename_ucsbtocusb
 #takes the input string for directory path with files/ subdirs named "ucsb" and converts them to "cusb"
 #legacy programming error causes barcodes and filenames to print with ucsb so this script fixes it in post

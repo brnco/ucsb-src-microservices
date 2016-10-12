@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #splits a tape capture with n masters on it into individual files
 #takes areguments for
 #raw preservation capture file path

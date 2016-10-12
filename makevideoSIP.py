@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makevideoSIP
 #takes argument for video package (folder, named vNum)
 #verifies all contents of SIP exist: -pres.mxf and -acc.mp4 files, -pres.mxf.PBCore2.0.xml metadata, -pres.mxf.framemd5 hash, -pres.qctools.xml.gz report, -pres.mxf.md5 and -acc.mp4.md5 hashes

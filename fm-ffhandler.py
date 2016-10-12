@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #ff-handler
 #generates ffmpeg strings for avlab-audio
 

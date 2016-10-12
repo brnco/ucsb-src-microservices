@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #transfers-qc
 #a script that finds the most recent transfers and plays a few seconds from a sample of them
 

@@ -1,4 +1,5 @@
-#nj_QC
+#!/usr/bin/env python
+#nj_pre-SIP
 #verifies that all relevant filetypes exist (and, one day, conform) to NJ SIP
 #takes no args
 #has no dependencies

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makeqctoolsreport.py v 0.2.0
 
 import os

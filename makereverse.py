@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #reverser
 
 import subprocess

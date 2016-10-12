@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #nj_audio.py
 #processes audio fles for the national jukebox project at UCSB
 

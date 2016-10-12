@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makebarcodes
 #uses the CLI to make barcodes for discs
 #prints a text file that can be read by Zebra barcode printers

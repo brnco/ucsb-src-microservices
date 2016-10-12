@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makedip
 #coding=UTF-8
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #takes args for input file(s)
 #if 1 input file: splits to two stereo files
 #if two input files, combines to 1 stereo file

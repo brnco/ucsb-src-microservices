@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #makebext
 #coding=UTF-8
 

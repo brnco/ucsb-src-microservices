@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #avlab-discs
 #post-capture-processing for grooved disc materials
 import ConfigParser

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #nj_discimg-out
 #processes intermediate dng files to tiff
 #moves all image files to qcDir

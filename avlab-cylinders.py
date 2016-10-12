@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #avlab-cylinders
 #processes cylinders
 #takes broadcast master, adds ID3 tags and 2s heads and tails fades (via makebroadcast.py)

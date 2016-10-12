@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #nj_discimg-capture-fm
 #triggered by filemaker, takes 1 argument for barcode that was scanned into FM
 #
