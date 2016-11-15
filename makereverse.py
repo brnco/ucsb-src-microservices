@@ -6,6 +6,7 @@ import re
 import argparse
 import sys
 import os
+from distutils import spawn
 
 #Context manager for changing the current working directory
 class cd:

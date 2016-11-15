@@ -46,6 +46,10 @@ def main():
 	vpd = config.get('NationalJukebox','VisualProcessedDir')
 	vislist = [vad, vid, vpd] #list of dirs to go thru
 	
+	if not os.listdir(vad):
+		print "Buddy, today's date doesn't match the shooting date for this batch. You should probably rename the capture dir to " + time.strftime("%Y-%m-%d")
+		sys.exit()
+	
 	#first, process the intermediates
 	for dirs, subdris, files in os.walk(vid):
 		with cd(vid):
