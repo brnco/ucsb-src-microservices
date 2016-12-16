@@ -45,15 +45,18 @@ def makeThem(startObj, archRepoDir):
 		
 		#headwhite.mov
 		#make a blank white 1920x1080 frame 10s long
-		subprocess.call(['ffmpeg','-f','lavfi','-i','color=c=white:s=1920x1080:d=10','-c:v','prores','-profile:v','3','-qscale:v','4',"headwhite.mov"])
+		#subprocess.call(['ffmpeg','-f','lavfi','-i','color=c=white:s=1920x1080:d=10','-c:v','prores','-profile:v','3','-qscale:v','4',"headwhite.mov"])
 		
 		#headlogo.mov
 		#overlay the library logo onto this blank white 1920x1080 10s frame, but make this vid 5s
-		subprocess.call(['ffmpeg','-i','headwhite.mov','-i',"S:/avlab/ucsb-lib-logo.jpg",'-f','lavfi','-i','anullsrc=channel_layout=mono:sample_rate=48000','-filter_complex','[1:v]scale=528x101 [ovrl],[0:v][ovrl] overlay=260:600','-t','5','-c:v','prores','-profile:v','3','-qscale:v','4','-c:a','aac','-b:a','320k','headlogo.mov'])
+		#logo 100% larger, centered
+		#text above logo that says "From the collections of the" same size as following descriptive text
+		#subprocess.call(['ffmpeg','-i','headwhite.mov','-i',"S:/avlab/ucsb-lib-logo.jpg",'-f','lavfi','-i','anullsrc=channel_layout=mono:sample_rate=48000','-filter_complex','[1:v]scale=528x101 [ovrl],[0:v][ovrl] overlay=260:600','-t','5','-c:v','prores','-profile:v','3','-qscale:v','4','-c:a','aac','-b:a','320k','headlogo.mov'])
 		
 		#headtxt.mov
 		#overlay the descriptive metadata from our yt.txt file onto this blank white 1920x1080 10s frame
-		subprocess.call(['ffmpeg','-i',"headwhite.mov","-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=40:x=(w-tw)/2:y=(h/PHI)+th",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
+		#make text 100% larger
+		subprocess.call(['ffmpeg','-i',"R:/78rpm/avlab/projects/video-files/headwhite.mov","-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=40:x=(w-tw)/2:y=(h/PHI)+th",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
 		
 		#labelimg.png
 		#scale the tif image of our disc label to fit the 1920x1080 frame
@@ -75,7 +78,7 @@ def makeThem(startObj, archRepoDir):
 def concatThem(startObj, archRepoDir):
 	with cd(os.path.join(archRepoDir,startObj)):
 		concatxt = open("concat.txt","w")
-		concatxt.write('file headlogo.mov\n')
+		concatxt.write('file R:/78rpm/avlab/projects/video-files/headlogoandtxt.mov\n')
 		concatxt.write('file headtailwithaudio.mov\n')
 		concatxt.close()
 		
@@ -86,7 +89,7 @@ def concatThem(startObj, archRepoDir):
 		
 		#remove all the crap we created
 		os.remove(os.path.join(archRepoDir,startObj,'concat.txt'))
-		os.remove(os.path.join(archRepoDir,startObj,'headwhite.mov'))
+		#os.remove(os.path.join(archRepoDir,startObj,'headwhite.mov'))
 		os.remove(os.path.join(archRepoDir,startObj,'headtxt.mov'))
 		os.remove(os.path.join(archRepoDir,startObj,'tail.mov'))
 		os.remove(os.path.join(archRepoDir,startObj,'headtail.mov'))
