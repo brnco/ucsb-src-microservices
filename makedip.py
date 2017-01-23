@@ -103,23 +103,25 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 		#find
 		for obj in startObjs:
 			for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
-				assetName = re.search(obj,f) #grab just the canonical name part
+				#_assetName = re.search(obj,f) #grab just the canonical name part
+				assetName = obj
+				foo = raw_input("eh")
 				for v in u: #loop thru found mp3s in dir
-					if assetName.group() in v: #if the string cubs-a1234 is in the list of mp3s
+					if assetName in v: #if the string cubs-a1234 is in the list of mp3s
 						u.remove(v)
 				for v in b:
-					if assetName.group() in v:
+					if assetName in v:
 						b.remove(v)
 				for v in a:
-					if assetName.group() in v:
+					if assetName in v:
 						a.remove(v)
 			for f in b: #loop thru broadcast master list and delete from other lists (transcoding from broadcast preferred)
-				assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
+				#assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
 				for v in u:
-					if assetName.group() in v:
+					if assetName in v:
 						u.remove(v)
 				for v in a:
-					if assetName.group() in v:
+					if assetName in v:
 						a.remove(v)
 	return a,b,u,m,i,startDirs
 	
@@ -133,7 +135,7 @@ def main():
 	parser.add_argument('-hq','--highquality',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	#parser.add_argument('-a','--archival',dest='a',help="don't transcode a broadcast master or mp3, dip the archival master")
 	parser.add_argument('-comp','--compress',action='store_true',dest='compress',default=False,help="compress the dip folder when everything is in there")
-	#parser.add_argument('-r','--rights',dest='r',default="©2016 The Regents of the University of California",help="a copyright statement for the asset")
+
 	args = parser.parse_args()
 	
 	
@@ -151,7 +153,7 @@ def main():
 	
 	if args.disc is True:
 		isdisc = 'isdisc'
-		archiveDir = config.get("discs","archRepoDir")
+		archiveDir = config.get("discs","repo")
 		a,b,u,m,i,startDirs = makeTranscodeList(args.so, archiveDir, isdisc) #make a dictionary of files to work with
 	#transcode where necessary
 	for f in a:
@@ -179,10 +181,11 @@ def main():
 	
 	#compress dir on desktop
 	if args.compress is True:
-		with cd("C:/Users/" + getpass.getuser() + "/Desktop"):
-			zf = zipfile.ZipFile(args.tn + ".zip","w")
-			for f in os.listdir(args.tn):
-				zf.write(os.path.join(dipDir,f),compress_type=zipfile.ZIP_DEFLATED)
+		tnDir = os.path.join("C:/Users/",getpass.getuser(),"Desktop",args.tn)
+		with cd(tnDir):
+			zf = zipfile.ZipFile(tnDir + ".zip","w")
+			for f in os.listdir(os.getcwd()):
+				zf.write(os.path.basename(os.path.join(dipDir,f)),compress_type=zipfile.ZIP_DEFLATED)
 			zf.close()
 
 dependencies()

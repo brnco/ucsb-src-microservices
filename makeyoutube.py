@@ -34,11 +34,11 @@ def dependencies():
 def makeThem(startObj, archRepoDir):	
 	txtfile = os.path.join(archRepoDir,startObj,startObj + "yt.txt")
 	txtfile = txtfile.replace("\\","/")
-	txtfile = txtfile.replace(":","\\\:")
 	if not os.path.exists(txtfile):
 		print "The text file with descriptive info from DAHR does not exist"
-		print "Please write one and save it as " + startObj + ".yt.txt in " + os.path.dirname(txtfile)
+		print "Please write one and save it as " + startObj + "yt.txt in " + os.path.dirname(txtfile)
 		sys.exit()
+	txtfile = txtfile.replace(":","\\\:")
 	qa = '"' + "'"
 	aq = "'" + '"'
 	with cd(os.path.join(archRepoDir,startObj)):
@@ -56,7 +56,7 @@ def makeThem(startObj, archRepoDir):
 		#headtxt.mov
 		#overlay the descriptive metadata from our yt.txt file onto this blank white 1920x1080 10s frame
 		#make text 100% larger
-		subprocess.call(['ffmpeg','-i',"R:/78rpm/avlab/projects/video-files/headwhite.mov","-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=40:x=(w-tw)/2:y=(h/PHI)+th",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
+		subprocess.call(['ffmpeg','-i',"R:/78rpm/avlab/projects/video-files/headwhite.mov","-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=60:x=(w-tw)/2:y=540",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
 		
 		#labelimg.png
 		#scale the tif image of our disc label to fit the 1920x1080 frame
@@ -83,7 +83,7 @@ def concatThem(startObj, archRepoDir):
 		concatxt.close()
 		
 		#actually concatenate the headlogo with the headtailwithaudio file
-		subprocess.call(['ffmpeg','-f','concat','-i','concat.txt','-c','copy', os.path.basename(startObj) + "yt.mov"])
+		subprocess.call(['ffmpeg','-f','concat','-safe','0','-i','concat.txt','-c','copy', os.path.basename(startObj) + "yt.mov"])
 		#create and mp4 from that, pretty visually compressed
 		subprocess.call(['ffmpeg','-i',os.path.basename(startObj) + "yt.mov",'-pix_fmt','yuv420p','-c:v','libx264','-preset','slow','-crf','28','-c:a','copy',os.path.basename(startObj) + "yt.mp4"])
 		

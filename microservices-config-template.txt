@@ -20,6 +20,10 @@ new_ingest:
 repo:
 avlab:
 
+[discs]
+new_ingest:
+repo:
+
 [video]
 new_ingest:
 lto_stage:
