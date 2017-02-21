@@ -72,7 +72,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	
 	if not os.path.exists(processDir):
 		os.makedirs(processDir)
-	time.time
+	time.sleep(1)
 	#do it
 	with cd(processDir):
 		try:
@@ -84,6 +84,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 		if returncode == 0:
 			#os.remove(os.path.join(captureDir,rawfname + ".wav"))
 			print "foo"
+			print returncode
 		else:
 			return
 		returncode = 0	
@@ -131,7 +132,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 						return
 	return
 
-def ren(aNumber,captureDir,mmrepo):
+def ren(aNumber,captureDir,process,mmrepo):
 	with cd(os.path.join(captureDir,aNumber)):
 		for f in os.listdir(os.getcwd()):
 			if "left" in f:
@@ -148,8 +149,12 @@ def ren(aNumber,captureDir,mmrepo):
 			match = ''
 			match = re.search("\w{8}-\w{4}-\w{4}-\w{4}-",f)
 			if match:
-				if not os.path.exists("cusb-" + aNumber + "a.wav"):
-					os.rename(f, "cusb-" + aNumber + "a.wav")
+				if "isFaceAB" in process:
+					if not os.path.exists("cusb-" + aNumber + "a.wav"):
+						os.rename(f, "cusb-" + aNumber + "Aa.wav")
+				if "isFaceCD" in process:
+					if not os.path.exists("cusb-" + aNumber + "Ca.wav"):
+						os.rename(f, "cusb-" + aNumber + "Ca.wav")
 	return
 	
 #do the fancy library thing to each file	
@@ -277,7 +282,7 @@ def main():
 			if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
 				aNumber = args['input']
 				ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
-				ren(aNumber,captureDir,mmrepo)
+				ren(aNumber,captureDir,process,mmrepo)
 	else:
 		#check for files that are too large
 		for f in os.listdir(captureDir):
@@ -299,7 +304,7 @@ def main():
 				time.sleep(2)
 				
 				#rename the outputs from ffprocess
-				ren(aNumber,captureDir,mmrepo)
+				ren(aNumber,captureDir,process,mmrepo)
 				
 				#pop the bext info into each file
 				bextprocess(aNumber,bextsDir,captureDir)

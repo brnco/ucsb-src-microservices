@@ -46,8 +46,8 @@ def main():
 		process = csv.reader(arb, delimiter=",") #use csv lib to read it line by line
 		for x in process: #result is list
 			endObj = os.path.join(captureDir,"a" + x[0],rawfname)
-			#let's do this for half-track mono tapes
-			if '1/4-inch Half Track Mono' in x:
+			#let's do this for mono tapes
+			if ('1/4-inch Half Track Mono' in x) or ('1/4-inch 4 Track' in x):
 				channel0 = "-map_channel 0.0.0"
 				channel1 = "-map_channel 0.0.1"
 				
@@ -104,9 +104,9 @@ def main():
 				#print ffstr
 				ffstr = "ffmpeg -i " + startObj + ".wav " + zerostr + onestr
 				return ffstr
-			if '1/4-inch Full Track Mono' in x:
+			if 'Full Track Mono' in x:
 				ffstr = "ffmpeg -i " + startObj + ".wav " + silencestr + " -ac 1 -acodec pcm_s24le " + endObj + "-processed.wav"
-				return ffstr
+				return ffstr	
 			else:
 				#hlvspd_fAB
 				if 'hlvspd_fAB' in x:
