@@ -11,6 +11,7 @@ import subprocess
 import sys
 import glob
 import re
+import ast
 import argparse
 from distutils import spawn
 
@@ -105,43 +106,20 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makeid3(startDir, assetName):
-	#initialize some crap
-	if assetName.endswith("A") or assetName.endswith("B"):
-		assetName = assetName[:-1]
-	id3Obj = os.path.join(startDir, assetName + "-mtd.txt") #in same dir as audio object should be a -mtd.txt object with a ;FFMETADATA1 id3 tags inside
-	print id3Obj
-	for dirs, subdirs, files in os.walk(startDir):
-		for f in files:
-			if f.endswith("-mtd.txt"):
-				id3Obj = os.path.join(startDir,f)			
-	id3String = ""
-	if not os.path.exists(id3Obj): #check to see if it exists alread
-		usrInput = ''
-		while usrInput not in ['y','n']: #gotta answer yes or no to this q
-			usrInput = raw_input("There is currently no associated ID3 metadata for this object, would you like to make some so that it'll play nice with iTunes? (y/n) ")
-			usrInput = usrInput.lower()
-		#this promts the user to make a txt file with this formatting
-		if usrInput == 'y':
-			print " "
-			print "Great, thank you! Here's how"
-			print "1)Open a new text file and save it in the same folder as the thing you're trying to broadcast"
-			print "2)Type the following into the empty text file, keep the new lines and punctuation"
-			print ";FFMETADATA1"
-			print "title= "
-			print "artist= "
-			print "album= "
-			print "date= "
-			print "publisher=UCSB Special Research Collections"
-			print " "
-			print "3)Ok, don't type this part. Now, the best you can, fill out those fields in the text file"
-			print "4)Lastly, save it as " + assetName + "-mtd.txt"
-			donezo = raw_input("Press 'Enter' when you've finished the above process") #pauses script until the user says they're done
-			id3String = "-i " + id3Obj + " -map_metadata 1" #set the string so ffmpeg can find and use this obj
-		if usrInput == 'n':
-			print "Ok, not great but ok" #fine, i mean i guess, whatever
-	else:
-		id3String = "-i " + id3Obj + " -map_metadata 1" #if the object already exists, set the string so ffmpeg can find and use this obj
-	return id3String
+	id3fields=["title=","artist=","date="]
+	match = ''
+	match = re.search("a\d{4,5}",assetName) #grip jsut the a1234 part of the filename
+	if match:
+		assetName = match.group()
+	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName.capitalize(),"-id3"])
+	id3rawlist = ast.literal_eval(id3rawlist)
+	id3str = ""
+	for index, tag in enumerate(id3rawlist):
+		if tag is not None:
+			id3str = id3str + " -metadata " + id3fields[index] + '"' + tag + '"'
+	print id3str
+	foo = raw_input("eh")
+	return id3str
 
 #parses input and makes the appropriate calls	
 def handling():
