@@ -1,8 +1,7 @@
 import pyodbc
 import argparse
 
-def query(sqlstr):
-	cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Audio Originals;UID=microservices')
+def query(sqlstr,cnxn):
 	cursor = cnxn.cursor()
 	cursor.execute(sqlstr)
 	row = cursor.fetchone()
@@ -18,11 +17,13 @@ def handling():
 	args = parser.parse_args()
 	rtnList = []
 	if args.id3:
-		fieldlist = ["Tape_Title","Collection_Name","Original_Recording_Date"]
-		for field in fieldlist:
-			sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so + "%'"
-			result = query(sqlstr)
-			rtnList.append(result[0])
+		if args.t:
+			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Audio Originals;UID=microservices')
+			fieldlist = ["Tape_Title","Collection_Name","Original_Recording_Date"]
+			for field in fieldlist:
+				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so + "%'"
+				result = query(sqlstr,cnxn)
+				rtnList.append(result[0])
 	print rtnList
 	
 handling()
