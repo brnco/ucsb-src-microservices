@@ -7,11 +7,13 @@
 #"python makebroadcast.py -h" for help
 
 import os
+from subprocess import PIPE
 import subprocess
 import sys
 import glob
 import re
 import ast
+import pickle
 import argparse
 from distutils import spawn
 
@@ -76,7 +78,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 				if not args.sys:
 					print 'Buddy, you need to submit a system number "-sys" to get the id3 tags from our catalog'
 					sys.exit()
-				id3string = getdiscid3(args.sys)
+				id3string = getdiscid3(args,assetName)
 			else:
 				id3string = makeid3(startDir,assetName)
 		else:
@@ -157,9 +159,40 @@ def gettapeid3(startDir, assetName):
 	foo = raw_input("eh")
 	return id3str
 
-def getdiscid3(sys):
-	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/catalog-stuff.py","-sys",sys])
-	print id3rawlist
+def getdiscid3(args,assetName):
+	id3fields=["title=","artist=","date="]
+	id3str = ""
+	output = subprocess.Popen(["python","S:/avlab/microservices/catalog-stuff.py","-sys",args.sys],stdout=PIPE,stderr=PIPE)
+	id3rawlist1 = output.communicate()
+	#print id3rawlist1[0]
+	match = ''
+	match = re.findall("\[.*\]",id3rawlist1[0])
+	if match:
+		id3list1 = ast.literal_eval(match[0])
+		if match[1]:
+			id3list2 = ast.literal_eval(match[1])
+	elements = assetName.split('_')
+	matrixNumber = elements[-2]
+	if matrixNumber in id3list1[-1]:
+		id3list = id3list1
+	elif matrixNumber in id3list2[-1]:
+		id3list = id3list2
+	else:
+		if args.side is None:
+			print "Buddy, you need to specify which side of the disc we're working on"
+			sys.exit()
+		else:
+			if args.side.capitalize()=="A":
+				id3list = id3list1
+			if args.side.capitalize()=="B":
+				id3list = id3list2
+			else:
+				print "Buddy, the side you specified is outta range. Use A or B instead"
+	for index, tag in enumerate(id3fields):
+		if tag is not None:
+			id3str = id3str + " -metadata " + tag + '"' + id3list[index] + '"'
+	id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
+	print id3str	
 	foo = raw_input("eh")
 	
 #parses input and makes the appropriate calls	
@@ -176,6 +209,7 @@ def handling():
 	parser.add_argument('-t','--tape',dest='t',action='store_true',default=False,help='use settings for "tape", get id3 metadata from FileMaker')
 	parser.add_argument('-d','--disc',dest='d',action='store_true',default=False,help='use settings for "disc",get id3 metadata from Pegasus catalog')
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
+	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	startObj = args.so.replace("\\",'/') #for the windows peeps
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
