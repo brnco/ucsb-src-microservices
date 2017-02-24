@@ -41,6 +41,7 @@ def handling():
 				artist1 = match.group().replace("(side A)","").replace("by ","").lstrip()
 			else:
 				artist1=sf.string
+				artist1 = re.sub(r".*by ",'',artist1)
 			match = ''
 			match = re.search("\(side A\).*\(side B\)",sf.string)
 			if match:

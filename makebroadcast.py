@@ -13,7 +13,7 @@ import sys
 import glob
 import re
 import ast
-import pickle
+import time
 import argparse
 from distutils import spawn
 
@@ -98,8 +98,15 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 				fadestart = float(dur) - 2.0 #subract 2 from that to get the fade out start time
 				fadestart = str(fadestart)
 				fadestring = "-af afade=t=in:ss=0:d=2,afade=t=out:st=" + fadestart + ":d=2 " #generate the fade string using the fade out start time
-			ffdata.close() #housekeeping
-			os.remove(startObj + '.ffdata.txt') #housekeeping
+		print startObj
+		print id3string
+		print ar
+		print sfmt
+		print ac
+		print normstring
+		print fadestring
+		print assetName
+		print EuseChar
 		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + normstring + ' ' + fadestring + '-id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
 		subprocess.call(ffmpegstring)
 		if args.mp3 is True:
@@ -155,8 +162,6 @@ def gettapeid3(startDir, assetName):
 		if tag is not None:
 			id3str = id3str + " -metadata " + id3fields[index] + '"' + tag + '"'
 	id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
-	print id3str
-	foo = raw_input("eh")
 	return id3str
 
 def getdiscid3(args,assetName):
@@ -169,8 +174,10 @@ def getdiscid3(args,assetName):
 	match = re.findall("\[.*\]",id3rawlist1[0])
 	if match:
 		id3list1 = ast.literal_eval(match[0])
-		if match[1]:
+		try:
 			id3list2 = ast.literal_eval(match[1])
+		except:
+			pass
 	elements = assetName.split('_')
 	matrixNumber = elements[-2]
 	if matrixNumber in id3list1[-1]:
@@ -192,8 +199,7 @@ def getdiscid3(args,assetName):
 		if tag is not None:
 			id3str = id3str + " -metadata " + tag + '"' + id3list[index] + '"'
 	id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
-	print id3str	
-	foo = raw_input("eh")
+	return id3str
 	
 #parses input and makes the appropriate calls	
 def handling():
