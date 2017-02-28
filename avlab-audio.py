@@ -8,6 +8,7 @@ import os
 import subprocess
 import csv
 import re
+import ast
 import time
 from distutils import spawn
 
@@ -262,6 +263,26 @@ def main():
 	#get rid of the crap
 	#deletebs(captureDir)
 	
+	for dirs,subdirs,files in os.walk(captureDir):
+		for file in files:
+			if file.endswith(".gpk") or file.endswith(".mrk") or file.endswith(".bak"):
+				try:
+					os.remove(file)
+				except:
+					pass
+			elif file.endswith(".wav"):
+				print file
+				rawfname,ext = os.path.splitext(file)
+				output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
+				processList = ast.literal_eval(output)
+				if processList is not None:
+					face = processList[0]
+					aNumber = processList[1]
+					trackConfig = processList[2]
+					print processList
+				foo = raw_input("eh")
+	
+	'''
 	#single mode check
 	if args['s'] is True:
 		flist = {}
@@ -310,7 +331,7 @@ def main():
 				bextprocess(aNumber,bextsDir,captureDir)
 
 				#hashmove them to the repo dir
-				move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
+				move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)'''
 	return
 
 dependencies()
