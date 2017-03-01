@@ -284,7 +284,7 @@ def main():
 			if f.endswith(".wav"):
 				if os.path.getsize(os.path.join(captureDir,f)) > 4294967296:
 					subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])
-		
+		foo = raw_input("eh")
 		#make a list of files to work on
 		flist = makelist(captureDir,toProcessDir)
 
