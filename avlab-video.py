@@ -35,6 +35,7 @@ def dependencies():
 
 
 def main():
+	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
 	rootdir = config.get('video','new_ingest')
@@ -63,7 +64,7 @@ def main():
 				if not os.path.exists(_framemd5):
 					print _framemd5
 					#gotta give the framemd5 filename as concat string here, _framemd5 is a file object
-					subprocess.call(['ffmpeg','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
+					#subprocess.call(['ffmpeg','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
 	return
 
 dependencies()

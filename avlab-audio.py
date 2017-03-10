@@ -77,7 +77,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 	#do it
 	with cd(processDir):
 		try:
-			output = subprocess.check_output(ffmpeglist,shell=True)
+			output = subprocess.check_output(ffmpeglist)
 			returncode = 0
 		except subprocess.CalledProcessError,e:
 			output = e.output
@@ -109,28 +109,7 @@ def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
 		#give comp time to catch up
 		time.sleep(2)
 		
-		#ok so by now every file in the processing dir is the correct channel config & plays in correct direction BUT
-		#we need to normalize to 96kHz
-		for f in os.listdir(os.getcwd()): #for each file in the processing dir
-			if f.endswith("-processed.wav") or f.endswith("-reversed.wav"):
-				print "ffprobe and resample if necessary"
-				output = subprocess.Popen("ffprobe -show_streams -of flat " + f,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-				ffdata,err = output.communicate()
-				#grep the bit about the duiration, in seconds
-				#for line in lines:
-				match = ''
-				sr = ''
-				match = re.search(r".*sample_rate=.*",ffdata)
-				if match:
-					_sr = match.group().split('"')[1::2]
-					sr = _sr[0]
-				if not sr == "96000":
-					output = subprocess.call("ffmpeg -i " + f + " -ar 96000 -c:a pcm_s24le " + f.replace(".wav","") + "-resampled.wav")
-					print f
-					if os.path.getsize(f.replace(".wav","") + "-resampled.wav") > 50000:
-						os.remove(os.path.join(os.getcwd(),f))
-					else:	
-						return
+		
 	return
 
 def ren(aNumber,captureDir,process,mmrepo):
@@ -243,6 +222,91 @@ def move(rawfname,aNumber,captureDir,mmrepo,archRepoDir):
 				os.remove(os.path.join("R:/audio/avlab/fm-exports/to_process",rawfname + ".txt"))
 	return
 
+def makefullffstr(ffstring,face,aNumber,channelConfig,processDir,rawfile):
+	fullffstr = "ffmpeg -i " + rawfile + " " + ffstring
+	endfileface = ''
+	if face == "fAB" and "Quarter Track Stereo" in channelConfig:
+		endfileface = "A"
+	elif face == "fCD" and "Quarter Track Stereo" in channelConfig:
+		endfileface = "C"
+	elif face == "fAB" and "Half Track Stereo" in channelConfig or "Full Track Mono" in channelConfig:
+		endfileface = ""	
+	else:
+		endfileface = face.replace("f","")
+	if "left" in fullffstr and "AB" in face:
+		fullffstr = fullffstr.replace("left",os.path.join(processDir,"cusb-" + aNumber + "Aa"))
+		fullffstr = fullffstr.replace("right",os.path.join(processDir,"cusb-" + aNumber + "Ba"))
+	elif "right" in fullffstr and "CD" in face:
+		fullffstr = fullffstr.replace("left",os.path.join(processDir,"cusb-" + aNumber + "Ca"))
+		fullffstr = fullffstr.replace("right",os.path.join(processDir,"cusb-" + aNumber + "Da"))
+	else:
+		fullffstr = fullffstr.replace("processed",os.path.join(processDir,"cusb-" + aNumber + endfileface + "a"))
+	return fullffstr
+
+def ffprocess(fullffstr,processDir):
+	if not os.path.exists(processDir):
+		os.makedirs(processDir)
+	time.sleep(1)
+	#do it
+	with cd(processDir):
+		try:
+			#output = subprocess.check_output(fullffstr,shell=True)
+			returncode = 0
+		except subprocess.CalledProcessError,e:
+			output = e.output
+			returncode = output
+	return returncode
+
+def reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo):
+	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reversing","-so",rawfname,"-f",face,"-cc",channelConfig])
+	if "fA" in revface and not "fAB" in revface:
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+	elif "fC" in revface and not "fCD" in revface:
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):	
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])	
+	elif "fB" in revface:
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):	
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
+	elif "fD" in revface:
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Da.wav")):	
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Da.wav")])
+	elif "fAB" in revface:
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+		elif os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "a.wav")):
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "a.wav")])
+	elif "fCD" in revface:
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
+	return
+
+def sampleratenormalize(processDir):
+	#ok so by now every file in the processing dir is the correct channel config & plays in correct direction BUT
+	#we need to normalize to 96kHz
+	with cd(processDir)
+		for f in os.listdir(os.getcwd()): #for each file in the processing dir
+			if f.endswith(".wav"):
+				print "ffprobe and resample if necessary"
+				output = subprocess.Popen("ffprobe -show_streams -of flat " + f,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+				ffdata,err = output.communicate()
+				#grep the bit about the duiration, in seconds
+				#for line in lines:
+				match = ''
+				sr = ''
+				match = re.search(r".*sample_rate=.*",ffdata)
+				if match:
+					_sr = match.group().split('"')[1::2]
+					sr = _sr[0]
+				if not sr == "96000":
+					output = subprocess.call("ffmpeg -i " + f + " -ar 96000 -c:a pcm_s24le " + f.replace(".wav","") + "-resampled.wav")
+					print f
+					if os.path.getsize(f.replace(".wav","") + "-resampled.wav") > 50000:
+						os.remove(os.path.join(os.getcwd(),f))
+					else:	
+						return
+	return
+	
 def main():
 	#initialize the stuff
 	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
@@ -276,11 +340,41 @@ def main():
 				output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
 				processList = ast.literal_eval(output)
 				if processList is not None:
-					face = processList[0]
-					aNumber = processList[1]
-					trackConfig = processList[2]
 					print processList
-				foo = raw_input("eh")
+					face = processList[0]
+					aNumber = "a" + processList[1]
+					channelConfig = processList[2]
+					ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
+					if ffstring is not None:
+						#init folder to do the work in
+						processDir = os.path.join(captureDir,aNumber)
+						#make the full ffstr using the paths we have
+						fullffstr = makefullffstr(ffstring,face,aNumber,channelConfig,processDir,os.path.join(dirs,file))
+						#run ffmpeg and make sure it completes successfully
+						returncode = ffprocess(fullffstr,processDir)
+						if returncode == 0:
+							#os.remove(os.path.join(captureDir,rawfname + ".wav"))
+							print "foo"
+							print returncode
+						else:
+							return
+						returncode = 0
+						#if we need to reverse do it
+						#note here to add output checker for reverse
+						reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo)
+						#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
+						#note here to add output checker for reverse
+						sampleratenormalize(processDir)
+						bextstr = subprocess.check_output("python fm-stuff.py -pi -t -p bext -so " + aNumber.capitalize())
+						with cd(processDir):
+							for f in os.listdir(os.getcwd()):
+								if f.endswith(".wav"):
+									subprocess.check_output("bwfmetaedit --in-core-remove " + f)
+									subprocess.check_output("bwfmetaedit --MD5-Embed-Overwrite " + f)
+									subprocess.check_output("bwfmetaedit " + bextstr + " " + f)
+					foo = raw_input("eh")		
+					
+				
 	
 	'''
 	#single mode check

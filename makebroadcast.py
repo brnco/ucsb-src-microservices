@@ -200,12 +200,14 @@ def getdiscid3(args,assetName):
 			id3str = id3str + " -metadata " + tag + '"' + id3list[index] + '"'
 	id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
 	return id3str
+
+
 	
 #parses input and makes the appropriate calls	
 def handling():
 	#initialize a buncha crap
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded',)
+	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
 	parser.add_argument('-s','--stereo',dest='s',action='store_true',default=False,help='outputs to stereo (mono is default)')
 	parser.add_argument('-mp3','--mp3',dest='mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
@@ -217,7 +219,11 @@ def handling():
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
 	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
-	startObj = args.so.replace("\\",'/') #for the windows peeps
+	
+	#returns full path to startObject
+	#startObj = subprocess.call("python S:/avlab/microservices/makestartobject.py -so " + args.so)
+	startObj = args.so
+	foo = raw_input("eh")
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
 	aexts = ['.wav'] #set extensions we recognize for audio
 	fnamext = os.path.basename(os.path.abspath(startObj)) #grabs the filename and extension
