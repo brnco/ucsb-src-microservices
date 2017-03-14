@@ -250,7 +250,7 @@ def ffprocess(fullffstr,processDir):
 	#do it
 	with cd(processDir):
 		try:
-			#output = subprocess.check_output(fullffstr,shell=True)
+			output = subprocess.check_output(fullffstr,shell=True)
 			returncode = 0
 		except subprocess.CalledProcessError,e:
 			output = e.output
@@ -258,7 +258,7 @@ def ffprocess(fullffstr,processDir):
 	return returncode
 
 def reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo):
-	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reversing","-so",rawfname,"-f",face,"-cc",channelConfig])
+	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reverse","-so",rawfname,"-f",face,"-cc",channelConfig])
 	if "fA" in revface and not "fAB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
 			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
@@ -284,7 +284,7 @@ def reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo):
 def sampleratenormalize(processDir):
 	#ok so by now every file in the processing dir is the correct channel config & plays in correct direction BUT
 	#we need to normalize to 96kHz
-	with cd(processDir)
+	with cd(processDir):
 		for f in os.listdir(os.getcwd()): #for each file in the processing dir
 			if f.endswith(".wav"):
 				print "ffprobe and resample if necessary"
@@ -306,13 +306,25 @@ def sampleratenormalize(processDir):
 					else:	
 						return
 	return
+
+def makebext(aNumber,processDir):
+	bextstr = subprocess.check_output("python fm-stuff.py -pi -t -p bext -so " + aNumber.capitalize())
+	with cd(processDir):
+		for f in os.listdir(os.getcwd()):
+			if f.endswith(".wav"):
+				subprocess.check_output("bwfmetaedit --in-core-remove " + f)
+				print "embedding MD5 hash of data chunk..."
+				subprocess.check_output("bwfmetaedit --MD5-Embed-Overwrite " + f)
+				print "embedding BEXT chunk..."
+				subprocess.check_output("bwfmetaedit " + bextstr + " " + f)
+	return
 	
 def main():
 	#initialize the stuff
 	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
-	parser.add_argument('-s',action="store_true",default=False,help='single mode, for processing a single transfer')
-	parser.add_argument('-i','--input',help="the aNumber to process")
-	args = vars(parser.parse_args())
+	parser.add_argument('-s',dest='s',action="store_true",default=False,help='single mode, for processing a single transfer')
+	parser.add_argument('-so','--startObj',dest='so',help="the rawcapture file.wav to process")
+	args = parser.parse_args()
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
@@ -326,79 +338,85 @@ def main():
 	
 	#get rid of the crap
 	#deletebs(captureDir)
-	
-	for dirs,subdirs,files in os.walk(captureDir):
-		for file in files:
-			if file.endswith(".gpk") or file.endswith(".mrk") or file.endswith(".bak"):
-				try:
-					os.remove(file)
-				except:
-					pass
-			elif file.endswith(".wav"):
-				print file
-				rawfname,ext = os.path.splitext(file)
-				output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
-				processList = ast.literal_eval(output)
-				if processList is not None:
-					print processList
-					face = processList[0]
-					aNumber = "a" + processList[1]
-					channelConfig = processList[2]
-					ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
-					if ffstring is not None:
-						#init folder to do the work in
-						processDir = os.path.join(captureDir,aNumber)
-						#make the full ffstr using the paths we have
-						fullffstr = makefullffstr(ffstring,face,aNumber,channelConfig,processDir,os.path.join(dirs,file))
-						#run ffmpeg and make sure it completes successfully
-						returncode = ffprocess(fullffstr,processDir)
-						if returncode == 0:
-							#os.remove(os.path.join(captureDir,rawfname + ".wav"))
-							print "foo"
-							print returncode
-						else:
-							return
-						returncode = 0
-						#if we need to reverse do it
-						#note here to add output checker for reverse
-						reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo)
-						#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
-						#note here to add output checker for reverse
-						sampleratenormalize(processDir)
-						bextstr = subprocess.check_output("python fm-stuff.py -pi -t -p bext -so " + aNumber.capitalize())
-						with cd(processDir):
-							for f in os.listdir(os.getcwd()):
-								if f.endswith(".wav"):
-									subprocess.check_output("bwfmetaedit --in-core-remove " + f)
-									subprocess.check_output("bwfmetaedit --MD5-Embed-Overwrite " + f)
-									subprocess.check_output("bwfmetaedit " + bextstr + " " + f)
-					foo = raw_input("eh")		
-					
-				
-	
-	'''
+
 	#single mode check
-	if args['s'] is True:
-		flist = {}
-		number = args['input'].replace("a","")
-		for dirs, subdirs, files in os.walk(toProcessDir):
-			for f in files:
-				if not f.endswith(".txt"): #SOMETIMES FILEMAKER DOESN'T EXPORT THE .TXT PART BECAUSE IT'S GREAT AND I LOVE IT
-					f = f + ".txt"
-				rawfname,ext = os.path.splitext(f) #grab raw file name from os.walk
-				txtinfo = os.path.join(toProcessDir,rawfname + '.txt') #init var for full path of txt file that tells us how to process
-				if os.path.exists(txtinfo): #if said text file exists
-					with open(txtinfo) as arb:
-						fulline = csv.reader(arb, delimiter=",") #use csv lib to read it line by line
-						for x in fulline: #result is list
-							if x[0] == number:
-								flist[rawfname] = x #makes dict of rawfilename : [anumber(wihtout the 'a'),track configuration] values
-		for rawfname,process in flist.iteritems():
-			if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
-				aNumber = args['input']
-				ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
-				ren(aNumber,captureDir,process,mmrepo)
+	if args.s is True:
+		file = args.so
+		rawfname,ext = os.path.splitext(file)
+		output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
+		processList = ast.literal_eval(output)
+		if processList is not None:
+			print processList
+			face = processList[0]
+			aNumber = "a" + processList[1]
+			channelConfig = processList[2]
+			ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
+			if ffstring is not None:
+				#init folder to do the work in
+				processDir = os.path.join(captureDir,aNumber)
+				#make the full ffstr using the paths we have
+				fullffstr = makefullffstr(ffstring,face,aNumber,channelConfig,processDir,os.path.join(captureDir,file))
+				print fullffstr
+				#run ffmpeg on the file and make sure it completes successfully
+				returncode = ffprocess(fullffstr,processDir)
+				if returncode == 0:
+					#os.remove(os.path.join(captureDir,rawfname + ".wav"))
+					print "foo"
+				else:
+					return
+				returncode = 0
+				#if we need to reverse do it
+				#note here to add output checker for reverse
+				reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo)
+				#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
+				#note here to add output checker for reverse
+				sampleratenormalize(processDir)
+				#fill out the bext chunk
+				makebext(aNumber,processDir)
 	else:
+		for dirs,subdirs,files in os.walk(captureDir):
+			for file in files:
+				if file.endswith(".gpk") or file.endswith(".mrk") or file.endswith(".bak") or file.endswith(".pkf"):
+					try:
+						os.remove(file)
+					except:
+						pass
+				elif file.endswith(".wav"):
+					print file
+					rawfname,ext = os.path.splitext(file)
+					output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
+					processList = ast.literal_eval(output)
+					if processList is not None:
+						print processList
+						face = processList[0]
+						aNumber = "a" + processList[1]
+						channelConfig = processList[2]
+						ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
+						if ffstring is not None:
+							#init folder to do the work in
+							processDir = os.path.join(captureDir,aNumber)
+							#make the full ffstr using the paths we have
+							fullffstr = makefullffstr(ffstring,face,aNumber,channelConfig,processDir,os.path.join(dirs,file))
+							print fullffstr
+							#run ffmpeg on the file and make sure it completes successfully
+							returncode = ffprocess(fullffstr,processDir)
+							if returncode == 0:
+								#os.remove(os.path.join(captureDir,rawfname + ".wav"))
+								print "foo"
+							else:
+								return
+							returncode = 0
+							#if we need to reverse do it
+							#note here to add output checker for reverse
+							reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo)
+							#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
+							#note here to add output checker for reverse
+							sampleratenormalize(processDir)
+							#fill out the bext chunk
+							makebext(aNumber,processDir)
+							
+						
+	'''else:
 		#check for files that are too large
 		for f in os.listdir(captureDir):
 			if f.endswith(".wav"):

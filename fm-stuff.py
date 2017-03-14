@@ -148,7 +148,6 @@ def makebext(args,cnxn):
 	fieldlist = ["Master_Key","Tape_Title","Mss_Number","Collection_Name","Mastered"]
 	x = {}
 	sqlstr = "select Master_Key, Tape_Title, Mss_Number, Collection_Name, Mastered from Audio_Originals where Original_Tape_Number like '" + args.so + "/%'"
-	print sqlstr
 	result = query(sqlstr,cnxn)
 	if result is not None:
 		count = 0
@@ -158,15 +157,15 @@ def makebext(args,cnxn):
 			else:
 				x[fieldlist[count]]="None"
 			count=count+1					
-		print x
-		bextstr = "--Originator=US,CUSB,SRC --originatorReference=cusb-"+args.so+' --Description="AudioNumber:'+args.so+'; MSS Number:'+x['Mss_Number']+'; Collection:'+x['Collection_Name']+': Tape Title:'+x['Tape_Title']+': Master Key:'+x['Mastered']+'"'
+		bextstr = "--Originator=US,CUSB,SRC --originatorReference=cusb-"+args.so+' --Description="AudioNumber:'+args.so+'; MSS Number:'+x['Mss_Number']+'; Collection:'+x['Collection_Name']+'; Tape Title:'+x['Tape_Title']+'; Master Key:'+str(x['Mastered'])+'"'
 	return bextstr	
 	
 def handling():		
 	#initialize a buncha crap
 	parser = argparse.ArgumentParser(description="queries and returns data from our FileMaker dbs")
-	parser.add_argument('-so','--startObject',dest="so",help='the audio/ video number of the asset')
+	parser.add_argument('-so','--startObject',dest="so",help='the audio/ video number of the asset, a1234 for tapes, 1234 for cyls')
 	parser.add_argument('-t','--tape',dest="t",action='store_true',default=False,help='use Audio Originals database as source')
+	parser.add_argument('-c','--cylinder',dest='c',action='store_true',default=False,help='use Cylinders database as source')
 	parser.add_argument('-id3',dest="id3",action='store_true',default=False,help='generate ID3 tags for makebroadcast')
 	parser.add_argument('-pi','--pre-ingest',dest='pi',action='store_true',default=False,help='for processing files after capture')
 	parser.add_argument('-p','--process',dest='p',choices=["nameFormat","reverse","ffstring","bext"],help='the type of process for which you would like data')
@@ -183,7 +182,14 @@ def handling():
 				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so + "%'"
 				result = query(sqlstr,cnxn)
 				rtnList.append(result[0])
-		print rtnList		
+		elif args.c:
+			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Cylinders;UID=microservices')
+			fieldlist = ["Title","Performer","Composer","Label_Cat","yr"]
+			for field in fieldlist:
+				sqlstr = "select " + field + " from Cylinders where Call_Number_asText='" + args.so + "'"
+				result = query(sqlstr,cnxn)
+				rtnlist.append(result[0])
+		print rtnlist		
 	if args.pi:
 		if args.t:
 			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Audio Originals;UID=microservices')
@@ -195,6 +201,7 @@ def handling():
 			if args.p == 'ffstring':
 				#if it's a mono tape, run it thru this func
 				if 'Full Track Mono' in args.cc:
+					silencestr = " -af silenceremove=0:0:-50dB:-10:1:-50dB"
 					ffstr = silencestr + " -ac 1 -acodec pcm_s24le processed.wav"
 					print ffstr
 				elif "Mono" in args.cc or "4 Track" in args.cc:
@@ -204,6 +211,7 @@ def handling():
 					ffstr = makeffstr_stereo(args,cnxn)
 					print ffstr
 			if args.p == "reverse":
+				face = args.f
 				revface = ''
 				sqlstr = "select reversing_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
 				result = query(sqlstr,cnxn)

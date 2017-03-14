@@ -79,6 +79,8 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 					print 'Buddy, you need to submit a system number "-sys" to get the id3 tags from our catalog'
 					sys.exit()
 				id3string = getdiscid3(args,assetName)
+			elif args.c is True:
+				id3string = getcylinderid3(args,assetName)
 			else:
 				id3string = makeid3(startDir,assetName)
 		else:
@@ -164,6 +166,23 @@ def gettapeid3(startDir, assetName):
 	id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
 	return id3str
 
+def getcylinderid3(args,assetName):
+	print assetName
+	id3fields=["title=","artist=","composer=","album=","date="]
+	id3str=""
+	match = ''
+	match = re.search(r"\d{4,5}",assetName)
+	if match:
+		assetName = match.group()
+	print assetName
+	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName,"-id3","-c"])
+	id3rawlist = ast.literal_eval(id3rawlist)
+	for index,tag in enumerate(id3rawlist):
+		if tag is not None:
+			id3str = id3str + " -metadata " + id3fields[index] + '"' + tag + '"'
+	id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
+	return id3str	
+	
 def getdiscid3(args,assetName):
 	id3fields=["title=","artist=","date="]
 	id3str = ""
@@ -200,8 +219,7 @@ def getdiscid3(args,assetName):
 			id3str = id3str + " -metadata " + tag + '"' + id3list[index] + '"'
 	id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
 	return id3str
-
-
+	
 	
 #parses input and makes the appropriate calls	
 def handling():
@@ -216,6 +234,7 @@ def handling():
 	parser.add_argument('-njnd','--njnodelete',dest='njnd',action="store_true",default=False,help="don't delete startObjs for nj files, useful for making broadcasts from m.wavs")
 	parser.add_argument('-t','--tape',dest='t',action='store_true',default=False,help='use settings for "tape", get id3 metadata from FileMaker')
 	parser.add_argument('-d','--disc',dest='d',action='store_true',default=False,help='use settings for "disc",get id3 metadata from Pegasus catalog')
+	parser.add_argument('-c','--cylinder',dest='c',action='store_true',default=False,help='use settings for "cylinder", get id3 metadata from FileMaker')
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
 	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
@@ -223,7 +242,6 @@ def handling():
 	#returns full path to startObject
 	#startObj = subprocess.call("python S:/avlab/microservices/makestartobject.py -so " + args.so)
 	startObj = args.so
-	foo = raw_input("eh")
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
 	aexts = ['.wav'] #set extensions we recognize for audio
 	fnamext = os.path.basename(os.path.abspath(startObj)) #grabs the filename and extension
