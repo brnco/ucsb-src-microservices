@@ -43,7 +43,40 @@ def makenameFormatList(args,cnxn):
 				rtnlist.append(rowtup[0])
 				rtnlist.append(rowtup[1])
 				return rtnlist	
-	
+
+def makeffstr_ftm(args,cnxn):
+	silencestr = " -af silenceremove=0:0:-50dB:-10:1:-50dB"
+	face = args.f
+	ffstr = ''
+	hlvstr01 = ''
+	dblstr01 = ''
+	#grip halfspeed
+	hlvface = ''
+	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	result = query(sqlstr,cnxn)
+	if result is not None and result[0] is not None:
+		for r in result:
+			hlvface = hlvface + r
+	if "fAB" or "fCD" in hlvface:
+		hlvstr01 = ',asetrate=48000'
+	#grip dblspeed
+	dblface = ''
+	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	result = query(sqlstr,cnxn)
+	if result is not None and result[0] is not None:
+		for r in result:
+			dblface = dblface + r
+	if "fAB" or "fCD" in dblface:
+		dblstr01 = ',asetrate=192000'
+	if hlvstr01:
+		ffstr = silencestr + hlvstr01
+	elif dblstr01:
+		ffstr = silencestr + dblstr01
+	else:	
+		ffstr = silencestr
+	ffstr = ffstr + " -ac 1 -acodec pcm_s24le processed.wav"
+	return ffstr
+				
 def makeffstr_mono(args,cnxn):
 	#returns an ffmpeg string for processing mono files, 4-track or Half-track or Full-track
 	face = args.f
@@ -114,7 +147,6 @@ def makeffstr_mono(args,cnxn):
 		elif dblstr1:
 			onestr = onestr + dblstr1
 		onestr = onestr + " -acodec pcm_s24le right.wav "	
-	#print ffstr
 	ffstr = zerostr + onestr
 	return ffstr
 
@@ -145,7 +177,7 @@ def makeffstr_stereo(args,cnxn):
 	return ffstr
 
 def makebext(args,cnxn):
-	fieldlist = ["Master_Key","Tape_Title","Mss_Number","Collection_Name","Mastered"]
+	fieldlist = ["Master_Key","Tape_Title","Mss_Number","Collection_Name","Master_Key"]
 	x = {}
 	sqlstr = "select Master_Key, Tape_Title, Mss_Number, Collection_Name, Mastered from Audio_Originals where Original_Tape_Number like '" + args.so + "/%'"
 	result = query(sqlstr,cnxn)
@@ -157,8 +189,8 @@ def makebext(args,cnxn):
 			else:
 				x[fieldlist[count]]="None"
 			count=count+1					
-		bextstr = "--Originator=US,CUSB,SRC --originatorReference=cusb-"+args.so+' --Description="AudioNumber:'+args.so+'; MSS Number:'+x['Mss_Number']+'; Collection:'+x['Collection_Name']+'; Tape Title:'+x['Tape_Title']+'; Master Key:'+str(x['Mastered'])+'"'
-	return bextstr	
+		bextstr = "--Originator=US,CUSB,SRC --originatorReference=cusb-"+args.so+' --Description="AudioNumber:'+args.so+'; MSS Number:'+x['Mss_Number']+'; Collection:'+x['Collection_Name']+'; Tape Title:'+x['Tape_Title']+'; Master Key:'+str(x['Master_Key'])+'"'
+	return bextstr.encode('utf-8')	
 	
 def handling():		
 	#initialize a buncha crap
@@ -201,10 +233,9 @@ def handling():
 			if args.p == 'ffstring':
 				#if it's a mono tape, run it thru this func
 				if 'Full Track Mono' in args.cc:
-					silencestr = " -af silenceremove=0:0:-50dB:-10:1:-50dB"
-					ffstr = silencestr + " -ac 1 -acodec pcm_s24le processed.wav"
+					ffstr = makeffstr_ftm(args,cnxn)
 					print ffstr
-				elif "Mono" in args.cc or "4 Track" in args.cc:
+				elif "Half Track Mono" in args.cc or "4 Track" in args.cc:
 					ffstr = makeffstr_mono(args,cnxn)
 					print ffstr
 				else:

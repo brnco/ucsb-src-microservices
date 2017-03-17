@@ -41,154 +41,6 @@ def deletebs(captureDir):
 				os.remove(os.path.join(captureDir,f))
 	return
 
-	
-#make list of files to process
-def makelist(captureDir,toProcessDir,flist = {}):
-	for dirs, subdirs, files in os.walk(toProcessDir):
-		for f in files:
-			if not f.endswith(".txt"): #SOMETIMES FILEMAKER DOESN'T EXPORT THE .TXT PART BECAUSE IT'S GREAT AND I LOVE IT
-				f = f + ".txt"
-			rawfname,ext = os.path.splitext(f) #grab raw file name from os.walk
-			print rawfname
-			txtinfo = os.path.join(toProcessDir,rawfname + '.txt') #init var for full path of txt file that tells us how to process
-			if os.path.exists(txtinfo): #if said text file exists
-				with open(txtinfo) as arb:
-					fulline = csv.reader(arb, delimiter=",") #use csv lib to read it line by line
-					for x in fulline: #result is list
-						flist[rawfname] = x #makes dict of rawfilename : [anumber(wihtout the 'a'),track configuration] values
-	return flist
-
-#do the ffmpeg stuff to each file	
-def ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo):
-	processDir = os.path.join(captureDir,aNumber)
-	output = subprocess.Popen(['python',os.path.join(mmrepo,'fm-ffhandler.py'),rawfname + ".txt"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-	ffmpegstring,err = output.communicate()
-	print ffmpegstring
-	ffmpeglist = ffmpegstring.split()
-	returncode = 0
-	revstr0 = ''
-	revstr1 = ''
-	revstr01 = ''
-	match = ''
-	
-	if not os.path.exists(processDir):
-		os.makedirs(processDir)
-	time.sleep(1)
-	#do it
-	with cd(processDir):
-		try:
-			output = subprocess.check_output(ffmpeglist)
-			returncode = 0
-		except subprocess.CalledProcessError,e:
-			output = e.output
-			returncode = output
-		if returncode == 0:
-			#os.remove(os.path.join(captureDir,rawfname + ".wav"))
-			print "foo"
-			print returncode
-		else:
-			return
-		returncode = 0	
-		
-		#reverse if necessary
-		#input files are deleted by makereverse if the process was successful
-		for x in process:
-			if x == "rev_fAB":
-				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "-processed.wav")])
-			if x == "rev_fCD":
-				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "-processed.wav")])
-			if x == "rev_fA":
-				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "left.wav")])
-			if x == "rev_fB":
-				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "right.wav")])
-			if x == "rev_fC":
-				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "left.wav")])
-			if x == "rev_fD":
-				subprocess.call(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,rawfname + "right.wav")])
-		
-		#give comp time to catch up
-		time.sleep(2)
-		
-		
-	return
-
-def ren(aNumber,captureDir,process,mmrepo):
-	with cd(os.path.join(captureDir,aNumber)):
-		for f in os.listdir(os.getcwd()):
-			if "left" in f:
-				if not os.path.exists("cusb-" + aNumber + "Aa.wav"):
-					os.rename(f, "cusb-" + aNumber + "Aa.wav")
-				else:
-					os.rename(f, "cusb-" + aNumber + "Ca.wav")
-			if "right" in f:
-				if not os.path.exists("cusb-" + aNumber + "Ba.wav"):
-					os.rename(f, "cusb-" + aNumber + "Ba.wav")
-				else:
-					os.rename(f, "cusb-" + aNumber + "Da.wav")
-		for f in os.listdir(os.getcwd()):	
-			match = ''
-			match = re.search("\w{8}-\w{4}-\w{4}-\w{4}-",f)
-			if match:
-				if "isFaceAB" in process:
-					if not os.path.exists("cusb-" + aNumber + "a.wav"):
-						os.rename(f, "cusb-" + aNumber + "Aa.wav")
-				if "isFaceCD" in process:
-					if not os.path.exists("cusb-" + aNumber + "Ca.wav"):
-						os.rename(f, "cusb-" + aNumber + "Ca.wav")
-	return
-	
-#do the fancy library thing to each file	
-def bextprocess(aNumber,bextsDir,captureDir):
-	dirNumber = aNumber
-	if aNumber.endswith("A") or aNumber.endswith("B") or aNumber.endswith("C") or aNumber.endswith("D"):
-		dirNumber = aNumber[:-1]
-	processingDir = os.path.join(captureDir,dirNumber)
-	endObj1 = os.path.join(processingDir,"cusb-" + aNumber + "a.wav")
-	endObj1A = os.path.join(processingDir,"cusb-" + aNumber + "Aa.wav")
-	endObj1B = os.path.join(processingDir,"cusb-" + aNumber + "Ba.wav")
-	endObj1C = os.path.join(processingDir,"cusb-" + aNumber + "Ca.wav")
-	endObj1D = os.path.join(processingDir,"cusb-" + aNumber + "Da.wav")
-	#clear mtd already in there
-	
-	#embed checksums
-	print "hashing data chunk of " + aNumber
-	if os.path.exists(endObj1):
-		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1)
-		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1)
-	if os.path.exists(endObj1A):
-		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1A)
-		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1A)
-	if os.path.exists(endObj1B):
-		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1B)
-		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1B)
-	if os.path.exists(endObj1C):
-		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1C)
-		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1C)
-	if os.path.exists(endObj1D):
-		subprocess.call('bwfmetaedit --in-core-remove ' + endObj1D)
-		subprocess.call('bwfmetaedit --MD5-Embed-Overwrite ' + endObj1D)
-	
-	#embed bext metadata based on FM output
-	bextFile = os.path.join(bextsDir,'cusb-' + aNumber + '-bext.txt')
-	if os.path.exists(bextFile):
-		print "embedding bext in " + aNumber
-		with open(bextFile) as bf:
-			bextlst = bf.readlines()
-			bextstr = str(bextlst)
-			bextstr = bextstr.strip("['']")
-			#bextstr = bextstr.replace('"','')
-			foo = 'bwfmetaedit ' + bextstr + ' ' + endObj1
-			if os.path.exists(endObj1):
-				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1)
-			if os.path.exists(endObj1A):
-				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1A)
-			if os.path.exists(endObj1B):
-				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1B)
-			if os.path.exists(endObj1C):
-				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1C)
-			if os.path.exists(endObj1D):
-				subprocess.call('bwfmetaedit ' + bextstr + ' ' + endObj1D)
-	return
 
 #hashmove processing folder to the repo	
 def move(rawfname,aNumber,captureDir,mmrepo,archRepoDir):
@@ -229,20 +81,18 @@ def makefullffstr(ffstring,face,aNumber,channelConfig,processDir,rawfile):
 		endfileface = "A"
 	elif face == "fCD" and "Quarter Track Stereo" in channelConfig:
 		endfileface = "C"
-	elif face == "fAB" and "Half Track Stereo" in channelConfig or "Full Track Mono" in channelConfig:
+	elif face == "fAB" and "Half Track Stereo" in channelConfig or "Full Track Mono" in channelConfig or "Cassette" in channelConfig:
 		endfileface = ""	
 	else:
 		endfileface = face.replace("f","")
-	if "left" in fullffstr and "AB" in face:
-		fullffstr = fullffstr.replace("left",os.path.join(processDir,"cusb-" + aNumber + "Aa"))
-		fullffstr = fullffstr.replace("right",os.path.join(processDir,"cusb-" + aNumber + "Ba"))
-	elif "right" in fullffstr and "CD" in face:
-		fullffstr = fullffstr.replace("left",os.path.join(processDir,"cusb-" + aNumber + "Ca"))
-		fullffstr = fullffstr.replace("right",os.path.join(processDir,"cusb-" + aNumber + "Da"))
-	else:
-		fullffstr = fullffstr.replace("processed",os.path.join(processDir,"cusb-" + aNumber + endfileface + "a"))
+	if  "AB" in face:
+		fullffstr = fullffstr.replace("left",os.path.join(processDir,"cusb-" + aNumber + "Aa")).replace("right",os.path.join(processDir,"cusb-" + aNumber + "Ba"))
+	elif "CD" in face:
+		fullffstr = fullffstr.replace("left",os.path.join(processDir,"cusb-" + aNumber + "Ca")).replace("right",os.path.join(processDir,"cusb-" + aNumber + "Da"))
+	fullffstr = fullffstr.replace("processed",os.path.join(processDir,"cusb-" + aNumber + endfileface + "a"))
 	return fullffstr
 
+	
 def ffprocess(fullffstr,processDir):
 	if not os.path.exists(processDir):
 		os.makedirs(processDir)
@@ -257,6 +107,7 @@ def ffprocess(fullffstr,processDir):
 			returncode = output
 	return returncode
 
+	
 def reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo):
 	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reverse","-so",rawfname,"-f",face,"-cc",channelConfig])
 	if "fA" in revface and not "fAB" in revface:
@@ -281,6 +132,7 @@ def reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo):
 			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
 	return
 
+	
 def sampleratenormalize(processDir):
 	#ok so by now every file in the processing dir is the correct channel config & plays in correct direction BUT
 	#we need to normalize to 96kHz
@@ -300,13 +152,15 @@ def sampleratenormalize(processDir):
 					sr = _sr[0]
 				if not sr == "96000":
 					output = subprocess.call("ffmpeg -i " + f + " -ar 96000 -c:a pcm_s24le " + f.replace(".wav","") + "-resampled.wav")
-					print f
 					if os.path.getsize(f.replace(".wav","") + "-resampled.wav") > 50000:
 						os.remove(os.path.join(os.getcwd(),f))
+						time.sleep(1)
+						os.rename(f.replace(".wav","") + "-resampled.wav",f) 
 					else:	
 						return
 	return
 
+	
 def makebext(aNumber,processDir):
 	bextstr = subprocess.check_output("python fm-stuff.py -pi -t -p bext -so " + aNumber.capitalize())
 	with cd(processDir):
@@ -318,6 +172,10 @@ def makebext(aNumber,processDir):
 				print "embedding BEXT chunk..."
 				subprocess.check_output("bwfmetaedit " + bextstr + " " + f)
 	return
+
+
+
+
 	
 def main():
 	#initialize the stuff
@@ -331,8 +189,6 @@ def main():
 	captureDir = config.get('magneticTape','new_ingest')
 	archRepoDir = config.get('magneticTape','repo')
 	avlab = config.get('magneticTape','avlab')
-	bextsDir = config.get('magneticTape','bexttxts')
-	toProcessDir = config.get('magneticTape','to_process')
 	scratch = config.get('magneticTape','scratch')
 	mmrepo = config.get('global','scriptRepo')
 	
@@ -383,10 +239,16 @@ def main():
 						pass
 				elif file.endswith(".wav"):
 					print file
+					processNone = 0
 					rawfname,ext = os.path.splitext(file)
 					output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
 					processList = ast.literal_eval(output)
 					if processList is not None:
+						for p in processList:
+							if p is None:
+								processNone = 1
+						if processNone > 0:
+							break
 						print processList
 						face = processList[0]
 						aNumber = "a" + processList[1]
@@ -404,7 +266,7 @@ def main():
 								#os.remove(os.path.join(captureDir,rawfname + ".wav"))
 								print "foo"
 							else:
-								return
+								break
 							returncode = 0
 							#if we need to reverse do it
 							#note here to add output checker for reverse
@@ -416,31 +278,7 @@ def main():
 							makebext(aNumber,processDir)
 							
 						
-	'''else:
-		#check for files that are too large
-		for f in os.listdir(captureDir):
-			if f.endswith(".wav"):
-				if os.path.getsize(os.path.join(captureDir,f)) > 4294967296:
-					subprocess.call(["python",os.path.join(mmrepo,"hashmove.py"),os.path.join(captureDir,f),os.path.join(scratch,"toobig")])
-		
-		#make a list of files to work on
-		flist = makelist(captureDir,toProcessDir)
-
-		for rawfname, process in flist.iteritems():
-			if os.path.exists(os.path.join(captureDir,rawfname + ".wav")):
-				aNumber = "a" + process[0]
-
-				#run the ffmpeg stuff we gotta do (silence removal, to add: changechannels and splitfiles)
-				ffprocess(aNumber,rawfname,process,captureDir,toProcessDir,mmrepo)
-				
-				#give comp time to catch up
-				time.sleep(2)
-				
-				#rename the outputs from ffprocess
-				ren(aNumber,captureDir,process,mmrepo)
-				
-				#pop the bext info into each file
-				bextprocess(aNumber,bextsDir,captureDir)
+	'''
 
 				#hashmove them to the repo dir
 				move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)'''

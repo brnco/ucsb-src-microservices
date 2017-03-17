@@ -34,6 +34,4 @@ avlab:
 new_ingest:
 repo:
 avlab:
-bexttxts:
-to_process:
 scratch:

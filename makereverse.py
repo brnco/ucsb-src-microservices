@@ -74,9 +74,14 @@ def main():
 				match = re.match("concat",f)
 				if match:
 					os.remove(f)
-				elif os.path.exists(endObj + "-reversed.wav"):
+			if os.path.exists(endObj + "-reversed.wav"):
+				print "in here"
+				if os.path.getsize(endObj.replace(".wav","") + "-reversed.wav") > 50000:
+					print "in here2"
 					if os.path.exists(args['startObj']):
+						print "inhere3"
 						os.remove(args['startObj'])
+						os.rename(endObj + "-reversed.wav", args['startObj'])
 		else:
 			print "Buddy, there was a problem reversing that file"
 	return
