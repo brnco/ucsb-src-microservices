@@ -36,7 +36,7 @@ def dependencies():
 	return
 	
 def main():
-	#initialize a capture directory
+	###INIT VARS###
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
@@ -44,30 +44,36 @@ def main():
 	repoDir = config.get('cylinders','repo')
 	logDir = config.get('cylinders','avlab')
 	mmrepo = config.get('global','scriptRepo')
-	#recursively walk through the capture directory, finding all files and 1 layer of subfolders
+	###END INIT###
+	
 	for dirs, subdirs, files in os.walk(captureDir):
-		#for each folder in our capture directory
-		for s in subdirs:
-			#cd into it
+		for s in subdirs:#for each folder in our capture directory
 			with cd(os.path.join(captureDir, s)):
 				print "Processing Cylinder" + s
-				for f in os.listdir(os.getcwd()): #first
+				###DELETE BS###
+				for f in os.listdir(os.getcwd()):
 					if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"): #if the files in each capture dir end with some bs
 						os.remove(f) #delete it
-				#initialize
+				###END BS###
+				###VALIDATE###
 				startObj = 'cusb-cyl' + s + 'b.wav'
 				interObj = 'cusb-cyl' + s + 'c.wav'
 				if not os.path.exists(startObj): #if we don't have a b.wav file in the dir we should just stop
 					print "Buddy, somethings not right here"
 					sys.exit()
+				###END VALIDATE###
+				###DO FFMPEG###
 				else:
-					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',startObj,'-ff','-n','-c']) #calls makebroadcast.py and tells it to insert 2s fades and normalize to -1.5db
-					#os.remove(startObj) #deletes the raw broadcast capture
-					#os.rename(interObj, startObj) #renames the itnermediate files as the broadcast master
-					subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
+					#calls makebroadcast.py and tells it to insert 2s fades and normalize to -1.5db, MAKEBROADCAST CALLS MAKEMP3
+					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',startObj,'-ff','-n','-c','-mp3'])
+					#subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
+				###END FFMPEG###
+			###LOG IT###
 			#opens a log and write "Cylinder12345" for each cylinder processed so we can change their catalog records later
 			with open(os.path.join(logDir,'to-update.txt'),'a') as t:
 				t.write("Cylinder" + s + "\n")
+			###END LOG###
+			###MOVE IT###
 			#based on how we have our repo set up, find which set of 1000 files this cylinder belongs in
 			endDirThousand = str(s)
 			if len(endDirThousand) < 5:
@@ -76,7 +82,7 @@ def main():
 				endDirThousand = endDirThousand[:2] + "000"
 			endDir = os.path.abspath(os.path.join(repoDir,endDirThousand,s)) #set a destination
 			subprocess.call(['python','hashmove.py',os.path.join(dirs,s),endDir]) #hashmove the file to its destination
-	return
+			###END MOVE###
 
 dependencies()
 main()

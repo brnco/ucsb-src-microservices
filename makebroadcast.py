@@ -292,7 +292,6 @@ def main():
 		makeAudio(args, startObj, startDir, assetName, EuseChar) #actually make the thing
 	cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 	###THINGISDONE###
-	return 
 
 dependencies()
 main()
