@@ -31,7 +31,8 @@ def dependencies():
 			sys.exit()
 	return
 
-def makeThem(startObj, archRepoDir):	
+def makeThem(startObj, archRepoDir,vidLeadDir):	
+	###INIT VARS###
 	txtfile = os.path.join(archRepoDir,startObj,startObj + "yt.txt")
 	txtfile = txtfile.replace("\\","/")
 	if not os.path.exists(txtfile):
@@ -41,22 +42,21 @@ def makeThem(startObj, archRepoDir):
 	txtfile = txtfile.replace(":","\\\:")
 	qa = '"' + "'"
 	aq = "'" + '"'
+	###END INIT###
 	with cd(os.path.join(archRepoDir,startObj)):
 		
 		#headwhite.mov
 		#make a blank white 1920x1080 frame 10s long
-		#subprocess.call(['ffmpeg','-f','lavfi','-i','color=c=white:s=1920x1080:d=10','-c:v','prores','-profile:v','3','-qscale:v','4',"headwhite.mov"])
+		#subprocess.call(['ffmpeg','-f','lavfi','-i','color=c=white:s=1920x1080:d=10','-c:v','prores','-profile:v','3','-qscale:v','4','headwhite.mov'])
 		
 		#headlogo.mov
 		#overlay the library logo onto this blank white 1920x1080 10s frame, but make this vid 5s
-		#logo 100% larger, centered
 		#text above logo that says "From the collections of the" same size as following descriptive text
 		#subprocess.call(['ffmpeg','-i','headwhite.mov','-i',"S:/avlab/ucsb-lib-logo.jpg",'-f','lavfi','-i','anullsrc=channel_layout=mono:sample_rate=48000','-filter_complex','[1:v]scale=528x101 [ovrl],[0:v][ovrl] overlay=260:600','-t','5','-c:v','prores','-profile:v','3','-qscale:v','4','-c:a','aac','-b:a','320k','headlogo.mov'])
 		
 		#headtxt.mov
 		#overlay the descriptive metadata from our yt.txt file onto this blank white 1920x1080 10s frame
-		#make text 100% larger
-		subprocess.call(['ffmpeg','-i',"R:/78rpm/avlab/projects/video-files/headwhite.mov","-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=60:x=(w-tw)/2:y=540",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
+		subprocess.call(['ffmpeg','-i',os.path.join(vidLeadDir,"headwhite.mov"),"-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=60:x=(w-tw)/2:y=540",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
 		
 		#labelimg.png
 		#scale the tif image of our disc label to fit the 1920x1080 frame
@@ -75,16 +75,18 @@ def makeThem(startObj, archRepoDir):
 		subprocess.call(['ffmpeg','-i','headtail.mov','-i',startObj + ".wav",'-c:v','copy','-c:a','aac','-ar','48000','-b:a','320k','-shortest','headtailwithaudio.mov'])
 
 		
-def concatThem(startObj, archRepoDir):
+def concatThem(startObj, archRepoDir,vidLeadDir):
 	with cd(os.path.join(archRepoDir,startObj)):
+		###INIT CONCAT.TXT###
 		concatxt = open("concat.txt","w")
-		concatxt.write('file R:/78rpm/avlab/projects/video-files/headlogoandtxt.mov\n')
+		concatxt.write('file ' + os.path.join(vidLeadDir,'headlogoandtxt.mov\n'))
 		concatxt.write('file headtailwithaudio.mov\n')
 		concatxt.close()
+		###END INIT###
 		
 		#actually concatenate the headlogo with the headtailwithaudio file
 		subprocess.call(['ffmpeg','-f','concat','-safe','0','-i','concat.txt','-c','copy', os.path.basename(startObj) + "yt.mov"])
-		#create and mp4 from that, pretty visually compressed
+		#create an mp4 from that, pretty visually compressed
 		subprocess.call(['ffmpeg','-i',os.path.basename(startObj) + "yt.mov",'-pix_fmt','yuv420p','-c:v','libx264','-preset','slow','-crf','28','-c:a','copy',os.path.basename(startObj) + "yt.mp4"])
 		
 		#remove all the crap we created
@@ -97,19 +99,20 @@ def concatThem(startObj, archRepoDir):
 		#os.remove(os.path.join(archRepoDir,startObj,startObj + "yt.txt")		
 		
 def main():
-	#initialize a buncha crap
+	###INIT VARS###
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('-i','--input',dest='i',help='the canonical name of the disc to make a vid for, e.g. cusb_victor_123_04_567_89')
+	parser.add_argument('-so','--startObject',dest='i',help='the canonical name of the disc to make a vid for, e.g. cusb_victor_123_04_567_89')
 	parser.add_argument('-d','--disc',dest='d',action='store_true',default=False,help='make a video for a disc. cylinder option coming soon')
 	args = parser.parse_args()
-	#init stuff from our config file
 	config = ConfigParser.ConfigParser()
 	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
 	archRepoDir = config.get('discs','archRepoDir')
+	vidLeadDir = config.get('video','vid_leads')
 	mmrepo = config.get('global','scriptRepo')
+	###END INIT###
 	if args.d is True:
-		makeThem(args.i,archRepoDir)
-		concatThem(args.i,archRepoDir)
+		makeThem(args.so,archRepoDir,vidLeadDir)
+		concatThem(args.so,archRepoDir,vidLeadDir)
 	
 dependencies()
 main()

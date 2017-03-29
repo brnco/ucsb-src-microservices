@@ -5,13 +5,14 @@ import re
 import string
 import pickle
 import argparse
+import lxml
 
 def query(args):
 	#use aleph api to grip the catalog record for our object
 	url = 'http://pegasus.library.ucsb.edu:5661/sba01pub?version=1.1&operation=searchRetrieve&query=rec.id=' + args.sys + '&maximumRecords=1'
 	response = urllib2.urlopen(url) #do that
 	xml = response.read() #gives back lovely marc xml
-	soup = BeautifulSoup(xml,'lxml-xml') #soupify it for parsing
+	soup = BeautifulSoup(xml,'lxml') #soupify it for parsing
 	return soup
 
 def main():
@@ -64,12 +65,12 @@ def main():
 				if match2:
 					artist2 = match2.group().replace(" ;","") #if there is, pop them in there
 		###END PERFORMERS###
-		###grip album###
+		###GRIP ALBUM###
 		elif sf.parent['tag']==	'852': #grip the Columbia A69 part
 			if sf['code']=='j':
 				album = sf.string.lstrip()
 		###END ALBUM###
-		###grip label###
+		###GRIP LABEL###
 		elif sf.parent['tag']=='028':
 			if sf.parent['ind1']=='0':
 				if sf['code']=='a':

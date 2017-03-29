@@ -65,14 +65,15 @@ def makeVideo(startObj):
 
 def makeAudio(args, startObj, startDir, assetName, EuseChar):
 	with cd(startDir):
-		####set some defaults###
-		ac = '1' #audio channels
+		####INIT VARS###
+		#ac = '1' #audio channels
 		ar = '44100' #audio rate
-		sfmt = 's16' #sample_fmt, signed 16-bit in this case
+		acodec = 'pcm_s16le' #sample_fmt, signed 16-bit little-endian
 		fadestring = '' #placeholder for fades, if we make em
 		normstring = '' #placeholder for loudnorm
 		filterstring = '' #placeholder for -af + fadestring + loudnorm
-		###end setting defaults###
+		###END INIT###
+		###MAKE ID3 TAGS###
 		if args.nj is False: #sorts out the jukebox stuff which doesn't get this treatment
 			if args.t is True:
 				id3string = gettapeid3(startDir, assetName) #calls our id3 function
@@ -84,13 +85,15 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 			elif args.c is True:
 				id3string = getcylinderid3(args,assetName)
 			else:
-				id3string = makeid3(startDir,assetName)
+				id3string = makemanualid3(startDir,assetName)
 		else:
 			id3string = ''
+		###END ID3 TAGS###
+		###OTHER OPTIONS###
 		if args.n is True:#for normalize
 			normstring = "loudnorm=I=-16:TP=-1.5:LRA=11"
-		if args.s is True:#get the right channel config
-			ac = '2'
+		#if args.s is True:#get the right channel config
+			#ac = '2'
 		if args.ff is True:#lets make fades!
 			ffprobeout = subprocess.check_output(['ffprobe','-i',startObj,'-show_entries','format=duration','-v','quiet']) #get duration from ffprobe
 			match=''
@@ -99,26 +102,29 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 				dur = match.group() #convert the re object to a string, assign to duration variable
 				fadestart = float(dur) - 2.0 #subract 2 from that to get the fade out start time
 				fadestring = "afade=t=in:ss=0:d=2,afade=t=out:st=" + str(fadestart) + ":d=2" #generate the fade string using the fade out start time
+		###END OTHER OPTIONS
+		###GET IT TOGETHER###
 		if fadestring and normstring:
 			filterstring = "-af " + fadestring + "," + normstring
 		elif fadestring and not normstring:
 			filterstring = "-af " + fadestring
 		elif normstring and not fadestring:
 			filterstring = "-af " + normstring
-		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -sample_fmt ' + sfmt + ' -ac ' + ac + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
-		print ffmpegstring
+		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
 		subprocess.call(ffmpegstring)
 		if args.mp3 is True:
 			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
 	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
-def makeid3(startDir, assetName):
-	#initialize some crap
+def makemanualid3(startDir, assetName):
+	###INIT VARS###
 	if assetName.endswith("A") or assetName.endswith("B"):
 		assetName = assetName[:-1]
 	id3Obj = os.path.join(startDir, assetName + "-mtd.txt") #in same dir as audio object should be a -mtd.txt object with a ;FFMETADATA1 id3 tags inside
 	id3String = ""
+	###END INIT###
+	###USER ID3###
 	if not os.path.exists(id3Obj): #check to see if it exists alread
 		usrInput = ''
 		while usrInput not in ['y','n']: #gotta answer yes or no to this q
@@ -144,81 +150,96 @@ def makeid3(startDir, assetName):
 		if usrInput == 'n':
 			print "Ok, not great but ok" #fine, i mean i guess, whatever
 			time.sleep(5)
+	###END USER ID3###
+	###GET IT TOGETHER###
 	else:
 		id3String = "-i " + id3Obj + " -map_metadata 1" #if the object already exists, set the string so ffmpeg can find and use this obj
 	return id3String	
 	
 #grips id3 info from FileMaker
 def gettapeid3(startDir, assetName):
-	id3fields=["title=","artist=","date="]
+	id3fields=["title=","artist=","date="] #set the fields we need for this object type
 	match = ''
 	match = re.search("a\d{4,5}",assetName) #grip just the a1234 part of the filename
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName.capitalize(),"-id3","-t"])
-	id3rawlist = ast.literal_eval(id3rawlist)
+	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName.capitalize(),"-id3","-t"]) #ask filemaker for the value for each field
+	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str
 
 def getcylinderid3(args,assetName):
-	print assetName
-	id3fields=["title=","artist=","composer=","album=","date="]
-	id3str=""
+	id3fields=["title=","artist=","composer=","album=","date="] #set the fields we need for this object type
+	id3str = ''
 	match = ''
-	match = re.search(r"\d{4,5}",assetName)
+	match = re.search(r"\d{4,5}",assetName) #grip just the number of the cylinder
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName,"-id3","-c"])
-	id3rawlist = ast.literal_eval(id3rawlist)
+	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName,"-id3","-c"]) #ask filemaker for the values for each field
+	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str	
 	
 def getdiscid3(args,assetName):
-	id3fields=["title=","artist=","date="]
+	id3fields=["title=","artist=","date="] #set the fields we need for this object type
 	id3str = ""
-	output = subprocess.Popen(["python","S:/avlab/microservices/catalog-stuff.py","-sys",args.sys],stdout=PIPE,stderr=PIPE)
-	id3rawlist1 = output.communicate()
-	#print id3rawlist1[0]
+	output = subprocess.Popen(["python","S:/avlab/microservices/catalog-stuff.py","-sys",args.sys],stdout=PIPE,stderr=PIPE) #ask the catalog for the values for each field
+	id3rawlist1 = output.communicate() #convert from output object to string
+	###1 SIDE OR 2###
+	#discs can have multiple values come back from catalog-stuff
+	#this next bit sorts that out, as we're just working with 1 single object
 	match = ''
+	#search first part of catalog-stuff tuple for everything within the brackets
 	match = re.findall("\[.*\]",id3rawlist1[0])
 	if match:
+		#convert to tuple
 		id3list1 = ast.literal_eval(match[0])
 		try:
+			#see if we can convert the second found set in the catalog-stuff output into a tuple
 			id3list2 = ast.literal_eval(match[1])
 		except:
 			pass
-	elements = assetName.split('_')
-	matrixNumber = elements[-2]
-	if matrixNumber in id3list1[-1]:
+	elements = assetName.split('_') #splits the disc filename by underscore into a list
+	matrixNumber = elements[-2] #second from the last underscore-separated value is always the matrix number
+	if matrixNumber in id3list1[-1]: #if the matrix number is in id3list1, then set the output id3list to it
 		id3list = id3list1
-	elif matrixNumber in id3list2[-1]:
+	elif matrixNumber in id3list2[-1]: #if the matrix number is in id3list2, then set the output id3list to it instead
 		id3list = id3list2
-	else:
-		if args.side is None:
+	else: #if we can't find the matrix number in the catalog record
+		if args.side is None: #if the user didn't specify
 			print "Buddy, you need to specify which side of the disc we're working on"
 			sys.exit()
-		else:
+		else: #if the user specified, set it this way
 			if args.side.capitalize()=="A":
 				id3list = id3list1
 			if args.side.capitalize()=="B":
 				id3list = id3list2
 			else:
 				print "Buddy, the side you specified is outta range. Use A or B instead"
-	id3str = makeid3str(id3fields,id3rawlist,assetName)
+	id3str = makeid3str(id3fields,id3list,assetName) #make a thing that ffmpeg understands
 	return id3str
 
-def makeid3string(id3fields,id3rawlist,assetName):
-	for index, tag in enumerate(id3rawlist):
+def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values and make them into something ffmpeg understands
+	id3str = ''
+	for index, tag in enumerate(id3fields): #loop thru the raw list of id3 values, grip the index
 		if tag is not None:
-			id3str = id3str + " -metadata " + tag + '"' + id3fields[index] + '"'
+			if id3rawlist[index] is not None:
+				id3str = id3str + " -metadata " + tag + '"' + id3rawlist[index] + '"'
+				#^append the tag from the list of id3fields and the value from the corresponding index in the raw list of values
 	if not "album=" in id3fields:
 		id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
+		#^make sure we don't leave the album blank it's my fave way to sort in iTunes
 	else:
 		id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
+		#^make sure the ppl know where thsi good stuff came from
 	return id3str.encode('utf-8')
 
-def makeEuseChar(SuseChar, fname):
-	#see what character it is and assign EndUseCharacters accordingly
+def makeEuseChar(SuseChar, fname): #makes the end use character for the output file
+	#end use characters correspond to different parts of our OAIS implementation
+	#filenames ending in "a" are our archival masters
+	#filenames ending in "b" are our broadcast masters
+	#filenames ending in "c" are intermediate files
+	#filenames ending in "d" are access files
 	if SuseChar == 'a':
 		assetName = fname[:-1]
 		EuseChar = "b"
@@ -236,11 +257,11 @@ def makeEuseChar(SuseChar, fname):
 		EuseChar = "b"
 	return EuseChar, assetName
 	
-def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName):
-	if SuseChar == 'b':
+def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName): #deletes and renames stuff if the operation was successful
+	if SuseChar == 'b': #if we made a broadcast amster from a raw broadcast master
 		with cd(startDir):
 			if os.path.exists(assetName + "b.wav") and os.path.exists(assetName + "c.wav"):
-				if args.nd is False:
+				if args.nd is False: #if we didn't say not to delete it
 					os.remove(assetName + "b.wav")
 					os.rename(assetName + "c.wav", assetName + "b.wav")
 	if args.nj is True:
@@ -250,7 +271,7 @@ def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName):
 			os.rename(assetName + EuseChar + '.wav',assetName + '.wav')
 
 def main():
-	###initialize a buncha crap###
+	###INIT VARS###
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
@@ -265,9 +286,6 @@ def main():
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
 	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
-	###end crap initialization###
-	
-	###start var initialization###
 	startObj = args.so
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
 	aexts = ['.wav'] #set extensions we recognize for audio
@@ -275,14 +293,14 @@ def main():
 	fname, ext = os.path.splitext(fnamext) #splits filename and extension
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	startDir = os.path.abspath(os.path.join(startObj, os.pardir)) #grabs the directory that this object is in (we'll cd into it later)
-	###end var initialization###
+	###END INIT###
 	
-	###validate input###
+	###VALIDATE INPUT###
 	if not os.path.isfile(startObj): #if it's not a file, say so
 		print "Buddy, that's not a file"
 	if not ext in vexts and not ext in aexts: #if it's not a file we expect to deal with, say so, it probly needs special params
 		print "Buddy, this file can't be processed by makebroadcast"
-	###end input validation###
+	###END VALIDATE###
 	
 	###DO THE THING###
 	#elif ext in vexts:

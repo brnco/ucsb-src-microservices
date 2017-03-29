@@ -127,25 +127,28 @@ def reverse(rawfname,face,aNumber,channelConfig,processDir,mmrepo):#calls makere
 	###REVERSE FACE###
 	if "fA" in revface and not "fAB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
 	elif "fC" in revface and not "fCD" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):	
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])	
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])	
 	elif "fB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):	
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
 	elif "fD" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Da.wav")):	
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Da.wav")])
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Da.wav")])
 	elif "fAB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
 		#sometimes the face isn't specified in the filename
 		elif os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "a.wav")):
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "a.wav")])
+			print "2"
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "a.wav")])
 	elif "fCD" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):
-			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
+			subprocess.check_output(['python',os.path.join(mmrepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
 	###END REVERSE FACE###
 
 	
@@ -235,12 +238,6 @@ def main():
 				print fullffstr
 				#run ffmpeg on the file and make sure it completes successfully
 				returncode = ffprocess(fullffstr,processDir)
-				if returncode == 0:
-					#os.remove(os.path.join(captureDir,rawfname + ".wav"))
-					print "foo"
-				else:
-					return
-				returncode = 0
 				#special add for mono files
 				if "Mono" in channelConfig:
 					mono_silence(rawfname,face,aNumber,processDir,mmrepo)	

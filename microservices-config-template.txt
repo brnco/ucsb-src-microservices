@@ -29,6 +29,7 @@ new_ingest:
 lto_stage:
 repo:
 avlab:
+vid_leads:
 
 [magneticTape]
 new_ingest:

@@ -37,23 +37,28 @@ def dependencies():
 			sys.exit()
 	return
 
-def makeTranscodeList(startObjs,archiveDir,mediatype):
+def makeTranscodeList(args,archiveDir):
+	###INIT VARS###
 	a = [] #archive masters
 	b = [] #broadcast masters
 	m = [] #mp3s
 	u = [] #unknowns (known)
 	i = [] #images
 	startDirs = []
-	if mediatype == 'istape':
-		for obj in startObjs:
+	###END INIT###
+	###FOR TAPES###
+	if args.t is True:
+		for obj in args.so:
+			###MAKE LIST OF DIRS TO SEARCH FOR OBJECTS###
 			endDirThousand = obj.replace("a","") #input arg here is a1234 but we want just the number
-			#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
-			if len(endDirThousand) < 5:
+			if len(endDirThousand) < 5:#separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
 				endDirThousand = endDirThousand[:1] + "000"
 			else:
 				endDirThousand = endDirThousand[:2] + "000"
 			startDir = os.path.join(archiveDir,endDirThousand,obj) #booshh
 			startDirs.append(startDir)
+			###END MAKE LIST###
+			###FIND OBJECTS###
 			with cd(startDir):
 				for file in os.listdir(os.getcwd()):
 					if file.endswith("b.wav"):
@@ -64,7 +69,8 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 						u.append(os.path.join(os.getcwd(),file))
 					elif file.endswith(".mp3"):
 						m.append(os.path.join(os.getcwd(),file))
-		#find
+		###DEDUPE LISTS###
+		###we want to know if there are mp3s already for these objects or which file to transcode
 		for f in m:
 			assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
 			for v in u: #loop thru found mp3s in dir
@@ -77,15 +83,18 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 				if assetName.group() in v:
 					a.remove(v)
 		for f in b:
-			assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
+			assetName = re.search('cusb-a\d+',f)
 			for v in u:
 				if assetName.group() in v:
 					u.remove(v)
 			for v in a:
 				if assetName.group() in v:
 					a.remove(v)
-	elif mediatype == 'isdisc':
-		for obj in startObjs:
+		###END DEDUPE###
+	###END FOR TAPES###
+	###FOR DISCS###
+	elif args.d is True:
+		for obj in args.so:
 			startDir = os.path.join(archiveDir,obj)
 			startDirs.append(startDir)
 			with cd(startDir):
@@ -100,7 +109,7 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 						m.append(os.path.join(os.getcwd(),file))
 					elif file.endswith(".tif"):
 						i.append(os.path.join(os.getcwd(),file))
-		#find
+		###DEDUPE LISTS###
 		for obj in startObjs:
 			for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
 				#_assetName = re.search(obj,f) #grab just the canonical name part
@@ -123,45 +132,48 @@ def makeTranscodeList(startObjs,archiveDir,mediatype):
 				for v in a:
 					if assetName in v:
 						a.remove(v)
+		###END DEDUPE###
+	###END FOR DISCS###
 	return a,b,u,m,i,startDirs
 	
 def main():
-	#input args for resources to pull & TN
+	###INIT VARS###
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-t','--tape',action='store_true',dest='tape',default=False,help="make dip with audio template")
-	parser.add_argument('-d','--disc',action='store_true',dest='disc',default=False,help="make a dip with disc template")
-	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset that we want to make a dip for")
+	parser.add_argument('-t','--tape',action='store_true',dest='t',default=False,help="make dip with audio template")
+	parser.add_argument('--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
+	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")	
-	parser.add_argument('-hq','--highquality',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
+	#parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	#parser.add_argument('-a','--archival',dest='a',help="don't transcode a broadcast master or mp3, dip the archival master")
-	parser.add_argument('-comp','--compress',action='store_true',dest='compress',default=False,help="compress the dip folder when everything is in there")
-
+	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
+	parser.add_argument('-mb','--makeBroadcast',nargs='+',choices=['ff','s','mp3','n','d'],dest='mb',help="options for makebroadcast")
 	args = parser.parse_args()
-	
-	
-	
-	#initialize our parser for the config file so we can get paths later
+	print args.mb
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
 	mmrepo = config.get('global','scriptRepo')
-	#find resources
-	if args.tape is True:
-		istape = "istape"
+	if args.t is True:
 		archiveDir = config.get("magneticTape","repo") #grab archive directory for audio tapes
-		a,b,u,m,i,startDirs = makeTranscodeList(args.so, archiveDir, istape) #make a dictionary of files to work with
-	
-	if args.disc is True:
-		isdisc = 'isdisc'
+	elif args.d is True:
 		archiveDir = config.get("discs","repo")
-		a,b,u,m,i,startDirs = makeTranscodeList(args.so, archiveDir, isdisc) #make a dictionary of files to work with
+	else:
+		print "Buddy, you gotta specify if this is a tape or a disc"
+		sys.exit()
+	###END INIT###
+
+	###GENERATE TRANSCODE LISTS###
+	a,b,u,m,i,startDirs = makeTranscodeList(args, archiveDir) #make a dictionary of files to work with
 	#transcode where necessary
 	for f in a:
-		subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-mp3',f,])
-	for f in b:
-		subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-mp3',f,])
+		if args.t is True:
+			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
+	#for f in b:
+		#if args.t is True:
+			#subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
 	for f in u:
-		subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-mp3',f,])
+		if args.t is True:
+			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
 	
 	#make a final list of stuff we gonna dip
 	veggies = []
@@ -170,6 +182,8 @@ def main():
 			if file.endswith(".mp3") and file not in m:
 				veggies.append(os.path.join(dir,file))
 			if file.endswith(".tif"):
+				veggies.append(os.path.join(dir,file))
+			if file.endswith("b.wav"):
 				veggies.append(os.path.join(dir,file))
 	
 	#hashmove to dir on desktop named for TN
@@ -180,7 +194,7 @@ def main():
 		subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),'-c',f,dipDir])
 	
 	#compress dir on desktop
-	if args.compress is True:
+	if args.z is True:
 		tnDir = os.path.join("C:/Users/",getpass.getuser(),"Desktop",args.tn)
 		with cd(tnDir):
 			zf = zipfile.ZipFile(tnDir + ".zip","w")

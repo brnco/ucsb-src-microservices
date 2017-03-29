@@ -2,6 +2,7 @@
 import pyodbc
 import argparse
 import ast
+import sys
 
 def query(sqlstr,cnxn):
 	cursor = cnxn.cursor()
@@ -18,14 +19,14 @@ def makenameFormatList(args,cnxn):
 	count = 0
 	###init done###
 	while not row: #try to find the Tape Number and Format based on the rawCaptureName
-		sqlstr="select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.so + ".wav'"
-		#OR above necessary because sometimes the rawCaptureName has a ".wav" at the end :(
-		row = query(sqlstr,cnxn)
-		face = thingy[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
 		if count > 1: #DO THIS BETTER
 			print "uh buddy this isn't in FM"
-			break
+			sys.exit()
 		else:
+			sqlstr="select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.so + ".wav'"
+			#OR above necessary because sometimes the rawCaptureName has a ".wav" at the end :(
+			row = query(sqlstr,cnxn)
+			face = thingy[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
 			count = count+1
 	if row: #if we get a result (which we should because we're out of the while loop)
 		rowstr = str(row) #convert to string
@@ -100,6 +101,8 @@ def makeffstr_mono(args,cnxn):#returns an ffmpeg string for processing mono file
 	delface = ''
 	zerostr = ''
 	onestr = ''
+	fxstr0 = ''
+	fxstr1 = ''
 	###INIT DONE###
 	
 	###DELETE FACE###
@@ -144,18 +147,24 @@ def makeffstr_mono(args,cnxn):#returns an ffmpeg string for processing mono file
 	if channel0: #fails if empty, like if it needs to be deleted
 		zerostr = channel0
 		if hlvstr1:
-			zerostr = zerostr + hlvstr0 #add the half-speed str
+			fxstr0 = fxstr0 + hlvstr0 #add the half-speed str
 		elif dblstr1:
-			zerostr = zerostr + dblstr0 #add the double speed str
-		zerostr = zerostr + " -c:a pcm_s24le left.wav " #no matter what, this our output fmt
+			fxstr0 = fxstr0 + dblstr0 #add the double speed str
+		if fxstr0:
+			zerostr = zerostr + fxstr0 + " -c:a pcm_s24le left.wav " #no matter what, this our output fmt
+		else:
+			zerostr = zerostr + " -c:a pcm_s24le left.wav "
 	#for right channel, stream 1
 	if channel1:
 		onestr = channel1
 		if hlvstr1:
-			onestr = onestr + hlvstr1
+			fxstr1 = fxstr1 + hlvstr1
 		elif dblstr1:
-			onestr = onestr + dblstr1
-		onestr = onestr + " -c:a pcm_s24le right.wav "	
+			fxstr1 = fxstr1 + dblstr1
+		if fxstr1:
+			onestr = onestr + fxstr1 + " -c:a pcm_s24le right.wav "
+		else:
+			onestr = onestr + " -c:a pcm_s24le right.wav "
 	ffstr = zerostr + onestr
 	return ffstr
 
@@ -219,7 +228,7 @@ def checkotherface(args,cnxn): #checks if there are 1 or 2 captures per tape
 	return result
 	
 def main():		
-	###INIT VARS
+	###INIT VARS###
 	parser = argparse.ArgumentParser(description="queries and returns data from our FileMaker dbs")
 	parser.add_argument('-so','--startObject',dest="so",help='the audio/ video number of the asset, a1234 for tapes, 1234 for cyls')
 	parser.add_argument('-t','--tape',dest="t",action='store_true',default=False,help='use Audio Originals database as source')
@@ -242,7 +251,7 @@ def main():
 			for field in fieldlist:#loop through the field list
 				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so + "%'" 
 				result = query(sqlstr,cnxn)#<^query the db for the value in that field for that cylinder object
-				rtnList.append(result[0])#append the found value to the list of values
+				rtnlist.append(result[0])#append the found value to the list of values
 		elif args.c:#if it's a cylinder
 			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Cylinders;UID=microservices')
 			fieldlist = ["Title","Performer","Composer","Label_Cat","yr"]
