@@ -56,9 +56,9 @@ def main():
 			for f in files:
 				fname, ext = os.path.splitext(f)
 				if not os.path.exists(os.path.join(vpd,fname + ".tif")):
-					 #convert them to tif and save them to a diff folder
-					 #in the olden days we had to convert to different dirs
-					 #keeping that structure just in case :/
+					#convert them to tif and save them to a diff folder
+					#in the olden days we had to convert to different dirs
+					#keeping that structure just in case :/
 					subprocess.call(['gm','convert',f,'-crop','3648x3648+920','-density','300x300','-rotate','180',os.path.join(vpd,fname + ".tif")])
 				if not os.path.exists(os.path.join(vpd,fname + ".jpg")):
 					#convert them to jpg (for Images_ucsb fm db)

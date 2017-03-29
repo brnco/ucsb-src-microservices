@@ -56,7 +56,7 @@ def main():
 				if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"): #get rid of bs files that wavelab makes
 					os.remove(f)
 				else:
-					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),f,'-ff','-nj']) #makebroadcast with fades, nj naming
+					subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-ff','-nj']) #makebroadcast with fades, nj naming
 					fname, ext = os.path.splitext(f) #separate just the name of the file
 					#pop them into the qc dir in a subdir named after their filename
 					#hashmove makes end dir if it doesnt exist already
