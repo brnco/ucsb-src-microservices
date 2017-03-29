@@ -68,7 +68,6 @@ def main():
 		#concatenate the revsered output from slicer loop
 		ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
 		output = subprocess.call(ffmpegstring)
-		foo = raw_input("eh")
 		###DELETE STUFF###
 		if returncode == 0:	
 			for f in os.listdir(os.getcwd()):
