@@ -110,7 +110,9 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 			filterstring = "-af " + fadestring
 		elif normstring and not fadestring:
 			filterstring = "-af " + normstring
-		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1  ' + assetName + EuseChar + '.wav'
+		print id3string	
+		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 ' + assetName + EuseChar + '.wav'
+		print ffmpegstring
 		subprocess.call(ffmpegstring)
 		if args.mp3 is True:
 			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
@@ -175,7 +177,7 @@ def getcylinderid3(args,assetName):
 	match = re.search(r"\d{4,5}",assetName) #grip just the number of the cylinder
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName,"-id3","-c"]) #ask filemaker for the values for each field
+	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName.replace("cusb-cyl",""),"-id3","-c"]) #ask filemaker for the values for each field
 	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str	
@@ -224,7 +226,7 @@ def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values a
 	for index, tag in enumerate(id3fields): #loop thru the raw list of id3 values, grip the index
 		if tag is not None:
 			if id3rawlist[index] is not None:
-				id3str = id3str + " -metadata " + tag + '"' + id3rawlist[index] + '"'
+				id3str = id3str + " -metadata " + tag + '"' + id3rawlist[index].replace('"','') + '"'
 				#^append the tag from the list of id3fields and the value from the corresponding index in the raw list of values
 	if not "album=" in id3fields:
 		id3str = id3str + ' -metadata album="' + assetName + '" -metadata publisher="UCSB Special Research Collections"'
@@ -232,7 +234,7 @@ def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values a
 	else:
 		id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
 		#^make sure the ppl know where thsi good stuff came from
-	return id3str.encode('utf-8')
+	return id3str.encode("utf-8")
 
 def makeEuseChar(SuseChar, fname): #makes the end use character for the output file
 	#end use characters correspond to different parts of our OAIS implementation

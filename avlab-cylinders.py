@@ -59,8 +59,11 @@ def main():
 				startObj = 'cusb-cyl' + s + 'b.wav'
 				interObj = 'cusb-cyl' + s + 'c.wav'
 				if not os.path.exists(startObj): #if we don't have a b.wav file in the dir we should just stop
-					print "Buddy, somethings not right here"
-					sys.exit()
+					if os.path.exists('cusb-cy' + s + 'b.wav'): #check to see that it wasnt just misnamed at capture
+						os.rename(os.path.join(repodir,s,'cusb-cy'+s+'b.wav'),os.path.join(repodir,s,'cusb-cyl'+s+'b.wav'))
+					else:	
+						print "Buddy, somethings not right here"
+						sys.exit()
 				###END VALIDATE###
 				###DO FFMPEG###
 				else:
