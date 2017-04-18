@@ -261,6 +261,10 @@ def main():
 				###END BS###
 				###PROCESS CAPTURE###
 				elif file.endswith(".wav"):
+					try: #control for files currently in use
+						subprocess.call("ffprobe " + os.path.join(dirs,file))
+					except:
+						continue
 					###INIT###
 					print file
 					processNone = 0

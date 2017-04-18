@@ -56,7 +56,7 @@ def makeThem(startObj, archRepoDir,vidLeadDir):
 		
 		#headtxt.mov
 		#overlay the descriptive metadata from our yt.txt file onto this blank white 1920x1080 10s frame
-		subprocess.call(['ffmpeg','-i',os.path.join(vidLeadDir,"headwhite.mov"),"-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=60:x=(w-tw)/2:y=540",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest',"headtxt.mov"])
+		subprocess.call(['ffmpeg','-i',os.path.join(vidLeadDir,"headwhite.mov"),"-vf","drawtext=fontfile='C\\:/Windows/Fonts/Arial.ttf':textfile=" + txtfile + ":fontcolor=black:fontsize=60:x=(w-tw)/2:y=540",'-c:v','prores','-profile:v','3','-qscale:v','4','-shortest','-threads','0',"headtxt.mov"])
 		
 		#labelimg.png
 		#scale the tif image of our disc label to fit the 1920x1080 frame
@@ -64,15 +64,15 @@ def makeThem(startObj, archRepoDir,vidLeadDir):
 		
 		#tail.mov
 		#write a 5minute soundless video file of the scaled disc label image, pad the sides of the 1080x1080 input png of the disc label
-		subprocess.call(['ffmpeg','-loop','1','-i','labelimg.png','-t','300','-vf','pad=1920:1080:420:0:black','-c:v','prores','-profile:v','3','-qscale:v','4','-s','1920x1080',"tail.mov"])
+		subprocess.call(['ffmpeg','-loop','1','-i','labelimg.png','-t','300','-vf','pad=1920:1080:420:0:black','-c:v','prores','-profile:v','3','-qscale:v','4','-s','1920x1080','-threads','0',"tail.mov"])
 		
 		#headtail.mov
 		#concatenate the descriptive frames with the soundless disc label image frames, putting a cross dissolve between them
-		subprocess.call(['ffmpeg','-i','headtxt.mov','-i','tail.mov','-filter_complex','color=white:1920x1080:d=305[base];[0:v]setpts=PTS-STARTPTS[v0];[1:v]format=yuv422p10le,fade=in:st=0:d=2:alpha=1,setpts=PTS-STARTPTS+((8)/TB)[v1];[base][v0]overlay[tmp];[tmp][v1]overlay,format=yuv422p10le[fv]','-c:v','prores','-profile:v','3','-qscale:v','4','-map','[fv]','headtail.mov'])
+		subprocess.call(['ffmpeg','-i','headtxt.mov','-i','tail.mov','-filter_complex','color=white:1920x1080:d=305[base];[0:v]setpts=PTS-STARTPTS[v0];[1:v]format=yuv422p10le,fade=in:st=0:d=2:alpha=1,setpts=PTS-STARTPTS+((8)/TB)[v1];[base][v0]overlay[tmp];[tmp][v1]overlay,format=yuv422p10le[fv]','-c:v','prores','-profile:v','3','-qscale:v','4','-map','[fv]','-threads','0','headtail.mov'])
 		
 		#headtailwithaudio.mov
 		#pop the audio into the concatenated vid
-		subprocess.call(['ffmpeg','-i','headtail.mov','-i',startObj + ".wav",'-c:v','copy','-c:a','aac','-ar','48000','-b:a','320k','-shortest','headtailwithaudio.mov'])
+		subprocess.call(['ffmpeg','-i','headtail.mov','-i',startObj + ".wav",'-c:v','copy','-c:a','aac','-ar','48000','-b:a','128k','-shortest','-threads','0','headtailwithaudio.mov'])
 
 		
 def concatThem(startObj, archRepoDir,vidLeadDir):
@@ -87,7 +87,7 @@ def concatThem(startObj, archRepoDir,vidLeadDir):
 		#actually concatenate the headlogo with the headtailwithaudio file
 		subprocess.call(['ffmpeg','-f','concat','-safe','0','-i','concat.txt','-c','copy', os.path.basename(startObj) + "yt.mov"])
 		#create an mp4 from that, pretty visually compressed
-		subprocess.call(['ffmpeg','-i',os.path.basename(startObj) + "yt.mov",'-pix_fmt','yuv420p','-c:v','libx264','-preset','slow','-crf','28','-c:a','copy',os.path.basename(startObj) + "yt.mp4"])
+		subprocess.call(['ffmpeg','-i',os.path.basename(startObj) + "yt.mov",'-pix_fmt','yuv420p','-c:v','libx264','-crf','28','-c:a','copy','-movflags','faststart','-maxrate','4380k','-threads','0',os.path.basename(startObj) + "yt.mp4"])
 		
 		#remove all the crap we created
 		os.remove(os.path.join(archRepoDir,startObj,'concat.txt'))

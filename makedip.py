@@ -110,9 +110,9 @@ def makeTranscodeList(args,archiveDir):
 					elif file.endswith(".tif"):
 						i.append(os.path.join(os.getcwd(),file))
 		###DEDUPE LISTS###
-		for obj in startObjs:
+		for obj in args.so:
 			for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
-				#_assetName = re.search(obj,f) #grab just the canonical name part
+				_assetName = re.search(obj,f) #grab just the canonical name part
 				assetName = obj
 				foo = raw_input("eh")
 				for v in u: #loop thru found mp3s in dir
@@ -148,7 +148,6 @@ def main():
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
 	parser.add_argument('-mb','--makeBroadcast',nargs='+',choices=['ff','s','mp3','n','d'],dest='mb',help="options for makebroadcast")
 	args = parser.parse_args()
-	print args.mb
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
