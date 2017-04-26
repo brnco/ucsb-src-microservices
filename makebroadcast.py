@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #makebroadcast
 #this script takes a single input file and makes a file suitable for broadcast/ delivery to patrons
 #for audio this means 44.1kHz, 16bit, mono wav with ID3s (like a CD)
@@ -76,27 +75,15 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		###END INIT###
 		###MAKE ID3 TAGS###
 		if args.nj is False: #sorts out the jukebox stuff which doesn't get this treatment
-			#for tapes
 			if args.t is True:
 				id3string = gettapeid3(startDir, assetName) #calls our id3 function
-			#for discs
 			elif args.d is True:
-				if not args.sys: #if sys number not provided, we can't query catalog, check to see if -mtd ;FFMETADATA1 file exists
-					mtdfile = ""
-					for f in os.listdir(startDir):
-						if "mtd" in f:
-							mtdfile = f #assign filename to mtdfile
-					if mtdfile is False: #empty strings evaluate to false
-						print 'Buddy, you need to submit a system number "-sys" to get the id3 tags from our catalog'
-						sys.exit()
-					elif mtdfile is True:
-						id3string = "-i " + os.path.join(startDir,mtdfile) + " -map_metadata 1" #write some ffmpeg syntax to use the -mtd ;FFMETADATA1 file
-				else: #if sys number supplied, query catalog for id3 info
-					id3string = getdiscid3(args,assetName)
-			#for cylinders
+				if not args.sys:
+					print 'Buddy, you need to submit a system number "-sys" to get the id3 tags from our catalog'
+					sys.exit()
+				id3string = getdiscid3(args,assetName)
 			elif args.c is True:
 				id3string = getcylinderid3(args,assetName)
-			#for anything that doesn't already have a -mtd ;FFMETADATA1 file
 			else:
 				id3string = makemanualid3(startDir,assetName)
 		else:
@@ -126,7 +113,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		print id3string	
 		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 ' + assetName + EuseChar + '.wav'
 		print ffmpegstring
-		subprocess.call(ffmpegstring.encode("utf-8"))
+		subprocess.call(ffmpegstring)
 		if args.mp3 is True:
 			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
 	return
@@ -247,7 +234,7 @@ def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values a
 	else:
 		id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
 		#^make sure the ppl know where thsi good stuff came from
-	return id3str
+	return id3str.encode("utf-8")
 
 def makeEuseChar(SuseChar, fname): #makes the end use character for the output file
 	#end use characters correspond to different parts of our OAIS implementation
@@ -290,7 +277,7 @@ def main():
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
-	parser.add_argument('-s','--stereo',dest='s',action='store_true',default=False,help='outputs to stereo (mono is default)')
+	#parser.add_argument('-s','--stereo',dest='s',action='store_true',default=False,help='outputs to stereo (mono is default)')
 	parser.add_argument('-mp3','--mp3',dest='mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
 	parser.add_argument('-n','--normalize',dest='n',action='store_true',default=False,help='EBU r128 normalization with true peaks at -1.5dB, defaults to off')
 	parser.add_argument('-nj','--nationaljukebox',dest='nj',action='store_true',default=False,help='extra processing step for National Jukebox files')
