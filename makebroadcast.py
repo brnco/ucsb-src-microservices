@@ -277,7 +277,7 @@ def main():
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
-	parser.add_argument('-s','--stereo',dest='s',action='store_true',default=False,help='outputs to stereo (mono is default)')
+	#parser.add_argument('-s','--stereo',dest='s',action='store_true',default=False,help='outputs to stereo (mono is default)')
 	parser.add_argument('-mp3','--mp3',dest='mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
 	parser.add_argument('-n','--normalize',dest='n',action='store_true',default=False,help='EBU r128 normalization with true peaks at -1.5dB, defaults to off')
 	parser.add_argument('-nj','--nationaljukebox',dest='nj',action='store_true',default=False,help='extra processing step for National Jukebox files')
