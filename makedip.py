@@ -49,6 +49,7 @@ def makeTranscodeList(args,archiveDir):
 	###FOR TAPES###
 	if args.t is True:
 		for obj in args.so:
+			startObj = subprocess.check_output(["python","makestartobject.py","-so",obj])
 			###MAKE LIST OF DIRS TO SEARCH FOR OBJECTS###
 			endDirThousand = obj.replace("a","") #input arg here is a1234 but we want just the number
 			if len(endDirThousand) < 5:#separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
@@ -143,12 +144,12 @@ def main():
 	parser.add_argument('--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
 	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")	
-	#parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
+	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	#parser.add_argument('-a','--archival',dest='a',help="don't transcode a broadcast master or mp3, dip the archival master")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
-	parser.add_argument('-mb','--makeBroadcast',nargs='+',choices=['ff','s','mp3','n','d'],dest='mb',help="options for makebroadcast")
+	#parser.add_argument('-mb','--makeBroadcast',nargs='+',choices=['ff','s','mp3','n','d'],dest='mb',help="options for makebroadcast")
 	args = parser.parse_args()
-	print args.mb
+	#print args.mb
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
@@ -166,25 +167,32 @@ def main():
 	a,b,u,m,i,startDirs = makeTranscodeList(args, archiveDir) #make a dictionary of files to work with
 	#transcode where necessary
 	for f in a:
-		if args.t is True:
+		if args.t is True and args.hq is True:
 			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
+		elif args.t is True:
+			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t','-mp3'])
 	#for f in b:
 		#if args.t is True:
 			#subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
 	for f in u:
-		if args.t is True:
+		if args.t is True and args.hq is True: 
 			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
+		elif args.t is True:
+			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t','-mp3'])
 	
 	#make a final list of stuff we gonna dip
 	veggies = []
 	for dir in startDirs:
 		for file in os.listdir(dir):
-			if file.endswith(".mp3") and file not in m:
-				veggies.append(os.path.join(dir,file))
+			if args.hq is False:
+				if file.endswith(".mp3") and file not in m:
+					veggies.append(os.path.join(dir,file))
+			elif args.hq is True:
+				if file.endswith("b.wav"):
+					veggies.append(os.path.join(dir,file))
 			if file.endswith(".tif"):
 				veggies.append(os.path.join(dir,file))
-			if file.endswith("b.wav"):
-				veggies.append(os.path.join(dir,file))
+			
 	
 	#hashmove to dir on desktop named for TN
 	dipDir = os.path.join("C:/Users",getpass.getuser(),"Desktop",args.tn)
@@ -201,6 +209,8 @@ def main():
 			for f in os.listdir(os.getcwd()):
 				zf.write(os.path.basename(os.path.join(dipDir,f)),compress_type=zipfile.ZIP_DEFLATED)
 			zf.close()
+		if os.path.exists(tnDir + ".zip"):
+			shutil.rmtree(tnDir)
 
 dependencies()
 main()
