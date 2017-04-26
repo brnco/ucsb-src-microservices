@@ -288,7 +288,8 @@ def main():
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
 	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
-	startObj = args.so
+	startObj = subprocess.check_output(["python","S:/avlab/microservices/makestartobject.py","-so",args.so])
+	startObj = startObj.replace("\\","/")[:-2]
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
 	aexts = ['.wav'] #set extensions we recognize for audio
 	fnamext = os.path.basename(os.path.abspath(startObj)) #grabs the filename and extension

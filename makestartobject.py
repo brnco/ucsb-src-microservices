@@ -122,5 +122,6 @@ def main():
 	args = parser.parse_args()
 	startObj = args.so.replace("\\",'/') #for the windows peeps
 	startObj = startObjectParse(startObj,allists)
+	#print len(startObj)
 	print startObj
 main()		
