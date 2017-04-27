@@ -54,11 +54,31 @@ def avname(startObj,avlist):
 			print "Buddy, the directory " + soContainingDir + " doesn't exist. This asset has probably not yet been digitized"
 		return startObj
 		
-def cylname(startObj,disclist):	
+def cylname(startObj,cyllist):	
 	return startObj
-def discname(startObj,cylist):
-	return startObj
-	
+def discname(startObj,disclist):
+	foundirs = []
+	for dirpath in disclist:
+		if os.path.exists(os.path.join(dirpath,startObj)):
+			foundirs.append(os.path.join(dirpath,startObj))
+	if len(foundirs) > 1:
+		print "Buddy, it looks like there's two copies of this item"
+		for f in foundirs:
+			print f
+	elif len(foundirs) < 1:
+		print "Buddy, it looks like this hasn't been digitized"
+	else:
+		startDir = foundirs[0]
+	if os.path.exists(os.path.join(startDir,startObj + "b.wav")):
+		startObj = os.path.join(startDir,startObj + "b.wav")
+		return startObj
+	elif os.path.exists(os.path.join(startDir,startObj + ".wav")):
+		startObj = os.path.join(startDir,startObj + ".wav")
+		return startObj
+	elif os.path.exists(os.path.join(startDir,startObj + "a.wav")):
+		startObj = os.path.join(startDir,startObj + "a.wav")
+		return startObj
+		
 def startObjectParse(startObj,allists):
 	match=''
 	match=re.search(r"\w\:\/",startObj)
@@ -106,6 +126,7 @@ def main():
 	cylinderNewIngest = config.get('cylinders','new_ingest')
 	discRepoDir = config.get('discs','repo')
 	discNewIngest = config.get('discs','new_ingest')
+	discNewIngest = os.path.join(discNewIngest,"pre-ingest-qc")
 	njBroadDir = config.get('NationalJukebox','AudioBroadDir')
 	njPreIngestDir = config.get('NationalJukebox','PreIngestQCDir')
 	videoRepoDir = config.get('video','repo')
