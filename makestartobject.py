@@ -46,13 +46,18 @@ def avname(startObj,avlist):
 		soContainingDir = os.path.join(avlist[0],endDirThousand,canonSO)
 		if os.path.exists(soContainingDir):
 			with cd(soContainingDir):
-				if os.path.exists("cusb-a" + aNumber + ".wav"):
+				if os.path.exists("cusb-a" + aNumber + "b.wav"):
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + "b.wav")
+					return startObj
+				elif os.path.exists("cusb-a" + aNumber + ".wav"):
 					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + ".wav")
+					return startObj
 				elif os.path.exists("cusb-a" + aNumber + "a.wav"):
 					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + "a.wav")
+					return startObj
 		else:
 			print "Buddy, the directory " + soContainingDir + " doesn't exist. This asset has probably not yet been digitized"
-		return startObj
+		
 		
 def cylname(startObj,cyllist):	
 	return startObj

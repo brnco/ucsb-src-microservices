@@ -173,9 +173,9 @@ def main():
 			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
 			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t','-mp3'])
-	#for f in b:
-		#if args.t is True:
-			#subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
+	for f in b:
+		if args.t is True:
+			subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),f])
 	for f in u:
 		if args.t is True and args.hq is True: 
 			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])

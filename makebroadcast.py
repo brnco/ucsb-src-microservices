@@ -111,7 +111,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		elif normstring and not fadestring:
 			filterstring = "-af " + normstring
 		print id3string	
-		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 ' + assetName + EuseChar + '.wav'
+		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 -write_bext 1 ' + assetName + EuseChar + '.wav'
 		print ffmpegstring
 		subprocess.call(ffmpegstring)
 		if args.mp3 is True:

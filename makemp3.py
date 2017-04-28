@@ -28,7 +28,7 @@ class cd:
 
 #check that we have the required software to run this script
 def dependencies():
-	depends = ['ffmpeg','ffprobe','gm']
+	depends = ['ffmpeg','ffprobe']
 	for d in depends:
 		if spawn.find_executable(d) is None:
 			print "Buddy, you gotta install " + d
@@ -67,8 +67,10 @@ def main():
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('startObj',nargs ='?',help='the file to be transcoded',)
 	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
-	startObj = args['startObj'].replace("\\",'/') #for the windows peeps
-	if not os.path.isfile(startObj): #is it really really real
+	startObj = subprocess.check_output(['python','S:/avlab/microservices/makestartobject.py','-so',args["startObj"]])
+	startObj = startObj.replace("\\",'/')[:-2] #for the windows peeps
+	print startObj
+	if not os.path.exists(startObj): #is it really really real
 		print "Buddy, that's not a file"
 		sys.exit()
 	fnamext = os.path.basename(os.path.abspath(startObj)) #filname plus extension of the startObj
