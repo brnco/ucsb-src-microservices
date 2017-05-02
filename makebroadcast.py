@@ -114,6 +114,8 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 -write_bext 1 ' + assetName + EuseChar + '.wav'
 		print ffmpegstring
 		subprocess.call(ffmpegstring)
+		time.sleep(4)
+		print assetName + EuseChar + ".wav"
 		if args.mp3 is True:
 			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
 	return
@@ -299,8 +301,8 @@ def main():
 	###END INIT###
 	
 	###VALIDATE INPUT###
-	if not os.path.isfile(startObj): #if it's not a file, say so
-		print "Buddy, that's not a file"
+	#if not os.path.isfile(startObj): #if it's not a file, say so
+		#print "Buddy, that's not a file"
 	if not ext in vexts and not ext in aexts: #if it's not a file we expect to deal with, say so, it probly needs special params
 		print "Buddy, this file can't be processed by makebroadcast"
 	###END VALIDATE###
