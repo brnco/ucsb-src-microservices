@@ -36,7 +36,7 @@ def dependencies():
 	return
 
 def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
-	mtdObj = assetName + "-mtd.txt" #name a metadata file
+	mtdObj = os.path.join(os.path.abspath(startObj),assetName + "-mtd.txt") #name a metadata file
 	if not os.path.isfile(mtdObj):
 		subprocess.call(['ffmpeg','-i',startObj,'-f','ffmetadata','-y',mtdObj]) #export the id3 metadata that already exists in the media file to this text file
 	b = os.path.getsize(mtdObj) #grab the size, in bytes, of the resulting text file
@@ -70,9 +70,9 @@ def main():
 	startObj = subprocess.check_output(['python','S:/avlab/microservices/makestartobject.py','-so',args["startObj"]])
 	startObj = startObj.replace("\\",'/')[:-2] #for the windows peeps
 	print startObj
-	if not os.path.exists(startObj): #is it really really real
-		print "Buddy, that's not a file"
-		sys.exit()
+	#if not os.path.exists(startObj): #is it really really real
+		#print "Buddy, that's not a file"
+		#sys.exit()
 	fnamext = os.path.basename(os.path.abspath(startObj)) #filname plus extension of the startObj
 	fname, ext = os.path.splitext(fnamext) #split the filename from extension
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character

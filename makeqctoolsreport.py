@@ -7,6 +7,7 @@ import sys
 import re
 import gzip
 import shutil
+import argparse
 from distutils import spawn
 
 #check to see that we have the required software to run this script
@@ -18,67 +19,50 @@ def dependencies():
 			sys.exit()
 	return
 
-def parseInput():
-	#print ffprobe output to txt file, we'll grep it later to see if we need to transcode for j2k/mxf
-	ffdata = open(startObj + ".ffdata.txt","w")
-	subprocess.call(['ffprobe','-show_streams','-of','flat','-sexagesimal','-i',startObj], stdout=ffdata)
-	ffdata.close()
-
-	#find which stream is the video stream
-	ffdata = open(startObj + ".ffdata.txt","r")
-	for line in ffdata:
-		#find the line for video stream
-		if re.search('.codec_type=\"video\"', line):
-			#separate that line by periods, the formatting provided by ffprobe
-			foolist = re.split(r'\.', line)
-			#3rd part of that list is the video stream
-			whichStreamVid = foolist[2]
-	ffdata.close()
-
-	#based on the vid stream we found, find the codec
-	ffdata = open(startObj + ".ffdata.txt","r")
-	for line in ffdata:
-		if re.search('streams.stream.' + whichStreamVid + '.codec_name=', line):
-			#dunno why we gotta remove quotes twice but there ya go
-			[f[1:-1] for f in re.findall('".+?"', line)]
-			codecName = f[1:-1]
-	ffdata.close()
-	os.remove(startObj + ".ffdata.txt") #only takes a string so cant send ffdata var idk
+def parseInput(startObj):
+	ffprobeout = subprocess.check_output(['ffprobe','-show_streams','-of','flat','-sexagesimal','-i',startObj])
+	match = ''
+	match = re.search('streams.stream.\d.codec_type=\"video\"', ffprobeout)
+	if match:
+		line = match.group()
+		match = ''
+		match = re.search(r"\d",line)
+		if match:
+			videoStreamIndx = match.group()
+	match = ''
+	match = re.search(r'streams.stream.' + videoStreamIndx + '.codec_name=".*"',ffprobeout)
+	if match:
+		line = match.group()
+		codecName = line.replace('streams.stream.' + videoStreamIndx + '.codec_name=','').replace('"','')
 
 	#set some special strings to handle j2k/mxf files
+	#transcode to raw .nut file for j2k
 	if codecName == 'jpeg2000':
 		inputCodec = ' -vcodec libopenjpeg '
 		filterstring = ' -vf tinterlace=mode=merge,setfield=bff '
+		ffmpegstring = 'ffmpeg' + inputCodec + '-vsync 0 -i ' + startObj + ' -vcodec rawvideo -acodec pcm_s24le' + filterstring + '-f nut -y ' + startObj + '.temp1.nut'
+		subprocess.call(ffmpegstring)
+
+def makeReport(startObj):
+	temp1nut = startObj + '.temp1.nut'
+	if os.path.exists(temp1nut):
+		try:
+			subprocess.check_output(['qcli','-i',temp1nut],shell=True)
+			os.remove(startObj + '.temp1.nut')
+			os.rename(startObj + '.temp1.nut.qctools.xml.gz', startObj + '.qctools.xml.gz')
+		except:
+			print "something went wrong generating the report for the temp1.nut file"
 	else:
-		inputCodec = ' '
-		filterstring = ' '
-	return inputCodec, filterstring
+		subprocess.call(['qcli','-i',startObj])
+	
 
-
-def transcode():
-	#transcode to .nut	
-	ffmpegstring = 'ffmpeg' + inputCodec + '-vsync 0 -i ' + startObj + ' -vcodec rawvideo -acodec pcm_s24le' + filterstring + '-f nut -y ' + startObj + '.temp1.nut'
-	subprocess.call(ffmpegstring)
-	return
-
-def makeReport():
-	#here's where we use ffprobe to make the qctools report in regular xml
-	print "writing ffprobe output to xml"
-	tmpxml = open(startObj + '.qctools.xml','w')
-	subprocess.call(['ffprobe','-loglevel','error','-f','lavfi','movie=' + startObj + '.temp1.nut:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng,cropdetect=reset=1,split[a][b];[a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1[out1]','-show_frames','-show_versions','-of','xml=x=1:q=1','-noprivate'], stdout=tmpxml)
-	tmpxml.close()
-
-	#gzip that tmpxml file then delete the regular xml file cause we dont need it anymore
-	print "gzip-ing ffprobe xml output"
-	with open(startObj + '.qctools.xml', 'rb') as f_in, gzip.open(startObj + '.qctools.xml.gz','wb') as f_out:
-		shutil.copyfileobj(f_in,f_out)
-	os.remove(startObj + '.qctools.xml')
-	os.remove(startObj + '.temp1.nut')
-
+def main():
+	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
+	parser.add_argument('-so','--startObj',dest='so',help='the file we would like a qctools report for')
+	args = parser.parse_args() #allows us to access arguments with args.argName
+	startObj = args.so.replace("\\","/")
+	#parseInput(startObj)
+	makeReport(startObj)
 
 dependencies()
-startObj = sys.argv[1]
-startObj = startObj.replace("\\","/")
-inputCodec, filterstring = parseInput()
-transcode()
-makeReport()
+main()

@@ -115,9 +115,8 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		print ffmpegstring
 		subprocess.call(ffmpegstring)
 		time.sleep(4)
-		print assetName + EuseChar + ".wav"
 		if args.mp3 is True:
-			subprocess.call(['python','S:/avlab/microservices/makemp3.py',assetName + EuseChar + '.wav'])
+			subprocess.call(['python','S:/avlab/microservices/makemp3.py',startObj])
 	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
@@ -236,7 +235,7 @@ def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values a
 	else:
 		id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
 		#^make sure the ppl know where thsi good stuff came from
-	return id3str.encode("utf-8")
+	return id3str
 
 def makeEuseChar(SuseChar, fname): #makes the end use character for the output file
 	#end use characters correspond to different parts of our OAIS implementation

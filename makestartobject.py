@@ -143,7 +143,7 @@ def main():
 	allists["avlist"]=avlist
 	allists["cylist"]=cylist
 	allists["disclist"]=disclist
-	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file. Only works for 'audio' assets at the moment, not discs or cylinders")
+	parser = argparse.ArgumentParser(description="makes a full path from a canonical asset name")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	args = parser.parse_args()
 	startObj = args.so.replace("\\",'/') #for the windows peeps
