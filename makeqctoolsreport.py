@@ -61,7 +61,7 @@ def main():
 	parser.add_argument('-so','--startObj',dest='so',help='the file we would like a qctools report for')
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	startObj = args.so.replace("\\","/")
-	#parseInput(startObj)
+	parseInput(startObj)
 	makeReport(startObj)
 
 dependencies()

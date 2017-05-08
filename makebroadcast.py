@@ -15,6 +15,7 @@ import re
 import ast
 import time
 import argparse
+from bs4 import UnicodeDammit
 from distutils import spawn
 
 #Context manager for changing the current working directory
@@ -110,9 +111,10 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 			filterstring = "-af " + fadestring
 		elif normstring and not fadestring:
 			filterstring = "-af " + normstring
-		print id3string	
 		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 -write_bext 1 ' + assetName + EuseChar + '.wav'
-		print ffmpegstring
+		#_ffmpegstring = ffmpegstring.decode("utf-8")
+		#ffmpegstring = _ffmpegstring.encode("ascii","ignore")
+		#print ffmpegstring
 		subprocess.call(ffmpegstring)
 		time.sleep(4)
 		if args.mp3 is True:
@@ -235,6 +237,9 @@ def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values a
 	else:
 		id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
 		#^make sure the ppl know where thsi good stuff came from
+	#print id3str
+	id3str = UnicodeDammit.detwingle(id3str)
+	#print id3str
 	return id3str
 
 def makeEuseChar(SuseChar, fname): #makes the end use character for the output file
