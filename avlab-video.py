@@ -109,13 +109,19 @@ def verifyFormatPolicy(sfull,canonicalName,formatPolicy):
 			print canonicalName + " failed at " + f
 			foo = raw_input("Eh")
 	
-def pre_verifyLTOpacket(sfull,canonicalName,ltoStage):
-	sidecartypes = [".qctools.xml.gz",".PBCore2.xml"]
-	for sct in sidecartypes:
-		if not sct in str(os.listdir(sfull)):
-			print "Buddy, you need to make a derivative " + sct + " for " + sfull
-			#sys.exit()
-				
+def separateLTOpacket(sfull,canonicalName,ltoStage):
+	endDirThousand = canonicalName.replace("v","")[:1]
+	endDirThousand = endDirThousand + "000"
+	dest = os.path.join(repo,endDirThousand,s)
+	if not s.startswith("F") and not os.path.exists(dest):
+		shutil.copytree(sfull,dest,ignore=shutil.ignore_patterns("*.mxf","*.mxf.md5"))
+	subprocess.call(["python","S:/bagit-python/bagit.py",'--md5',sfull])
+	if not os.path.exists(os.path.join(dest,"baginfo")):
+		os.makedirs(os.path.join(dest,"baginfo"))
+	for f in os.listdir(sfull):
+		if f.endswith(".txt"):
+			shutil.copy2(os.path.join(sfull,f),os.path.join(dest,"baginfo"))
+
 def send2repo(dn,newIngest,ltoStage,repo):
 	print "foo"
 						
@@ -156,9 +162,8 @@ def main():
 				verifyFormatPolicy(sfull,canonicalName,formatPolicy)
 				#verify quality of transfer
 				#verifytransferqc()
-				#make sure we have everything we need to send it to LTO
-				#pre_verifyLTOpacket(sfull,canonicalName,ltoStage)
-				#send2repo(dn,newIngest,ltoStage,repo)
+			separateLTOpacket(sfull,canonicalName,repo,ltoStage)
+			#send2repo(dn,newIngest,ltoStage,repo)
 	###END WALK###
 dependencies()
 main()

@@ -64,7 +64,7 @@ def makeVideo(startObj):
 	ffdata.close()
 	return
 
-def makeAudio(args, startObj, startDir, assetName, EuseChar):
+def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 	with cd(startDir):
 		####INIT VARS###
 		#ac = '1' #audio channels
@@ -116,6 +116,7 @@ def makeAudio(args, startObj, startDir, assetName, EuseChar):
 		#ffmpegstring = _ffmpegstring.encode("ascii","ignore")
 		#print ffmpegstring
 		subprocess.call(ffmpegstring)
+		cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 		time.sleep(4)
 		if args.mp3 is True:
 			subprocess.call(['python','S:/avlab/microservices/makemp3.py',startObj])
@@ -316,8 +317,8 @@ def main():
 		#makevideo(startObj, ) gotta get on this
 	if ext in aexts:
 		EuseChar, assetName = makeEuseChar(SuseChar,fname) #grip the right filename endings, canonical name of the asset
-		makeAudio(args, startObj, startDir, assetName, EuseChar) #actually make the thing
-	cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
+		makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar) #actually make the thing
+	
 	###THINGISDONE###
 
 dependencies()

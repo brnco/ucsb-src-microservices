@@ -68,8 +68,8 @@ def main():
 				###END VALIDATE###
 				###DO FFMPEG###
 				#calls makebroadcast.py and tells it to insert 2s fades and normalize to -1.5db, MAKEBROADCAST CALLS MAKEMP3
-				subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',startObj,'-ff','-n','-c','-mp3'])
-				#subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
+				subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',startObj,'-ff','-n','-c'])
+				subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),startObj]) #calls makemp3.py on the new broadcast master
 				###END FFMPEG###
 			###LOG IT###
 			#opens a log and write "Cylinder12345" for each cylinder processed so we can change their catalog records later

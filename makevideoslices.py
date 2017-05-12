@@ -67,21 +67,21 @@ def main():
 	parser.add_argument('-so','--startObj',dest='so',help='the full path of the file to be sliced')
 	parser.add_argument('-m','--mode',dest='m',choices=['simple','complex'],help="mode, simple makes a single slice, complex takes a list - for video files with more than 1 vNumber in it")
 	parser.add_argument('-db','--doBoth',dest='db',action='store_true',help="slice both preservation and access copies")
-	parser.add_argument('-i','--in',dest='i',help="the start timestamp for the slice, HH:MM:SS:FF")
-	parser.add_argument('-o','--out',dest='o',help="the end timestamp for the slice, HH:MM:SS:FF")
+	parser.add_argument('-i','--in',dest='i',help="the start timestamp for the slice, HH:MM:SS.FF")
+	parser.add_argument('-o','--out',dest='o',help="the end timestamp for the slice, HH:MM:SS.FF")
 	parser.add_argument('-vms',dest='vms',help="list of vmNumbers (complex only)")
 	parser.add_argument('-s','--slices',dest='s',help="list of slices (complex only)")
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	startObj = args.so
 	startObj = startObj.replace("\\","/")
 	startObjBoth = ''
-	masterKey,ext = os.path.splitext(os.path.basename(startPresObj))
+	masterKey,ext = os.path.splitext(os.path.basename(startObj))
 	startDir = os.path.dirname(startObj)
 	if args.db is True:
 		if startObj.endswith(".mxf"):
 			startObjBoth = startObj.replace("pres.mxf","acc.mp4")
 		else:
-			startObjBoth = startbj.replace("acc.mxf","pres.mp4")
+			startObjBoth = startObj.replace("acc.mxf","pres.mp4")
 	if args.m == 'complex':
 		vmNums = ast.literal_eval(args.vms) #list of visual masters on the tape
 		slicepoints = ast.literal_eval(args.s) #their in and out points
