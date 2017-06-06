@@ -105,7 +105,7 @@ def mono_silence(rawfname,face,aNumber,processDir,mmrepo): #silence removal for 
 		for f in os.listdir(os.getcwd()):#make a list of the whole directory contents
 			if f.endswith(".wav"):#grip just wavs
 				try:
-					returncode = subprocess.check_output("ffmpeg -i " + f + " -af silenceremove=0:0:-50dB:-10:1:-50dB -c:a pcm_s24le -map 0 -threads 0 " + f.replace(".wav","") + "-silenced.wav")
+					returncode = subprocess.check_output("ffmpeg -i " + f + " -af silenceremove=0:0:-60dB:-15:1:-60dB -c:a pcm_s24le -map 0 -threads 0 " + f.replace(".wav","") + "-silenced.wav")
 					#CHECK_OUTPUT IS THE BEST
 					returncode = 0
 				except subprocess.CalledProcessError,e: #if there's an error, set the returncode to that
