@@ -41,7 +41,7 @@ def main():
 	batchDir = config.get('NationalJukebox','BatchDir')
 	mmrepo = config.get('global','scriptRepo')
 	vad = config.get('NationalJukebox','VisualArchRawDir')
-	vad = os.path.join(vad,time.strftime("%Y-%m-%d")) #actual capture directory has today's date in ISO format
+	#vad = os.path.join(vad,time.strftime("%Y-%m-%d")) #actual capture directory has today's date in ISO format
 	vid = config.get('NationalJukebox','VisualIntermedDir')
 	vpd = config.get('NationalJukebox','VisualProcessedDir')
 	vislist = [vad, vid, vpd] #list of dirs to go thru
@@ -67,10 +67,17 @@ def main():
 	#move all the files
 	for r in vislist:
 		subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),r]) #deal with the stupid cusb bug	
-		for dirs, subdris, files in os.walk(r):
-			for f in files:
-				fname, ext = os.path.splitext(f)
-				subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(dirs,f),os.path.join(qcDir,fname)])
+		if vislist[r] == "vad":
+			for dirs, subdris, files in os.walk(r):
+				for f in files:
+					fname, ext = os.path.splitext(f)
+					if os.path.exists(os.path.join(vpd,fname + ".tif")):
+						subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(dirs,f),os.path.join(qcDir,fname)])
+		else:
+			for dirs, subdris, files in os.walk(r):
+				for f in files:
+					fname, ext = os.path.splitext(f)
+					subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(dirs,f),os.path.join(qcDir,fname)])
 	return
 
 dependencies()
