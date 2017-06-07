@@ -246,6 +246,8 @@ def main():
 				###END THE FFMPEG###
 				###EMBED BEXT###
 				makebext(aNumber,processDir)
+				#hashmove them to the repo dir
+				move(rawfname,aNumber,captureDir,mmrepo,archRepoDir)
 				###END BEXT###
 	###END SINGLE MODE###
 	###BATCH MODE###

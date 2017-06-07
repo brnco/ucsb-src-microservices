@@ -51,7 +51,7 @@ def makenameFormatList(args,cnxn):
 
 def makeffstr_ftm(args,cnxn):
 	###init vars###
-	silencestr = " -af silenceremove=0:0:-50dB:-10:1:-50dB" #removes silence of less than -50dba that lasts longer than 10s
+	silencestr = " -af silenceremove=0:0:-60dB:-15:1:-60dB" #removes silence of less than -60dba that lasts longer than 15s
 	face = args.f
 	ffstr = ''
 	hlvstr01 = ''
@@ -173,7 +173,7 @@ def makeffstr_stereo(args,cnxn):
 	face = args.f
 	hlvstr01 = ''
 	dblstr01 = ''
-	silencestr = " -af silenceremove=0:0:-50dB:-10:1:-50dB"
+	silencestr = " -af silenceremove=0:0:-60dB:-15:1:-60dB"
 	###END INIT###
 	###HALFSPEED###
 	hlvface = ''
