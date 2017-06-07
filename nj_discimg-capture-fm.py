@@ -27,12 +27,12 @@ def main():
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
-	vad = config.get('NationalJukebox','VisualArchRawDir') #set a var for the capture directory, mimics structure found in EOS util
-	vad = os.path.join(vad,time.strftime("%Y-%m-%d"))#actual capture directory has today's date in ISO format
+	imgCaptureDir = config.get('NationalJukebox','VisualArchRawDir') #set a var for the capture directory, mimics structure found in EOS util
+	#vad = os.path.join(vad,time.strftime("%Y-%m-%d"))#actual capture directory has today's date in ISO format
 	barcode = sys.argv[1] #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename
-	with cd(vad): #cd into capture dir
+	with cd(imgCaptureDir): #cd into capture dir
 		if os.path.isfile(barcode + ".cr2") or os.path.isfile(barcode + ".CR2"): #error checking, if the file already exists
 			print "Buddy, looks like you already scanned that barcode"
 			a = raw_input("Better check on that")

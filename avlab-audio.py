@@ -195,7 +195,7 @@ def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
 	
 def main():
 	###INIT VARS###
-	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
+	parser = argparse.ArgumentParser(description="batch processes audio transfers")
 	parser.add_argument('-s',dest='s',action="store_true",default=False,help='single mode, for processing a single transfer')
 	parser.add_argument('-so','--startObj',dest='so',help="the rawcapture file.wav to process")
 	args = parser.parse_args()
