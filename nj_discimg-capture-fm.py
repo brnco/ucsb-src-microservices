@@ -8,6 +8,7 @@ import os
 import sys
 import ConfigParser
 import getpass
+import subprocess
 import time
 
 #Context manager for changing the current working directory
@@ -28,7 +29,7 @@ def main():
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	config.read(os.path.join(dn,"microservices-config.ini"))
 	imgCaptureDir = config.get('NationalJukebox','VisualArchRawDir') #set a var for the capture directory, mimics structure found in EOS util
-	#vad = os.path.join(vad,time.strftime("%Y-%m-%d"))#actual capture directory has today's date in ISO format
+	imgCaptureDir = os.path.join(imgCaptureDir,time.strftime("%Y-%m-%d"))#actual capture directory has today's date in ISO format
 	barcode = sys.argv[1] #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename
@@ -45,6 +46,8 @@ def main():
 					print "Buddy, looks like you missed scanning a barcode"
 					a = raw_input("Better check on that")
 					sys.exit()
+		output = subprocess.check_output(["python",os.path.join(dn,"nj_discimg-out.py"),"-m","single","-so",fname])
+		
 	return
 
 main()

@@ -82,16 +82,18 @@ def printhashes(sflist,shd,eflist,ehd,hashalg):
 	for sf in sflist: #loop thru list of start files
 		sfhfile = sf + "." + hashalg #make the filename for the sidecar file
 		sfhflist.extend([sfhfile])
-		if not os.path.isfile(sfhfile): #if it doesn't already exist
-			txt = open(sfhfile, "w") #old school
-			txt.write(shd[os.path.basename(sf)] + " *" + os.path.basename(sf)) #lmao at these var names, writes [the start hash from the start hash dict *the filename]
-			txt.close()
+		if os.path.exists(sfhfile):
+			os.remove(sfhfile)
+		txt = open(sfhfile, "w") #old school
+		txt.write(shd[os.path.basename(sf)] + " *" + os.path.basename(sf)) #lmao at these var names, writes [the start hash from the start hash dict *the filename]
+		txt.close()
 	for ef in eflist: #repeat for endfiles
 		efhfile = ef + "." + hashalg
-		if not os.path.isfile(efhfile):
-			txt = open(efhfile, "w")
-			txt.write(ehd[os.path.basename(ef)] + " *" + os.path.basename(ef))
-			txt.close() 
+		if os.path.exists(efhfile):
+			os.remove(efhfile)
+		txt = open(efhfile, "w")
+		txt.write(ehd[os.path.basename(ef)] + " *" + os.path.basename(ef))
+		txt.close() 
 	return sfhflist
 	
 def copyfiles(flist):
@@ -188,6 +190,7 @@ def main():
 	parser.add_argument('-a','--algorithm',action='store',dest='a',default='md5',choices=['md5','sha1','sha256','sha512'],help="the hashing algorithm to use")
 	parser.add_argument('-np','--noprint',action='store_true',dest='np',default=False,help="no print mode, don't generate sidecar hash files")
 	parser.add_argument('-nm','--nomove',action='store_true',dest='nm',default=False,help="no move mode, hash the file in place only")
+	parser.add_argument('-g','--grip',action='store_true',dest='g',default=False,help="use hash values from existing sidecar files, default is False")
 	parser.add_argument('startObj',help="the file or directory to hash/ move/ copy/ verify/ delete")
 	parser.add_argument('endObj',nargs='?',default=os.getcwd(),help="the destination parent directory")
 	args = parser.parse_args()
@@ -205,13 +208,12 @@ def main():
 	startObj = args.startObj.replace("\\","/") #everything is gonna break if we don't do this for windows ppl
 	if args.v is True and args.endObj == os.getcwd(): #if we're verifying a directory against itself, not another directory
 		endObj = args.startObj.replace("\\","/")
-		grip = False #determines if we grip the hash value from a previously existing sidecar file
 	else:
 		endObj = args.endObj.replace("\\","/")
-		grip = True
 	if args.q is True: #quiet mode redirects standard out to nul
 		f = open(os.devnull,'w')
 		sys.stdout = f
+	grip = args.g
 	hashAlgorithm = hashlib.new(args.a) #creates a hashlib object that is the algorithm we're using
 	hashlengths = {'md5':'32','sha1':'40','sha256':'64','sha512':'128'}
 	hashlength = hashlengths[args.a] #set value for comparison later

@@ -84,11 +84,20 @@ def main():
 	
 	if args.m == "single":
 		startObj = args.so.replace("\\","/")
-		startObjFP = os.path.join(imgCaptureDir,startObj)
+		if not startObj.startswith(imgCaptureDir):
+			for dirs,subdirs,files in os.walk(imgCaptureDir):
+				for f in files:
+					if f == startObj:
+						startObjFP = os.path.join(dirs,startObj)
+						break
+		else:
+			startObjFP = startObj
 		fname,ext = os.path.splitext(startObj)
 		endDir = os.path.join(qcDir,fname)
 		if not os.path.exists(endDir):
 			os.makedirs(endDir)
+		#print startObjFP
+		#foo = raw_input("eh")
 		#get the orientation of the image and set output rotation accordingly
 		rotation = gmIdentify(startObjFP)
 		
@@ -102,10 +111,10 @@ def main():
 		moveSO(startObjFP,endDir,mmrepo)
 
 	elif args.m == "batch":
-		for f in os.listdir(imgCaptureDir):
-			if os.path.isfile(os.path.join(imgCaptureDir,f)):
+		for dirs,subdirs,files in os.walk(imgCaptureDir):
+			for f in files:
 				startObj = f
-				startObjFP = os.path.join(imgCaptureDir,f)
+				startObjFP = os.path.join(dirs,f)
 				fname,ext = os.path.splitext(f)
 				endDir = os.path.join(qcDir,fname)
 				if not os.path.exists(endDir):
