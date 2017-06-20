@@ -4,6 +4,7 @@
 
 [global]
 scriptRepo:
+logLocation:
 
 [NationalJukebox]
 AudioArchDir: 

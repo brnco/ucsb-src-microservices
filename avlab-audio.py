@@ -275,7 +275,10 @@ def main():
 					###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 					output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
 					print output
-					processList = ast.literal_eval(output)
+					if not output.startswith("uh buddy"):
+						processList = ast.literal_eval(output)
+					else:
+						continue
 					if processList is not None:
 						for p in processList:
 							if p is None:
