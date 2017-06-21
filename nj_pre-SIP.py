@@ -8,6 +8,7 @@ import ConfigParser
 import getpass
 import os
 import subprocess
+import imp
 
 #Context manager for changing the current working directory
 class cd:
@@ -40,22 +41,26 @@ def main():
 	#initialize from the config file
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	config.read(os.path.join(dn,"microservices-config.ini"))
 	qcDir = config.get('NationalJukebox','PreIngestQCDir')
 	batchDir = config.get('NationalJukebox','BatchDir')
 	mmrepo = config.get('global','scriptRepo')
 	scratch = config.get('NationalJukebox','scratch')
 	extlist = ['m.wav','.wav','.tif']
-
+	log.log("started")
+	
 	subprocess.call(['python',os.path.join(mmrepo,'rename_ucsbtocusb.py'),qcDir]) #rename them from ucsb to cusb
 	
 	dirlist = makelist(qcDir, batchDir, extlist,mmrepo,scratch)
 	
 	#now move them
 	for d in dirlist: #for each verified subdir
-		print os.path.join(batchDir,d)
+		log.log(d)
 		subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),os.path.join(qcDir,d),os.path.join(batchDir,d)]) #hashmove it to the batch folder
 				
 	return
 
 main()
+log.log("complete")

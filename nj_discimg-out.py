@@ -11,6 +11,7 @@ import sys
 import time
 import getpass
 import re
+import imp
 from distutils import spawn
 
 #Context manager for changing the current working directory
@@ -36,7 +37,7 @@ def dependencies():
 	
 def gmIdentify(startObjFP):
 	output = subprocess.check_output(['gm','identify','-verbose',startObjFP])
-	print output
+	log.log(output)
 	match = ''
 	match = re.search(r"Geometry:.*\n",output)
 	if match:
@@ -51,21 +52,22 @@ def gmIdentify(startObjFP):
 		return rotation
 	else:
 		print "buddy, something's up"
+		log.log({"message":"something is wrong with the rotation calculation","level":"error"})
 		sys.exit()
 	
 def gmToTif(startObjFP,fname,rotation,endDir,mmrepo):
 	output = subprocess.check_output(['gm','convert',startObjFP,'-rotate',rotation,'-crop','3648x3648+920','-density','300x300',os.path.join(endDir,fname + ".tif")])
-	print output
 	output = subprocess.check_output(['python',os.path.join(mmrepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".tif")])
+	log.log(output)
 	
 def gmToJpg(startObjFP,fname,endDir,mmrepo):
 	output = subprocess.check_output(['gm','convert',os.path.join(endDir,fname + ".tif"),'-resize','800x800',os.path.join(endDir,fname + ".jpg")])
-	print output
 	output = subprocess.check_output(['python',os.path.join(mmrepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".jpg")])
+	log.log(output)
 
 def moveSO(startObjFP,endDir,mmrepo):
 	output = subprocess.check_output(['python',os.path.join(mmrepo,'hashmove.py'),startObjFP,endDir])
-	print output
+	log.log(output)
 	
 def main():
 	###INIT VARS###
@@ -76,12 +78,14 @@ def main():
 	#initialize from the config file
 	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	config.read(os.path.join(dn,"microservices-config.ini"))
 	qcDir = config.get('NationalJukebox','PreIngestQCDir')
 	batchDir = config.get('NationalJukebox','BatchDir')
 	mmrepo = config.get('global','scriptRepo')
 	imgCaptureDir = config.get('NationalJukebox','VisualArchRawDir')
-	
+	log.log("started")
 	if args.m == "single":
 		startObj = args.so.replace("\\","/")
 		if not startObj.startswith(imgCaptureDir):
@@ -132,6 +136,7 @@ def main():
 				#move startObj
 				moveSO(startObjFP,endDir,mmrepo)
 	
-
+#log=''
 dependencies()
 main()
+log.log("complete")

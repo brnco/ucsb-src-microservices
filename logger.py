@@ -19,8 +19,8 @@ def makePID(pid):
 
 #actually does the thing	
 def write(message,pid,level,caller,fname):
-	logging.basicConfig(filename=fname,format='%(asctime)s %(levelname)s %(name)s %(process)d-%(threadName)s: %(message)s',datefmt='%Y-%m-%d %I:%M:%S %p',level=logging.DEBUG)
-	logging.getLogger(caller).info(message)
+	logging.basicConfig(filename=fname,format='%(asctime)s %(levelname)s %(name)s %(process)d-%(threadName)s:\n %(message)s',datefmt='%Y-%m-%d %I:%M:%S %p',level=logging.DEBUG)
+	logging.getLogger(caller).info(str(message))
 
 #parses input, formats for write	
 def log(message,**kwargs):
@@ -44,7 +44,8 @@ def log(message,**kwargs):
 		level = "info"
 	else:
 		level = kwargs['level']
-	fname = os.path.join(logLoc,time.strftime("%Y-%m-%d"),pid + ".log")
+	pidTime = str(psutil.Process(int(pid)).create_time())	
+	fname = os.path.join(logLoc,time.strftime("%Y-%m-%d"),pid + "-" + pidTime + ".log") #logs saved per day (prevent PID-named files from containing too many runs)
 	if not os.path.exists(os.path.dirname(fname)):
 		os.makedirs(os.path.dirname(fname))
 	###END MAKE###
