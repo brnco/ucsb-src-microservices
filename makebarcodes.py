@@ -6,12 +6,22 @@
 import os
 import shutil
 import time
+import sys
 
 
 
 def makebarcodefile ():
 	#initialize a barcode file in the current directory
-	tmpBcdFile = os.getcwd() + '/temp-bcd-' + str(time.time()) + '.txt'	
+	try:
+		tmpBcdFile = os.path.join(os.environ["HOME"], "Desktop", 'temp-bcd-' + str(time.time()) + '.txt')
+	except:
+		tmpBcdFile = os.path.join(os.environ["USERPROFILE"], "Desktop", 'temp-bcd-' + str(time.time()) + '.txt')
+	if not tmpBcdFile:
+		print "could initialize barcode file for Mac at:"
+		print os.path.join(os.environ["HOME"], "Desktop", 'temp-bcd-' + str(time.time()) + '.txt')
+		print "or for Windows at:"
+		print os.path.join(os.environ["USERPROFILE"], "Desktop", 'temp-bcd-' + str(time.time()) + '.txt')
+		sys.exit()				
 	while True: #loops as long as the user answers yes
 		bcdf = open(tmpBcdFile, 'a') #open the text file
 		title = raw_input("Title: ") #grab the title from the user input on the CLI

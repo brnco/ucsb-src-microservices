@@ -51,7 +51,9 @@ def main():
 	_fname = barcode + ".wav"
 	if not os.path.exists(os.path.join(archDir,_fname)) or not os.path.exists(os.path.join(broadDir,_fname)):
 		log.log(**{"message":"file " + _fname + " missing from arch or broad dir, not processed","level":"error"})
-		print "File " + _fname + " missing from arch or broad directory, not processed, please look into it"
+		print "File " + _fname + " missing from arch or broad directory and was not processed"
+		#print "Please check that you saved the file to the right directory in Wavelab before indicating that it was transferred"
+		foo = raw_input("Please check that the file was named correctly and saved to the correct directory")
 		sys.exit()
 	else:	
 		barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
@@ -78,6 +80,7 @@ def main():
 				else:	
 					break
 			except OSError,e:
+				time.sleep(60)
 				timeDiff = time.time() - startTime		
 		if timeDiff	>= 900.0:
 			log.log(**{"message":"attempt to process " + fname + " timed out","level":"warning"})

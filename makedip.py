@@ -85,11 +85,12 @@ def makeTranscodeList(args,archiveDir):
 					a.remove(v)
 		for f in b:
 			assetName = re.search('cusb-a\d+',f)
+			raw_assetName = re.search('\w{8}-\w{4}-\w{4}-\w{4}-',f)
 			for v in u:
-				if assetName.group() in v:
+				if assetName.group() in v or raw_assetName.group() in v:
 					u.remove(v)
 			for v in a:
-				if assetName.group() in v:
+				if assetName.group() in v or raw_assetName.group() in v:
 					a.remove(v)
 		###END DEDUPE###
 	###END FOR TAPES###
