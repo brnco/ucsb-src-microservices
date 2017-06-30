@@ -5,3 +5,5 @@
 *.mxf
 *.mp4
 src*
+*.DS_Store
+*.log
