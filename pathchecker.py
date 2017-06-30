@@ -13,8 +13,8 @@ def make(path):
 		realpath = os.path.join(drive,path)
 	else: #if mac/ unix
 		if "microservices-logs" in path:
-			drive = "/special/DeptShare/special"
+			drive = "/Volumes/special/DeptShare/special"
 		else:
-			drive = "/special"
+			drive = "/Volumes/special"
 		realpath = os.path.join(drive,path)
 	return realpath
