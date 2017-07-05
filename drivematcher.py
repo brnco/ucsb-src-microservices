@@ -18,3 +18,10 @@ def match(path):
 			drive = "/Volumes/special"
 		realpath = os.path.join(drive,path)
 	return realpath
+
+def desktop():
+	try:
+		desktop = os.path.join(os.environ["HOME"], "Desktop")
+	except:
+		desktop = os.path.join(os.environ["USERPROFILE"], "Desktop")
+	return desktop
