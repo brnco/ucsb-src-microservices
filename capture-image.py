@@ -20,7 +20,7 @@ def main():
     dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
     config.read(os.path.join(dn,"microservices-config.ini"))
     njImageCaptureDir = config.get("NationalJukebox","VisualArchRawDir")
-    drive = imp.load_source('drive',os.path.join(dn,'drivematcher.py'))
+    util = imp.load_source('util',os.path.join(dn,'util.py'))
     logging.basicConfig(
         format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
     gp.check_result(gp.use_python_logging())
@@ -32,9 +32,9 @@ def main():
         camera, gp.GP_CAPTURE_IMAGE, context))
     print('Camera file path: {0}/{1}'.format(file_path.folder, file_path.name))
     if args.nj:
-        target = drive.match(os.path.join(njImageCaptureDir, file_path.name))
+        target = util.drivematch(os.path.join(njImageCaptureDir, file_path.name))
     else:
-        target = os.path.join(drive.desktop(), file_path.name)
+        target = os.path.join(util.desktop(), file_path.name)
     count = 0
     while os.path.exists(target):
         count = count + 1
