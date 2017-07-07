@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+import os
+
+def drivematch(path):
+	if path.startswith("/") or path.startswith("\\"):
+		path = path[1:]
+	path.replace("\\","/")	
+	if not os.name == 'posix': #if windows
+		if "microservices-logs" in path:
+			drive = "S:/"
+		else:
+			drive = "R:/"
+		realpath = os.path.join(drive,path)
+	else: #if mac/ unix
+		if "microservices-logs" in path:
+			drive = "/Volumes/special/DeptShare/special"
+		else:
+			drive = "/Volumes/special"
+		realpath = os.path.join(drive,path)
+	return realpath
+
+def desktop():
+	try:
+		desktop = os.path.join(os.environ["HOME"], "Desktop")
+	except:
+		desktop = os.path.join(os.environ["USERPROFILE"], "Desktop")
+	return desktop
+
+#Context manager for changing the current working directory
+class cd:
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+#check that we have the required software to run a script
+def dependencies(depends):
+	for d in depends:
+		if spawn.find_executable(d) is None:
+			print "Buddy, you gotta install " + d
+			sys.exit()
+	return        
+
+#add /usr/local/bin prefix to python calls for macs		

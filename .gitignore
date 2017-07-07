@@ -1,7 +1,8 @@
-*.ini
 *.bcd
 *.wav
 *.mp3
 *.mxf
 *.mp4
 src*
+*.DS_Store
+*.log
