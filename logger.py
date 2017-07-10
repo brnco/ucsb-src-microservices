@@ -3,8 +3,7 @@ import inspect
 import os
 import psutil
 import time
-import ConfigParser
-
+import imp
 #makes a processID if none provided
 #searches up the stack for the top-most parent pid
 def makePID(pid):
@@ -25,10 +24,11 @@ def write(message,pid,level,caller,fname):
 #parses input, formats for write	
 def log(message,**kwargs):
 	###INIT FROM CONFIG FILE###
-	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	config.read(os.path.join(dn,"microservices-config.ini"))
-	logLoc = config.get('global','logLocation')
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	logLoc = conf.log.location
 	###END INIT###
 	###MAKE COMPONENTS###
 	if not 'pid' in kwargs:

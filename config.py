@@ -10,7 +10,7 @@ def config():
 	config = ConfigParser.RawConfigParser(allow_no_value=True)
 	config.read(os.path.join(scriptRepo,"microservices-config.ini"))
 	conf = {'log':{},'NationalJukebox':{},'cylinders':{},'discs':{},'video':{},'magneticTape':{}}
-	tags = ['location','AudioArchDir','AudioBroadDir','PreIngestQC','VisualArchRawDir','BatchDir','scratch','new_ingest','repo','avlab','lto_stage','vid_leads','format_policy']
+	tags = ['location','AudioArchDir','AudioBroadDir','PreIngestQCDir','VisualArchRawDir','BatchDir','scratch','new_ingest','repo','avlab','lto_stage','vid_leads','format_policy']
 	for c in conf:
 		for t in tags:
 			try: #see if it's in the config section
