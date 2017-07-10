@@ -15,20 +15,9 @@ import re
 import ast
 import time
 import argparse
+import imp
 from bs4 import UnicodeDammit
 from distutils import spawn
-
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
 
 #check that we have required software installed
 def dependencies():
@@ -65,7 +54,7 @@ def makeVideo(startObj):
 	return
 
 def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
-	with cd(startDir):
+	with ut.cd(startDir):
 		####INIT VARS###
 		#ac = '1' #audio channels
 		ar = '44100' #audio rate
@@ -119,7 +108,7 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 		time.sleep(4)
 		if args.mp3 is True:
-			subprocess.call(['python','S:/avlab/microservices/makemp3.py',startObj])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',startObj])
 	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
@@ -268,19 +257,22 @@ def makeEuseChar(SuseChar, fname): #makes the end use character for the output f
 	
 def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName): #deletes and renames stuff if the operation was successful
 	if SuseChar == 'b': #if we made a broadcast amster from a raw broadcast master
-		with cd(startDir):
+		with ut.cd(startDir):
 			if os.path.exists(assetName + "b.wav") and os.path.exists(assetName + "c.wav"):
 				if args.nd is False: #if we didn't say not to delete it
 					os.remove(assetName + "b.wav")
 					os.rename(assetName + "c.wav", assetName + "b.wav")
 	if args.nj is True:
-		with cd(startDir):
+		with ut.cd(startDir):
 			if args.nd is False:
 				os.remove(startObj)
 			os.rename(assetName + EuseChar + '.wav',assetName + '.wav')
 
 def main():
 	###INIT VARS###
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')

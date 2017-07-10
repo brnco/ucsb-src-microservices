@@ -10,19 +10,8 @@ import sys
 import glob
 import ast
 import argparse
+import imp
 from distutils import spawn
-
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
 
 #check that we have the required software to run this script
 def dependencies():
@@ -63,6 +52,16 @@ def makesimpleslice(args,startObj,startObjBoth,startDir,masterKey,ext):
 
 
 def main():
+	###INIT VARS###
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	log.log("Started")
 	parser = argparse.ArgumentParser(description="slices video into segments")
 	parser.add_argument('-so','--startObj',dest='so',help='the full path of the file to be sliced')
 	parser.add_argument('-m','--mode',dest='m',choices=['simple','complex'],help="mode, simple makes a single slice, complex takes a list - for video files with more than 1 vNumber in it")

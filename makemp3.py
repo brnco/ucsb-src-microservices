@@ -12,19 +12,8 @@ import sys
 import glob
 import re
 import argparse
+import imp
 from distutils import spawn
-
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
 
 #check that we have the required software to run this script
 def dependencies():
@@ -58,21 +47,25 @@ def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 
 def makeAudio(startObj, startDir, assetName, EuseChar):	#make the mp3
 	endObj = assetName + EuseChar + '.mp3' #give it a name
-	with cd(startDir):
+	with ut.cd(startDir):
 		subprocess.call(['ffmpeg','-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj]) #atually do it
 	return
 
 def main():
 	#initialize a buncha crap
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('startObj',nargs ='?',help='the file to be transcoded',)
-	args = vars(parser.parse_args()) #create a dictionary instead of leaving args in NAMESPACE land
-	startObj = subprocess.check_output(['python','S:/avlab/microservices/makestartobject.py','-so',args["startObj"]])
+	parser.add_argument('-so','--startObj',nargs ='?',help='the file to be transcoded',)
+	args = parser.parse_args() #create a dictionary instead of leaving args in NAMESPACE land
+	startObj = subprocess.check_output(['python',os.path.join(dn,'makestartobject.py'),'-so',args.startObj])
 	startObj = startObj.replace("\\",'/')[:-2] #for the windows peeps
-	print startObj
-	#if not os.path.exists(startObj): #is it really really real
-		#print "Buddy, that's not a file"
-		#sys.exit()
 	fnamext = os.path.basename(os.path.abspath(startObj)) #filname plus extension of the startObj
 	fname, ext = os.path.splitext(fnamext) #split the filename from extension
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
@@ -98,7 +91,6 @@ def main():
 		EuseChar = "d"
 	id3Check(startObj, assetName) #call the id3 check function
 	makeAudio(startObj, startDir, assetName, EuseChar) #call the makeaudio function
-	return
 
 dependencies()
 main()
