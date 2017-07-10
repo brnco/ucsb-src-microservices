@@ -158,7 +158,7 @@ def gettapeid3(startDir, assetName):
 	match = re.search("a\d{4,5}",assetName) #grip just the a1234 part of the filename
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName.capitalize(),"-id3","-t"]) #ask filemaker for the value for each field
+	id3rawlist = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"fm-stuff.py"),"-so",assetName.capitalize(),"-id3","-t"]) #ask filemaker for the value for each field
 	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str
@@ -170,7 +170,7 @@ def getcylinderid3(args,assetName):
 	match = re.search(r"\d{4,5}",assetName) #grip just the number of the cylinder
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python","S:/avlab/microservices/fm-stuff.py","-so",assetName.replace("cusb-cyl",""),"-id3","-c"]) #ask filemaker for the values for each field
+	id3rawlist = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"fm-stuff.py"),"-so",assetName.replace("cusb-cyl",""),"-id3","-c"]) #ask filemaker for the values for each field
 	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str	
@@ -178,7 +178,7 @@ def getcylinderid3(args,assetName):
 def getdiscid3(args,assetName):
 	id3fields=["title=","artist=","date="] #set the fields we need for this object type
 	id3str = ""
-	output = subprocess.Popen(["python","S:/avlab/microservices/catalog-stuff.py","-sys",args.sys],stdout=PIPE,stderr=PIPE) #ask the catalog for the values for each field
+	output = subprocess.Popen(["python",os.path.join(conf.scriptRepo,"catalog-stuff.py"),"-sys",args.sys],stdout=PIPE,stderr=PIPE) #ask the catalog for the values for each field
 	id3rawlist1 = output.communicate() #convert from output object to string
 	###1 SIDE OR 2###
 	#discs can have multiple values come back from catalog-stuff
@@ -271,8 +271,13 @@ def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName): #deletes and re
 def main():
 	###INIT VARS###
 	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
 	global ut
 	ut = imp.load_source("util",os.path.join(dn,"util.py"))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
@@ -287,7 +292,7 @@ def main():
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
 	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
-	startObj = subprocess.check_output(["python","S:/avlab/microservices/makestartobject.py","-so",args.so])
+	startObj = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
 	startObj = startObj.replace("\\","/")[:-2]
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
 	aexts = ['.wav'] #set extensions we recognize for audio
