@@ -1,0 +1,23 @@
+#config
+import ConfigParser
+import os
+import imp
+
+
+def config():
+	scriptRepo, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
+	ut = imp.load_source('util',os.path.join(scriptRepo,"util.py"))
+	config = ConfigParser.RawConfigParser(allow_no_value=True)
+	config.read(os.path.join(scriptRepo,"microservices-config.ini"))
+	conf = {'log':{},'NationalJukebox':{},'cylinders':{},'discs':{},'video':{},'magneticTape':{}}
+	tags = ['location','AudioArchDir','AudioBroadDir','PreIngestQC','VisualArchRawDir','BatchDir','scratch','new_ingest','repo','avlab','lto_stage','vid_leads','format_policy']
+	for c in conf:
+		for t in tags:
+			try: #see if it's in the config section
+				conf[c][t] = ut.drivematch(config.get(c,t)) #if it is, replace _ necessary for config file with . which xml attributes use, assign the value in config
+			except: #if no config tag exists, do nothing so we can move faster
+				pass
+		conf[c] = ut.dotdict(conf[c])
+	conf['scriptRepo'] = scriptRepo
+	conf = ut.dotdict(conf)			
+	return conf	
