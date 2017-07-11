@@ -5,6 +5,11 @@ import psutil
 import time
 import imp
 import getpass
+import unittest
+
+class testAdditionalMethods(unittest.TestCase):
+	def test_current_pid(self):
+		self.assertEqual(makePID(os.getpid()),os.getpid())
 
 #makes a processID if none provided
 #searches up the stack for the top-most parent pid
@@ -56,3 +61,6 @@ def log(message,**kwargs):
 	###DO THE THING###
 	write(message,pid,level,caller,fname)
 	###DONE###
+	
+if __name__ == '__main__':
+    unittest.main()	

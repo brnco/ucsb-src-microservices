@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import unittest
 
 def drivematch(path):
 	if path.startswith("/") or path.startswith("\\"):
@@ -49,4 +50,7 @@ class dotdict(dict):
 	__getattr__ = dict.get
 	__setattr__ = dict.__setitem__
 	__delattr__ = dict.__delitem__
-#add /usr/local/bin prefix to python calls for macs		
+
+
+if __name__ == '__main__':
+    unittest.main()		

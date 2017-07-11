@@ -2,7 +2,7 @@
 import ConfigParser
 import os
 import imp
-
+import unittest
 
 def config():
 	scriptRepo, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
@@ -20,4 +20,7 @@ def config():
 		conf[c] = ut.dotdict(conf[c])
 	conf['scriptRepo'] = scriptRepo
 	conf = ut.dotdict(conf)			
-	return conf	
+	return conf
+
+if __name__ == '__main__':
+    unittest.main()	
