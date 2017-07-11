@@ -6,21 +6,9 @@ import sys
 import glob
 import re
 import argparse
-import ConfigParser
+import imp
 import getpass
 from distutils import spawn
-
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
 
 #check that we have required software installed
 def dependencies():
@@ -43,7 +31,7 @@ def makeThem(startObj, archRepoDir,vidLeadDir):
 	qa = '"' + "'"
 	aq = "'" + '"'
 	###END INIT###
-	with cd(os.path.join(archRepoDir,startObj)):
+	with ut.cd(os.path.join(archRepoDir,startObj)):
 		
 		#headwhite.mov
 		#make a blank white 1920x1080 frame 10s long
@@ -76,7 +64,7 @@ def makeThem(startObj, archRepoDir,vidLeadDir):
 
 		
 def concatThem(startObj, archRepoDir,vidLeadDir):
-	with cd(os.path.join(archRepoDir,startObj)):
+	with ut.cd(os.path.join(archRepoDir,startObj)):
 		###INIT CONCAT.TXT###
 		concatxt = open("concat.txt","w")
 		concatxt.write('file ' + os.path.join(vidLeadDir,'headlogoandtxt.mov\n'))
@@ -100,15 +88,20 @@ def concatThem(startObj, archRepoDir,vidLeadDir):
 		
 def main():
 	###INIT VARS###
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObject',dest='i',help='the canonical name of the disc to make a vid for, e.g. cusb_victor_123_04_567_89')
 	parser.add_argument('-d','--disc',dest='d',action='store_true',default=False,help='make a video for a disc. cylinder option coming soon')
 	args = parser.parse_args()
-	config = ConfigParser.ConfigParser()
-	config.read("C:/Users/" + getpass.getuser() + "/microservices-config.ini")
-	archRepoDir = config.get('discs','archRepoDir')
-	vidLeadDir = config.get('video','vid_leads')
-	mmrepo = config.get('global','scriptRepo')
+	archRepoDir = conf.discs.archRepoDir
+	vidLeadDir = conf.video.vid_leads
 	###END INIT###
 	if args.d is True:
 		makeThem(args.so,archRepoDir,vidLeadDir)

@@ -4,25 +4,11 @@
 
 import os
 import sys
-import ConfigParser
 import getpass
 import time
 import imp
 import subprocess
 from distutils import spawn
-
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
 
 #check that we have the required software to run this script
 def dependencies():
@@ -36,17 +22,19 @@ def dependencies():
 	
 def main():
 	###INIT STUFF###
-	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("started")
-	config.read(os.path.join(dn,"microservices-config.ini"))
-	qcDir = config.get('NationalJukebox','PreIngestQCDir')
-	batchDir = config.get('NationalJukebox','BatchDir')
-	mmrepo = config.get('global','scriptRepo')
-	archDir = config.get('NationalJukebox','AudioArchDir')
-	broadDir = config.get('NationalJukebox','AudioBroadDir')
+	global ut
+	ut = imp.load_source('util',os.path.join(dn,'util.py'))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	qcDir = conf.NationalJukebox.PreIngestQCDir
+	batchDir = conf.NationalJukebox.BatchDir
+	archDir = conf.NationalJukebox.AudioArchDir
+	broadDir = conf.NationalJukebox.AudioBroadDir
 	barcode = sys.argv[1] #grab the lone argument that FM provides
 	_fname = barcode + ".wav"
 	if not os.path.exists(os.path.join(archDir,_fname)) or not os.path.exists(os.path.join(broadDir,_fname)):
@@ -93,11 +81,11 @@ def main():
 	###END INIT###
 	log.log("timeDiff = " + str(timeDiff))
 	###make broadcast master###
-	output = subprocess.check_output(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',broadcastFP,'-ff','-nj'],stderr=subprocess.STDOUT) #makebroadcast with fades, nj naming
+	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',broadcastFP,'-ff','-nj'],stderr=subprocess.STDOUT) #makebroadcast with fades, nj naming
 	log.log(output)
 	#pop them into the qc dir in a subdir named after their filename
 	#hashmove makes end dir if it doesnt exist already
-	output = subprocess.check_output(['python',os.path.join(mmrepo,'hashmove.py'),broadcastFP,os.path.join(qcDir,barcode)])
+	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'hashmove.py'),broadcastFP,os.path.join(qcDir,barcode)])
 	log.log(output)
 	###end make broadcast master###
 	###make archive master###
@@ -107,11 +95,11 @@ def main():
 	subprocess.call(['bwfmetaedit','--in-core-remove',archiveFP_post])
 	subprocess.call(['bwfmetaedit','--MD5-Embed',archiveFP_post])
 	#move them to qc dir in subdir named after their canonical filename (actual file name has "m" at end)
-	output = subprocess.check_output(['python',os.path.join(mmrepo,'hashmove.py'),archiveFP_post,os.path.join(qcDir,barcode)])
+	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'hashmove.py'),archiveFP_post,os.path.join(qcDir,barcode)])
 	log.log(output)
 	###end make archive master###
 	###delete bs###
-	with cd(archDir):
+	with ut.cd(archDir):
 		for dirs, subdirs, files in os.walk(os.getcwd()):
 			for f in files:
 				if f.endswith(".gpk") or f.endswith(".mrk"):
@@ -119,7 +107,7 @@ def main():
 						os.remove(f)
 					except:
 						pass
-	with cd(broadDir):
+	with ut.cd(broadDir):
 		for dirs, subdirs, files in os.walk(os.getcwd()):
 			for f in files:
 				if f.endswith(".gpk") or f.endswith(".bak") or f.endswith(".mrk"):

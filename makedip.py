@@ -14,20 +14,8 @@ import zipfile
 import zlib
 import time
 from distutils import spawn
-import ConfigParser
+import imp
 import getpass
-
-class cd:
-    #Context manager for changing the current working directory
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
 
 def dependencies():
 	depends = ['ffmpeg','ffprobe']
@@ -60,7 +48,7 @@ def makeTranscodeList(args,archiveDir):
 			startDirs.append(startDir)
 			###END MAKE LIST###
 			###FIND OBJECTS###
-			with cd(startDir):
+			with ut.cd(startDir):
 				for file in os.listdir(os.getcwd()):
 					if file.endswith("b.wav"):
 						b.append(os.path.join(os.getcwd(),file))
@@ -99,7 +87,7 @@ def makeTranscodeList(args,archiveDir):
 		for obj in args.so:
 			startDir = os.path.join(archiveDir,obj)
 			startDirs.append(startDir)
-			with cd(startDir):
+			with ut.cd(startDir):
 				for file in os.listdir(os.getcwd()):
 					if file.endswith("b.wav"):
 						b.append(os.path.join(os.getcwd(),file))
@@ -138,26 +126,25 @@ def makeTranscodeList(args,archiveDir):
 	
 def main():
 	###INIT VARS###
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-t','--tape',action='store_true',dest='t',default=False,help="make dip with audio template")
 	parser.add_argument('-d','--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
 	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")	
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
-	#parser.add_argument('-a','--archival',dest='a',help="don't transcode a broadcast master or mp3, dip the archival master")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
-	#parser.add_argument('-mb','--makeBroadcast',nargs='+',choices=['ff','s','mp3','n','d'],dest='mb',help="options for makebroadcast")
 	args = parser.parse_args()
-	#print args.mb
-	config = ConfigParser.ConfigParser()
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	config.read(os.path.join(dn,"microservices-config.ini"))
-	mmrepo = config.get('global','scriptRepo')
 	if args.t is True:
-		archiveDir = config.get("magneticTape","repo") #grab archive directory for audio tapes
+		archiveDir = conf.magneticTape.repo #grab archive directory for audio tapes
 	elif args.d is True:
 		#archiveDir = config.get("discs","repo")
-		startObj = subprocess.check_output(["python",os.path.join(mmrepo,"makestartobject.py"),"-so",args.so])
+		startObj = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
 		startObj = startObj.replace("\\","/")[:-2]
 		print startObj
 		archiveDir = os.path.dirname(os.path.dirname(startObj))
@@ -171,17 +158,17 @@ def main():
 	#transcode where necessary
 	for f in a:
 		if args.t is True and args.hq is True:
-			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
-			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
 	for f in b:
 		if args.t is True:
-			subprocess.call(['python',os.path.join(mmrepo,'makemp3.py'),f])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
 	for f in u:
 		if args.t is True and args.hq is True: 
-			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t'])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
-			subprocess.call(['python',os.path.join(mmrepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
 	
 	#make a final list of stuff we gonna dip
 	veggies = []
@@ -198,15 +185,18 @@ def main():
 			
 	
 	#hashmove to dir on desktop named for TN
-	dipDir = os.path.join("C:/Users",getpass.getuser(),"Desktop",args.tn)
+	try:	
+		dipDir = os.path.join(os.environ["HOME"], "Desktop",args.tn)
+	except:
+		dipDir = os.path.join(os.environ["USERPROFILE"], "Desktop",args.tn)
 	if not os.path.isdir(dipDir):
 		os.makedirs(dipDir)
 	for f in veggies:
-		subprocess.call(['python',os.path.join(mmrepo,'hashmove.py'),'-c',f,dipDir])
+		subprocess.call(['python',os.path.join(conf.scriptRepo,'hashmove.py'),'-c',f,dipDir])
 	
 	#compress dir on desktop
 	if args.z is True:
-		tnDir = os.path.join("C:/Users/",getpass.getuser(),"Desktop",args.tn)
+		tnDir = dipDir
 		with cd(tnDir):
 			zf = zipfile.ZipFile(tnDir + ".zip","w")
 			for f in os.listdir(os.getcwd()):

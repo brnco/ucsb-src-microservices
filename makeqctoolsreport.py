@@ -57,7 +57,7 @@ def makeReport(startObj):
 	
 
 def main():
-	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
+	parser = argparse.ArgumentParser(description="Makes a qctools report")
 	parser.add_argument('-so','--startObj',dest='so',help='the file we would like a qctools report for')
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	startObj = args.so.replace("\\","/")
