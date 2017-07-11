@@ -1,6 +1,33 @@
 This document contains an overview of the various post-processing scripts we use here in the AVLab at UCSB's SRC.
 Please see AVLab Utility Software List & Installation Instructions (on the wiki) for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of those software functionalities.
- 
+
+* [Intro](#intro)
+* [Configuration](#configuration)
+* [makesomethings](#makesomethings)
+   * [makebroadcast](#makebroadcast)
+   * [makemp3](#makemp3)
+   * [makereverse](#makereverse)
+   * [makeffmetadata](#makeffmetadata)
+   * [makebext](#makebext)
+   * [makeqctoolsreport](#makeqctoolsreport)
+   * [makebarcodes](#makebarcodes)
+   * [makevideoslices](#makevideoslices)
+   * [makedip](#makedip)
+   * [makevideoSIP (DEPRECATED)](#makevideosip-deprecated)
+* [avlab](#avlab)
+   * [avlab-audio](#avlab-audio)
+   * [avlab-cylinders](#avlab-cylinders)
+   * [avlab-discs](#avlab-discs)
+   * [avlab-discimg-out](#avlab-discimg-out)
+   * [avlab-video](#avlab-video)
+   * [changechannels](#changechannels)
+   * [listen2transfers-qc.py](#listen2transfers-qcpy)
+* [National Jukebox](#national-jukebox)
+   * [nj_audio](#nj_audio)
+   * [nj_discimg-capture-fm](#nj_discimg-capture-fm)
+   * [nj_discimg-out](#nj_discimg-out)
+   * [nj_pre-SIP](#nj_pre-sip)
+* [hashmove](#hashmove)
 # Intro
 We use the microservices structure here, which breaks down complicated programs and processing steps into small, discreet, modular scripts, which can then be daisy-chained to fit particular applications.
 
