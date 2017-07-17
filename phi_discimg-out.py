@@ -38,7 +38,7 @@ def rawpyToTif(startObjFP,fname,rotation,endDir,mmrepo):
 	imageio.imsave(os.path.join(endDir,"rp" + fname + ".tif"),rgb)	
 	output = subprocess.check_output(['/usr/local/bin/python',os.path.join(mmrepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".tif")])
 	log.log(output)
-'''	
+
 def gmToJpg(startObjFP,fname,endDir,mmrepo):
 	#output = subprocess.check_output(['/usr/local/bin/gm','convert',os.path.join(endDir,fname + ".tif"),'-resize','800x800',os.path.join(endDir,fname + ".jpg")])
 	with rawpy.imread(startObjFP) as raw:
@@ -46,7 +46,7 @@ def gmToJpg(startObjFP,fname,endDir,mmrepo):
 	imageio.imsave(os.path.join(endDir,fname + ".jpg"),rgb)
 	output = subprocess.check_output(['/usr/local/bin/python',os.path.join(mmrepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".jpg")])
 	log.log(output)
-'''
+
 def moveSO(startObjFP,endDir,mmrepo):
 	output = subprocess.check_output(['/usr/local/bin/python',os.path.join(mmrepo,'hashmove.py'),startObjFP,endDir])
 	log.log(output)

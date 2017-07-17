@@ -6,6 +6,11 @@ import time
 import ConfigParser
 import imp
 import getpass
+import unittest
+
+class testAdditionalMethods(unittest.TestCase):
+	def test_current_pid(self):
+		self.assertEqual(makePID(os.getpid()),os.getpid())
 
 #makes a processID if none provided
 #searches up the stack for the top-most parent pid
@@ -27,12 +32,13 @@ def write(message,pid,level,caller,fname):
 #parses input, formats for write	
 def log(message,**kwargs):
 	###INIT FROM CONFIG FILE###
-	config = ConfigParser.ConfigParser()
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	config.read(os.path.join(dn,"microservices-config.ini"))
-	logLoc = config.get('global','logLocation')
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	logLoc = conf.log.location
+	global ut
 	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	logLoc = ut.drivematch(logLoc)
 	###END INIT###
 	###MAKE COMPONENTS###
 	if not 'pid' in kwargs:
@@ -56,3 +62,6 @@ def log(message,**kwargs):
 	###DO THE THING###
 	write(message,pid,level,caller,fname)
 	###DONE###
+	
+if __name__ == '__main__':
+    unittest.main()	

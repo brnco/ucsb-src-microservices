@@ -6,21 +6,10 @@ import re
 import argparse
 import sys
 import os
+import imp
 from distutils import spawn
 
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-		#check that we have required software installed
+#check that we have required software installed
 def dependencies():
 	depends = ['ffmpeg','ffprobe']
 	for d in depends:
@@ -31,6 +20,15 @@ def dependencies():
 	
 def main():
 	###INIT VARS###
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	log.log("started")
 	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
 	parser.add_argument('-so','--startObj',dest='so',help='the full path to the file to be reversed',)
 	args = parser.parse_args()
@@ -38,7 +36,7 @@ def main():
 	endObj,ext = os.path.splitext(endObj)
 	workingDir = os.path.dirname(args.so)
 	###END INIT###
-	with cd(workingDir):
+	with ut.cd(workingDir):
 		#ffprobe input file and find duraiton
 		output = subprocess.Popen(['ffprobe','-show_streams','-of','flat',args.so],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 		ffdata,err = output.communicate()
@@ -83,7 +81,6 @@ def main():
 						os.rename(endObj + "-reversed.wav", args.so)
 		else:
 			print "Buddy, there was a problem reversing that file"
-	return
 
 dependencies()	
 main()

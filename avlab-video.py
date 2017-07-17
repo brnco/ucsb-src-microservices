@@ -9,21 +9,10 @@ import os
 import subprocess
 import sys
 import re
-import ConfigParser
+import imp
 import xml.etree.ElementTree as ET
 from distutils import spawn
 
-#Context manager for changing the current working directory
-class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
 
 #find if we have the correct software installed		
 def dependencies():
@@ -115,7 +104,7 @@ def separateLTOpacket(sfull,canonicalName,ltoStage):
 	dest = os.path.join(repo,endDirThousand,s)
 	if not s.startswith("F") and not os.path.exists(dest):
 		shutil.copytree(sfull,dest,ignore=shutil.ignore_patterns("*.mxf","*.mxf.md5"))
-	subprocess.call(["python","S:/bagit-python/bagit.py",'--md5',sfull])
+	subprocess.call(["python",os.path.join(os.pardir(conf.scriptRepo),"bagit","bagit.py"),'--md5',sfull])
 	if not os.path.exists(os.path.join(dest,"baginfo")):
 		os.makedirs(os.path.join(dest,"baginfo"))
 	for f in os.listdir(sfull):
@@ -127,13 +116,19 @@ def send2repo(dn,newIngest,ltoStage,repo):
 						
 def main():
 	###INIT VARS###
-	config = ConfigParser.ConfigParser()
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	config.read(os.path.join(dn,"microservices-config.ini"))
-	newIngest = config.get('video','new_ingest')
-	ltoStage = config.get('video','lto_stage')
-	repo = config.get('video','repo')
-	formatPolicy = config.get('video','format_policy')
+	dn, fn = os.path.split(os.path.abspath(__file__))
+	global conf
+	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+	conf = rawconfig.config()
+	global ut
+	ut = imp.load_source("util",os.path.join(dn,"util.py"))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	log.log("Started")
+	newIngest = conf.video.new_ingest
+	ltoStage = conf.video.lto_stage
+	repo = conf.video.repo
+	formatPolicy = conf.video.format_policy
 	###END INIT###
 	###WALK THRU NEW INGEST###
 	for dirs,subdirs,files in os.walk(newIngest):
@@ -141,7 +136,7 @@ def main():
 			print ""
 			print s
 			sfull = os.path.join(dirs,s)
-			with cd(sfull):
+			with ut.cd(sfull):
 				###GET NAME OF ASSET###
 				#can be cusb-v1234-pres or cusb-vm1234-pres or cusb-vm1234-5678-pres
 				match = ''

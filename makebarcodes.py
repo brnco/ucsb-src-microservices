@@ -8,8 +8,6 @@ import shutil
 import time
 import sys
 
-
-
 def makebarcodefile ():
 	#initialize a barcode file in the current directory
 	try:
