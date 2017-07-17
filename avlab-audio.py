@@ -171,7 +171,10 @@ def sampleratenormalize(processDir):
 
 	
 def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
-	bextstr = subprocess.check_output("python fm-stuff.py -pi -t -p bext -so " + aNumber.capitalize())
+	try:
+		bextstr = subprocess.check_output("python fm-stuff.py -pi -t -p bext -so " + aNumber.capitalize())
+	except:
+		bextstr = "--originator=US,CUSB,SRC --originatorReference=" + aNumber.capitalize()
 	with ut.cd(processDir):
 		for f in os.listdir(os.getcwd()):
 			if f.endswith(".wav"):
