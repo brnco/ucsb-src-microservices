@@ -21,6 +21,12 @@ def drivematch(path):
 		realpath = os.path.join(drive,path)
 	return realpath
 
+def pythonpath():
+	if os.name == 'posix':
+		return "/usr/local/bin/python"
+	else:
+		return "C:/Python27/python.exe"
+		
 def desktop():
 	try:
 		desktop = os.path.join(os.environ["HOME"], "Desktop")
