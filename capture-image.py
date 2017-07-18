@@ -16,11 +16,14 @@ def main():
     parser = argparse.ArgumentParser(description="captures image from first-connected camera")
     parser.add_argument('-nj',action='store_true',default=False,dest='nj',help='run with National Jukebox/ PHI file destiantions')
     args = parser.parse_args() #allows us to access arguments with args.argName
-    config = ConfigParser.ConfigParser()
-    dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-    config.read(os.path.join(dn,"microservices-config.ini"))
-    njImageCaptureDir = config.get("NationalJukebox","VisualArchRawDir")
-    util = imp.load_source('util',os.path.join(dn,'util.py'))
+    dn, fn = os.path.split(os.path.abspath(__file__))
+    global conf
+    rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
+    conf = rawconfig.config()
+    global ut
+    ut = imp.load_source("util",os.path.join(dn,"util.py"))
+    global log
+    log = imp.load_source('log',os.path.join(dn,'logger.py'))
     logging.basicConfig(
         format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
     gp.check_result(gp.use_python_logging())
@@ -32,9 +35,9 @@ def main():
         camera, gp.GP_CAPTURE_IMAGE, context))
     print('Camera file path: {0}/{1}'.format(file_path.folder, file_path.name))
     if args.nj:
-        target = util.drivematch(os.path.join(njImageCaptureDir, file_path.name))
+        target = os.path.join(conf.NationalJukebox.VisualArchRawDir, file_path.name)
     else:
-        target = os.path.join(util.desktop(), file_path.name)
+        target = os.path.join(ut.desktop(), file_path.name)
     count = 0
     while os.path.exists(target):
         count = count + 1

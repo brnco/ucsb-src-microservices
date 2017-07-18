@@ -17,14 +17,19 @@ import imageio
 from PIL import Image
 from distutils import spawn
 	
-def idSize(startObjFP):
-	with rawpy.imread(startObjFP) as raw:
-		height = raw.sizes[1]
-		width = raw.sizes[0]
+def idSize(fname,endDir):
+	'''with rawpy.imread(startObjFP) as raw:
+		height = raw.sizes[0]
+		width = raw.sizes[1]
 		if int(width) > int(height):
 			rotation = '180'
 		else:
-			rotation = '90'
+			rotation = '90'''
+	img = Image.open(os.path.join(endDir,fname + ".tif"))
+	if img.width > img.height:
+		rotation = 180
+	else:
+		rotation = 90			
 	if rotation:
 		return rotation
 	else:
@@ -40,27 +45,29 @@ def rawpyToTif(startObjFP,fname,endDir):
 	
 
 def rotateTif(startObjFP,fname,rotation,endDir):	
-	try:
-		img = Image.open(os.path.join(endDir,fname + ".tif"))
-		img2 = img.rotate(int(rotation),expand=True)
-		img2.save(os.path.join(endDir,fname + "-rotated.tif"))
-		os.remove(os.path.join(endDir,fname + ".tif"))
-		os.rename(os.path.join(endDir,fname + "-rotated.tif"),os.path.join(endDir,fname + ".tif"))
-	except:
+	#try:
+	img = Image.open(os.path.join(endDir,fname + ".tif"))
+	img2 = img.rotate(rotation,expand=True)
+	img2.save(os.path.join(endDir,fname + "-rotated.tif"))
+	time.sleep(2)
+	os.remove(os.path.join(endDir,fname + ".tif"))
+	os.rename(os.path.join(endDir,fname + "-rotated.tif"),os.path.join(endDir,fname + ".tif"))
+	'''except:
 		print "python unable to rotate tif"
-		sys.exit()
+		sys.exit()'''
 def cropTif(startObjFP,fname,endDir):
-	try:
-		img = Image.open(os.path.join(endDir,fname + ".tif"))
-		img2 = img.crop((920,0,img.width-920,3656))
-		img2.save(os.path.join(endDir,fname + "-cropped.tif"))
-		os.remove(os.path.join(endDir,fname + ".tif"))
-		os.rename(os.path.join(endDir,fname + "-cropped.tif"),os.path.join(endDir,fname + ".tif"))
-		output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".tif")])
-		log.log(output)
-	except:
+	#try:
+	img = Image.open(os.path.join(endDir,fname + ".tif"))
+	img2 = img.crop((920,0,img.width-920,3656))
+	img2.save(os.path.join(endDir,fname + "-cropped.tif"))
+	time.sleep(2)
+	os.remove(os.path.join(endDir,fname + ".tif"))
+	os.rename(os.path.join(endDir,fname + "-cropped.tif"),os.path.join(endDir,fname + ".tif"))
+	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".tif")])
+	log.log(output)
+	'''except:
 		print "python unable to crop tif"
-		sys.exit()
+		sys.exit()'''
 	
 def tifToJpg(startObjFP,fname,endDir):
 	img = Image.open(os.path.join(endDir,fname + ".tif"))
@@ -110,12 +117,14 @@ def main():
 		endDir = os.path.join(conf.NationalJukebox.PreIngestQCDir,fname)
 		if not os.path.exists(endDir):
 			os.makedirs(endDir)
-		#get the orientation of the image and set output rotation accordingly
-		rotation = idSize(startObjFP)
+		
 		
 		#convert to tif
 		rawpyToTif(startObjFP,fname,endDir)
 		
+		#get the orientation of the image and set output rotation accordingly
+		rotation = idSize(fname,endDir)
+
 		#rotate the tif
 		rotateTif(startObjFP,fname,rotation,endDir)
 		
