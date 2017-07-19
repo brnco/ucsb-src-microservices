@@ -2,6 +2,7 @@
 import os
 import unittest
 
+
 def drivematch(path):
 	if path.startswith("/") or path.startswith("\\"):
 		path = path[1:]
@@ -20,6 +21,12 @@ def drivematch(path):
 		realpath = os.path.join(drive,path)
 	return realpath
 
+def pythonpath():
+	if os.name == 'posix':
+		return "/usr/local/bin/python"
+	else:
+		return "C:/Python27/python.exe"
+		
 def desktop():
 	try:
 		desktop = os.path.join(os.environ["HOME"], "Desktop")
@@ -45,6 +52,8 @@ def dependencies(depends):
 			sys.exit()
 	return        
 
+
+#add /usr/local/bin prefix to python calls for macs		
 class dotdict(dict):
 	"""dot.notation access to dictionary attributes"""
 	__getattr__ = dict.get
@@ -53,4 +62,4 @@ class dotdict(dict):
 
 
 if __name__ == '__main__':
-    unittest.main()		
+    unittest.main()

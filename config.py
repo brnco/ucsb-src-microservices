@@ -19,8 +19,9 @@ def config():
 				pass
 		conf[c] = ut.dotdict(conf[c])
 	conf['scriptRepo'] = scriptRepo
+	conf['python'] = ut.pythonpath()
 	conf = ut.dotdict(conf)			
 	return conf
 
 if __name__ == '__main__':
-    unittest.main()	
+   unittest.main()	
