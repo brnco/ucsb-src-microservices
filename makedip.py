@@ -197,7 +197,7 @@ def main():
 	#compress dir on desktop
 	if args.z is True:
 		tnDir = dipDir
-		with cd(tnDir):
+		with ut.cd(tnDir):
 			zf = zipfile.ZipFile(tnDir + ".zip","w")
 			for f in os.listdir(os.getcwd()):
 				zf.write(os.path.basename(os.path.join(dipDir,f)),compress_type=zipfile.ZIP_DEFLATED)

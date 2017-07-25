@@ -53,7 +53,7 @@ def main():
 		###end init###
 		try:
 			while (count < float(dur)): #loop through the file 300s at a time until u get to the end
-				ffmpegstring = "ffmpeg -i " + args.so + " -ss " + str(count) + " -t 600 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
+				ffmpegstring = "ffmpeg -i " + args.so + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
 				output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
 				concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
 				count = count + 300 #incrase seconds by 300 (10min)
@@ -62,7 +62,7 @@ def main():
 		except subprocess.CalledProcessError,e:
 			output = e.output
 			returncode = output
-			
+		foo = raw_input("eh")	
 		#concatenate the revsered output from slicer loop
 		ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
 		output = subprocess.call(ffmpegstring)

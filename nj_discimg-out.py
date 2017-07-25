@@ -144,12 +144,15 @@ def main():
 				startObj = f
 				startObjFP = os.path.join(dirs,f)
 				fname,ext = os.path.splitext(f)
-				endDir = os.path.join(qcDir,fname)
+				endDir = os.path.join(conf.NationalJukebox.PreIngestQCDir,fname)
 				if not os.path.exists(endDir):
 					os.makedirs(endDir)
 				print f
+				#convert to tif
+				rawpyToTif(startObjFP,fname,endDir)
+				
 				#get the orientation of the image and set output rotation accordingly
-				rotation = idSize(startObjFP)
+				rotation = idSize(fname,endDir)
 				
 				#rotate the tif
 				rotateTif(startObjFP,fname,rotation,endDir)
