@@ -108,7 +108,7 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 		time.sleep(4)
 		if args.mp3 is True:
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',startObj])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',assetName])
 	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	

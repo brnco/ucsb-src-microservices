@@ -34,7 +34,7 @@ def avname(startObj,avlist):
 		soContainingDir = os.path.join(avlist[0],endDirThousand,canonSO)
 		if os.path.exists(soContainingDir):
 			with ut.cd(soContainingDir):
-				print os.getcwd()
+				#print os.getcwd()
 				if os.path.exists("cusb-a" + aNumber + "b.wav"):
 					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + "b.wav")
 					return startObj

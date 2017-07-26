@@ -22,7 +22,6 @@ def dependencies():
 		if spawn.find_executable(d) is None:
 			print "Buddy, you gotta install " + d
 			sys.exit()
-	return
 
 def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 	mtdObj = os.path.join(os.path.abspath(os.path.dirname(startObj)),assetName + "-mtd.txt") #name a metadata file
@@ -43,13 +42,11 @@ def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 		print " "
 		print "********************************************************************************"
 		os.remove(assetName + "-mtd.txt") #delete it we don't need it here
-	return
 
 def makeAudio(startObj, startDir, assetName, EuseChar):	#make the mp3
 	endObj = assetName + EuseChar + '.mp3' #give it a name
 	with ut.cd(startDir):
 		subprocess.call(['ffmpeg','-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj]) #atually do it
-	return
 
 def main():
 	#initialize a buncha crap

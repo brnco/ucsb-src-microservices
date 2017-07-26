@@ -127,6 +127,8 @@ def makeTranscodeList(args,archiveDir):
 def main():
 	###INIT VARS###
 	dn, fn = os.path.split(os.path.abspath(__file__))
+	global log
+	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	global conf
 	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
@@ -140,6 +142,7 @@ def main():
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
 	args = parser.parse_args()
+	log.log("started")
 	if args.t is True:
 		archiveDir = conf.magneticTape.repo #grab archive directory for audio tapes
 	elif args.d is True:
