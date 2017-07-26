@@ -22,14 +22,9 @@ def main():
 	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	'''config = ConfigParser.ConfigParser()
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	config.read(os.path.join(dn,"microservices-config.ini"))
-	imgCaptureDir = "/Volumes/special/78rpm/avlab/national_jukebox/in_process/visual_captures/raw-captures" #set a var for the capture directory, mimics structure found in EOS util
-	#imgCaptureDir = os.path.join(imgCaptureDir,time.strftime("%Y-%m-%d"))#actual capture directory has today's date in ISO format
-	'''
+	rawCapturePath = conf.NationalJukebox.VisualArchRawDir
+	if not os.path.exists(rawCapturePath):
+			os.makedirs(rawCapturePath)
 	barcode = sys.argv[1] #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename
@@ -37,8 +32,8 @@ def main():
 	log.log("started")
 	subprocess.call([conf.python,os.path.join(dn,"capture-image.py"),"-nj"])
 	time.sleep(3)
-	with ut.cd(conf.NationalJukebox.VisualArchRawDir): #cd into capture dir
-		if os.path.isfile(barcode + ".cr2") or os.path.isfile(barcode + ".CR2"): #error checking, if the file already exists
+	with ut.cd(rawCapturePath): #cd into capture dir
+		if os.path.isfile(os.path.join(rawCapturePath,barcode + ".cr2")) or os.path.isfile(os.path.join(rawCapturePath, barcode+ ".CR2")): #error checking, if the file already exists
 			log.log(**{"message":"It looks like you already scanned that barcode " + barcode,"level":"warning"})
 			print "It looks like you already scanned that barcode"
 			a = raw_input("Better check on that")
@@ -55,7 +50,6 @@ def main():
 					sys.exit()'''
 		#output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"phi_discimg-out.py"),"-m","single","-so",fname])
 		#log.log(output)
-	return
 
 
 main()

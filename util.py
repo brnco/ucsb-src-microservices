@@ -16,6 +16,8 @@ def drivematch(path):
 	else: #if mac/ unix
 		if "microservices-logs" in path:
 			drive = "/Volumes/special/DeptShare/special"
+		elif "phi_raw-image-captures" in path:
+			drive = desktop()
 		else:
 			drive = "/Volumes/special"
 		realpath = os.path.join(drive,path)

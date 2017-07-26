@@ -14,7 +14,8 @@ import re
 
 def main():
     parser = argparse.ArgumentParser(description="captures image from first-connected camera")
-    parser.add_argument('-nj',action='store_true',default=False,dest='nj',help='run with National Jukebox/ PHI file destiantions')
+    parser.add_argument('-nj',action='store_true',default=False,dest='nj',help='run with National Jukebox file destinations, on //svmwindows/special/78rpm')
+    parser.add_argument('-phi',action='store_true',default=False,dest="phi",help='run with PHI file destination, on ~/Desktop')
     args = parser.parse_args() #allows us to access arguments with args.argName
     dn, fn = os.path.split(os.path.abspath(__file__))
     global conf
@@ -36,6 +37,8 @@ def main():
     print('Camera file path: {0}/{1}'.format(file_path.folder, file_path.name))
     if args.nj:
         target = os.path.join(conf.NationalJukebox.VisualArchRawDir, file_path.name)
+    #elif args.phi:
+        #target = os.path.join(ut.desktop(),"phi_raw-image-captures",file_path.name)
     else:
         target = os.path.join(ut.desktop(), file_path.name)
     count = 0
