@@ -249,7 +249,7 @@ def main():
 			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Audio Originals;UID=microservices')#init connection
 			fieldlist = ["Tape_Title","Collection_Name","Original_Recording_Date"] #init fieldlist for FileMaker
 			for field in fieldlist:#loop through the field list
-				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so + "%'" 
+				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so.upper() + "%'" 
 				result = query(sqlstr,cnxn)#<^query the db for the value in that field for that cylinder object
 				rtnlist.append(result[0])#append the found value to the list of values
 		elif args.c:#if it's a cylinder
