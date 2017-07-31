@@ -42,11 +42,18 @@ def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 		print " "
 		print "********************************************************************************"
 		os.remove(assetName + "-mtd.txt") #delete it we don't need it here
+		return False
+	else:
+		return True
 
-def makeAudio(startObj, startDir, assetName, EuseChar):	#make the mp3
+def makeAudio(startObj, startDir, assetName, EuseChar, mtd):	#make the mp3
 	endObj = assetName + EuseChar + '.mp3' #give it a name
 	with ut.cd(startDir):
-		subprocess.call(['ffmpeg','-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj]) #atually do it
+		if mtd:
+			mtdObj = os.path.join(os.path.abspath(os.path.dirname(startObj)),assetName + "-mtd.txt") #name a metadata file
+			subprocess.call(['ffmpeg','-f','ffmetadata','-i',mtdObj,'-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj]) #atually do it
+		else:
+			subprocess.call(['ffmpeg','-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj]) #atually do it
 
 def main():
 	#initialize a buncha crap
@@ -67,6 +74,7 @@ def main():
 	fname, ext = os.path.splitext(fnamext) #split the filename from extension
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	startDir = os.path.abspath(os.path.join(startObj, os.pardir)) #grabs the directory that this object is in (we'll cd into it later)
+	mtd = False
 	#see what character it is and assign EndUseCharacters accordingly
 	if SuseChar == 'a':
 		print "archival master"
@@ -86,8 +94,8 @@ def main():
 	else:
 		assetName = fname
 		EuseChar = "d"
-	id3Check(startObj, assetName) #call the id3 check function
-	makeAudio(startObj, startDir, assetName, EuseChar) #call the makeaudio function
+	mtd = id3Check(startObj, assetName) #call the id3 check function
+	makeAudio(startObj, startDir, assetName, EuseChar, mtd) #call the makeaudio function
 
 dependencies()
 main()
