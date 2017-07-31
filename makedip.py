@@ -17,14 +17,6 @@ from distutils import spawn
 import imp
 import getpass
 
-def dependencies():
-	depends = ['ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return
-
 def makeTranscodeList(args,archiveDir):
 	###INIT VARS###
 	a = [] #archive masters
@@ -37,16 +29,20 @@ def makeTranscodeList(args,archiveDir):
 	###FOR TAPES###
 	if args.t is True:
 		for obj in args.so:
-			startObj = subprocess.check_output(["python","makestartobject.py","-so",obj])
-			###MAKE LIST OF DIRS TO SEARCH FOR OBJECTS###
-			endDirThousand = obj.replace("a","") #input arg here is a1234 but we want just the number
-			if len(endDirThousand) < 5:#separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
-				endDirThousand = endDirThousand[:1] + "000"
+			startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",obj])
+			if startObj.endswith(".wav"):
+				###MAKE LIST OF DIRS TO SEARCH FOR OBJECTS###
+				endDirThousand = obj.replace("a","") #input arg here is a1234 but we want just the number
+				if len(endDirThousand) < 5:#separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
+					endDirThousand = endDirThousand[:1] + "000"
+				else:
+					endDirThousand = endDirThousand[:2] + "000"
+				startDir = os.path.join(archiveDir,endDirThousand,obj) #booshh
+				startDirs.append(startDir)
+				###END MAKE LIST###
 			else:
-				endDirThousand = endDirThousand[:2] + "000"
-			startDir = os.path.join(archiveDir,endDirThousand,obj) #booshh
-			startDirs.append(startDir)
-			###END MAKE LIST###
+				startDir = startObj.replace("\n","").replace("\r","")
+				startDirs.append(startDir)
 			###FIND OBJECTS###
 			with ut.cd(startDir):
 				for file in os.listdir(os.getcwd()):
@@ -127,8 +123,8 @@ def makeTranscodeList(args,archiveDir):
 def main():
 	###INIT VARS###
 	dn, fn = os.path.split(os.path.abspath(__file__))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	#global log
+	#log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	global conf
 	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
@@ -142,12 +138,12 @@ def main():
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
 	args = parser.parse_args()
-	log.log("started")
+	#log.log("started")
 	if args.t is True:
 		archiveDir = conf.magneticTape.repo #grab archive directory for audio tapes
 	elif args.d is True:
 		#archiveDir = config.get("discs","repo")
-		startObj = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
+		startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
 		startObj = startObj.replace("\\","/")[:-2]
 		print startObj
 		archiveDir = os.path.dirname(os.path.dirname(startObj))
@@ -155,23 +151,24 @@ def main():
 		print "Buddy, you gotta specify if this is a tape or a disc"
 		sys.exit()
 	###END INIT###
+	#log.log("end init")
 
 	###GENERATE TRANSCODE LISTS###
 	a,b,u,m,i,startDirs = makeTranscodeList(args, archiveDir) #make a dictionary of files to work with
 	#transcode where necessary
 	for f in a:
 		if args.t is True and args.hq is True:
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
 	for f in b:
 		if args.t is True:
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
 	for f in u:
 		if args.t is True and args.hq is True: 
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
 	
 	#make a final list of stuff we gonna dip
 	veggies = []
@@ -185,7 +182,7 @@ def main():
 					veggies.append(os.path.join(dir,file))
 			if file.endswith(".tif"):
 				veggies.append(os.path.join(dir,file))
-			
+	print veggies		
 	
 	#hashmove to dir on desktop named for TN
 	try:	
@@ -195,7 +192,7 @@ def main():
 	if not os.path.isdir(dipDir):
 		os.makedirs(dipDir)
 	for f in veggies:
-		subprocess.call(['python',os.path.join(conf.scriptRepo,'hashmove.py'),'-c',f,dipDir])
+		subprocess.call([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),'-c',f,dipDir])
 	
 	#compress dir on desktop
 	if args.z is True:
@@ -208,5 +205,4 @@ def main():
 		if os.path.exists(tnDir + ".zip"):
 			shutil.rmtree(tnDir)
 
-dependencies()
 main()

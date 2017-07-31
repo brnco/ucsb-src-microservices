@@ -26,24 +26,33 @@ def avname(startObj,avlist):
 	else:
 		canonSO = startObj.replace("cusb-","")
 		aNumber = canonSO.replace("a","") #input arg here is a1234 but we want just the number
+		face = ''
+		match = ''
+		match = re.search(r"\D\Z",aNumber)
+		if match:
+			face = match.group()
+			aNumber = aNumber.replace(face,"")	
 		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
 		if len(aNumber) < 5:
 			endDirThousand = aNumber[:1] + "000"
 		else:
 			endDirThousand = aNumber[:2] + "000"
-		soContainingDir = os.path.join(avlist[0],endDirThousand,canonSO)
+		soContainingDir = os.path.join(avlist[0],endDirThousand,canonSO.replace(face,""))
+		#print soContainingDir
 		if os.path.exists(soContainingDir):
 			with ut.cd(soContainingDir):
 				#print os.getcwd()
-				if os.path.exists("cusb-a" + aNumber + "b.wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + "b.wav")
+				if os.path.exists("cusb-a" + aNumber + face + "b.wav"):
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "b.wav")
 					return startObj
-				elif os.path.exists("cusb-a" + aNumber + ".wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + ".wav")
+				elif os.path.exists("cusb-a" + aNumber + face + ".wav"):
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + ".wav")
 					return startObj
-				elif os.path.exists("cusb-a" + aNumber + "a.wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + "a.wav")	
+				elif os.path.exists("cusb-a" + aNumber + face + "a.wav"):
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "a.wav")	
 					return startObj
+				else:
+					return soContainingDir
 		else:
 			print "Buddy, the directory " + soContainingDir + " doesn't exist. This asset has probably not yet been digitized"
 		

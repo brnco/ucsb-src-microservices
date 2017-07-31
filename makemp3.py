@@ -24,6 +24,7 @@ def dependencies():
 			sys.exit()
 
 def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
+	print assetName
 	mtdObj = os.path.join(os.path.abspath(os.path.dirname(startObj)),assetName + "-mtd.txt") #name a metadata file
 	if not os.path.isfile(mtdObj):
 		subprocess.call(['ffmpeg','-i',startObj,'-f','ffmetadata','-y',mtdObj]) #export the id3 metadata that already exists in the media file to this text file

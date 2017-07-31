@@ -109,7 +109,6 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		time.sleep(4)
 		if args.mp3 is True:
 			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',assetName])
-	return
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makemanualid3(startDir, assetName):
