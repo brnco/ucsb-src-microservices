@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from  __builtin__ import any as b_any
 import re
 import string
-import pickle
 import argparse
 import lxml
 

@@ -30,6 +30,7 @@ def makeTranscodeList(args,archiveDir):
 	if args.t is True:
 		for obj in args.so:
 			startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",obj])
+			startObj = startObj.replace("\n","").replace("\r","")
 			if startObj.endswith(".wav"):
 				###MAKE LIST OF DIRS TO SEARCH FOR OBJECTS###
 				endDirThousand = obj.replace("a","") #input arg here is a1234 but we want just the number
@@ -41,7 +42,7 @@ def makeTranscodeList(args,archiveDir):
 				startDirs.append(startDir)
 				###END MAKE LIST###
 			else:
-				startDir = startObj.replace("\n","").replace("\r","")
+				startDir = startObj
 				startDirs.append(startDir)
 			###FIND OBJECTS###
 			with ut.cd(startDir):
