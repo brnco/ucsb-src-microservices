@@ -20,6 +20,7 @@ def makeSidecars(sfull,canonicalName):
 	_pbc2file = os.path.join(sfull,canonicalName + 'mxf.PBCore2.xml')
 	_framemd5 = os.path.join(sfull,canonicalName + 'mxf.framemd5')
 	#if there's not a qctools doc for it, make one
+	print _qct
 	if not os.path.exists(_qctfile):
 		subprocess.call(['python','S:/avlab/microservices/makeqctoolsreport.py','-so',canonicalName + "-pres.mxf"])
 	#if there's not a PBCore2 doc for it, make one
