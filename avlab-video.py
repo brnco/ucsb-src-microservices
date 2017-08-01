@@ -10,26 +10,18 @@ import subprocess
 import sys
 import re
 import imp
+import shutil
 import xml.etree.ElementTree as ET
 from distutils import spawn
 
-
-#find if we have the correct software installed		
-def dependencies():
-	depends = ['ffmpeg','ffprobe','MediaInfo','python']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-
 def makeSidecars(sfull,canonicalName):
 	#instantiate var names of our output files
-	_qctfile = os.path.join(sfull,canonicalName + '.qctools.xml.gz')
-	_pbc2file = os.path.join(sfull,canonicalName + '.PBCore2.xml')
-	_framemd5 = os.path.join(sfull,canonicalName + '.framemd5')
+	_qctfile = os.path.join(sfull,canonicalName + 'mxf.qctools.xml.gz')
+	_pbc2file = os.path.join(sfull,canonicalName + 'mxf.PBCore2.xml')
+	_framemd5 = os.path.join(sfull,canonicalName + 'mxf.framemd5')
 	#if there's not a qctools doc for it, make one
 	if not os.path.exists(_qctfile):
-		subprocess.call(['python','S:/avlab/microservices/makeqctoolsreport.py',canonicalName + "-pres.mxf"])
+		subprocess.call(['python','S:/avlab/microservices/makeqctoolsreport.py','-so',canonicalName + "-pres.mxf"])
 	#if there's not a PBCore2 doc for it, make one
 	if not os.path.exists(_pbc2file):
 		#gotta give the PBCore2 filename as concat string here, _pbc2file is a file object
@@ -98,13 +90,14 @@ def verifyFormatPolicy(sfull,canonicalName,formatPolicy):
 			print canonicalName + " failed at " + f
 			foo = raw_input("Eh")
 	
-def separateLTOpacket(sfull,canonicalName,ltoStage):
-	endDirThousand = canonicalName.replace("v","")[:1]
+def separateLTOpacket(sfull,canonicalName,ltoStage,s):
+	endDirThousand = canonicalName.replace("cusb-v","")[:1]
 	endDirThousand = endDirThousand + "000"
-	dest = os.path.join(repo,endDirThousand,s)
+	dest = os.path.join(conf.video.repo,endDirThousand,s)
+	foo = raw_input("eh")
 	if not s.startswith("F") and not os.path.exists(dest):
 		shutil.copytree(sfull,dest,ignore=shutil.ignore_patterns("*.mxf","*.mxf.md5"))
-	subprocess.call(["python",os.path.join(os.pardir(conf.scriptRepo),"bagit","bagit.py"),'--md5',sfull])
+	subprocess.call([conf.python,os.path.join(os.pardir(conf.scriptRepo),"bagit","bagit.py"),'--md5',sfull])
 	if not os.path.exists(os.path.join(dest,"baginfo")):
 		os.makedirs(os.path.join(dest,"baginfo"))
 	for f in os.listdir(sfull):
@@ -125,7 +118,8 @@ def main():
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("Started")
-	newIngest = conf.video.new_ingest
+	#newIngest = conf.video.new_ingest
+	newIngest = "F:/"
 	ltoStage = conf.video.lto_stage
 	repo = conf.video.repo
 	formatPolicy = conf.video.format_policy
@@ -135,6 +129,8 @@ def main():
 		for s in subdirs:
 			print ""
 			print s
+			if s.startswith("$") or s.startswith("."):
+				continue
 			sfull = os.path.join(dirs,s)
 			with ut.cd(sfull):
 				###GET NAME OF ASSET###
@@ -146,19 +142,19 @@ def main():
 					sys.exit()
 				canonicalName = match.group()[:-1]
 				###END GET NAME###
-				print canonicalName
 				#make sure our starting bits are correct, that we have hashes
+				print canonicalName
 				verifyOpenCubeUpload(sfull,canonicalName)
 				#make sidecar files for:
 				#qctools report for the master
 				#PBCore2 document
-				makeSidecars(dn,newIngest)
+				makeSidecars(sfull,canonicalName)
 				#verify format policy
 				verifyFormatPolicy(sfull,canonicalName,formatPolicy)
 				#verify quality of transfer
 				#verifytransferqc()
-			separateLTOpacket(sfull,canonicalName,repo,ltoStage)
+			separateLTOpacket(sfull,canonicalName,ltoStage,s)
 			#send2repo(dn,newIngest,ltoStage,repo)
 	###END WALK###
-dependencies()
+
 main()
