@@ -10,6 +10,11 @@ def query(sqlstr,cnxn):
 	row = cursor.fetchone()
 	return row
 
+def insert(sqlstr,cnxn):
+	cursor = cnxn.cursor()
+	cursor.execute(sqlstr)
+	cnxn.commit()
+	
 def makenameFormatList(args,cnxn):
 	#returns nameFormat in list form
 	#[face,aNumber(no "a"),channelConfiguration]
@@ -226,18 +231,25 @@ def checkotherface(args,cnxn): #checks if there are 1 or 2 captures per tape
 		sqlstr = "select rawCaptureName_fAB from Audio_Masters where rawCaptureName_fCD='" + args.so + "' or rawCaptureName_fCD='" + args.so + ".wav'"
 	result = query(sqlstr,cnxn)
 	return result
+
+def insertHash(args,cnxn):
+	sqlstr = "insert into File_instance(FK,filename,hash) values ((select Original_Key from Audio_Originals where Original_Tape_Number like '" + args.so + "/%'),'" + args.fn + "','" + args.h + "')"
+	print sqlstr
+	insert(sqlstr,cnxn)
 	
 def main():		
 	###INIT VARS###
-	parser = argparse.ArgumentParser(description="queries and returns data from our FileMaker dbs")
+	parser = argparse.ArgumentParser(description="queries, inserts, and returns data from our FileMaker dbs")
 	parser.add_argument('-so','--startObject',dest="so",help='the audio/ video number of the asset, a1234 for tapes, 1234 for cyls')
 	parser.add_argument('-t','--tape',dest="t",action='store_true',default=False,help='use Audio Originals database as source')
 	parser.add_argument('-c','--cylinder',dest='c',action='store_true',default=False,help='use Cylinders database as source')
 	parser.add_argument('-id3',dest="id3",action='store_true',default=False,help='generate ID3 tags for makebroadcast')
 	parser.add_argument('-pi','--pre-ingest',dest='pi',action='store_true',default=False,help='for processing files after capture')
-	parser.add_argument('-p','--process',dest='p',choices=["nameFormat","otherfacecheck","reverse","ffstring","bext"],help='the type of process for which you would like data')
+	parser.add_argument('-p','--process',dest='p',choices=["nameFormat","otherfacecheck","reverse","ffstring","bext","hash"],help='the type of process for which you would like data')
 	parser.add_argument('-f','--face',dest='f',choices=["fAB","fCD","fA","fB","fC","fD"],help="the face of the object for which you want info")
 	parser.add_argument('-cc','-channelConfig',dest='cc',choices=['Cassette','1/4-inch Half Track Mono','1/4-inch 4 Track','1/4-inch Full Track Mono','1/4-inch Half Track Stereo','1/4-inch Quarter Track Stereo'],help="the channel configuration of the tape")
+	parser.add_argument('--filename',dest='fn',help="the filename for File_isntance you'd like to insert a hash for")
+	parser.add_argument('--hash',dest='h',help="the hash for --filename")
 	args = parser.parse_args()
 	args.so = args.so.replace(".wav","")
 	result = ''
@@ -306,5 +318,8 @@ def main():
 				#in form that BWFMetaEdit understands but not the full string
 				bextstr = makebext(args,cnxn)
 				print bextstr
+			if args.p == "hash":
+				#inserts hash anf filename into new row in File_instance table, linked Original_Key -> FK
+				insertHash(args,cnxn)
 			cnxn.close()
 main()

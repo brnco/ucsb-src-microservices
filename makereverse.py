@@ -62,7 +62,6 @@ def main():
 		except subprocess.CalledProcessError,e:
 			output = e.output
 			returncode = output
-		foo = raw_input("eh")	
 		#concatenate the revsered output from slicer loop
 		ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
 		output = subprocess.call(ffmpegstring)

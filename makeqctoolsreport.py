@@ -47,7 +47,7 @@ def makeReport(startObj):
 	temp1nut = startObj + '.temp1.nut'
 	if os.path.exists(temp1nut):
 		try:
-			subprocess.check_output(['qcli','-i',temp1nut],shell=True)
+			subprocess.check_output(['qcli','-i',temp1nut])
 			os.remove(startObj + '.temp1.nut')
 			os.rename(startObj + '.temp1.nut.qctools.xml.gz', startObj + '.qctools.xml.gz')
 		except:

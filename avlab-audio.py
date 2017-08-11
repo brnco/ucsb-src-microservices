@@ -236,7 +236,7 @@ def main():
 					mono_silence(rawfname,face,aNumber,processDir)	
 				#if we need to reverse do it
 				#note here to add output checker for reverse
-				foo = raw_input("eh")
+				#foo = raw_input("eh")
 				reverse(rawfname,face,aNumber,channelConfig,processDir)
 				#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
 				#note here to add output checker for reverse
