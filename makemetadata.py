@@ -62,7 +62,7 @@ def insertFM(sqlstr,cnxn):
 #####data functions#####
 ########################
 '''
-insertHash takes a list and 
+insertHash takes a db connection and a list of id, filename, and hash and inserts thsoe values in a new row
 '''
 def insertHash(cnxn,**kwargs):
 	sqlstr = """
