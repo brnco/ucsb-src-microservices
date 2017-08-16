@@ -50,7 +50,7 @@ def queryFM_multi(sqlstr,cnxn):
 	return rows
 
 '''
-insertFM takes a sql insert command and executes it, commiting the change to the record
+insertFM takes a sql insert command and executes it, committing the change to the record
 '''
 def insertFM(sqlstr,cnxn):
 	cursor = cnxn.cursor()
@@ -146,13 +146,11 @@ def makebext_complete(cnxn,**kwargs):
 		codinghistory = makecodinghistory(cnxn,args)
 	else:
 		codinghistory = ''
-	###GET IT TOGETHER###
 	bextstr = "--Originator=US,CUSB,SRC --originatorReference="+ bext_originatorReference + " " + bext_description + " " + codinghistory
 	try:
 		bext = bextstr.encode('utf-8')
 	except:
 		bext = bextstr
-	#bext = "foo"
 	return bext
 	
 '''
