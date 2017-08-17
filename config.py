@@ -9,7 +9,7 @@ def config():
 	ut = imp.load_source('util',os.path.join(scriptRepo,"util.py"))
 	config = ConfigParser.RawConfigParser(allow_no_value=True)
 	config.read(os.path.join(scriptRepo,"microservices-config.ini"))
-	conf = {'log':{},'NationalJukebox':{},'cylinders':{},'discs':{},'video':{},'magneticTape':{},'AudioOriginals':{}}
+	conf = {'log':{},'NationalJukebox':{},'cylinders':{},'discs':{},'video':{},'magneticTape':{}}
 	tags = ['location','AudioArchDir','AudioBroadDir','PreIngestQCDir',
 			'VisualArchRawDir','BatchDir','scratch','new_ingest','repo',
 			'avlab','lto_stage','vid_leads','format_policy',
@@ -17,7 +17,7 @@ def config():
 	for c in conf:
 		for t in tags:
 			try: #see if it's in the config section
-				if not c == 'AudioOriginals':
+				if not t == 'cnxn':
 					conf[c][t] = ut.drivematch(config.get(c,t)) #if it is, replace _ necessary for config file with . which xml attributes use, assign the value in config
 				else:
 					conf[c][t]=config.get(c,t)

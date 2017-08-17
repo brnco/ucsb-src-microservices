@@ -2,14 +2,22 @@ import urllib2
 from bs4 import BeautifulSoup
 from  __builtin__ import any as b_any
 import re
+import os
 import string
 import argparse
 import lxml
 import pyodbc
-import ast
 import sys
+import time
+import struct
+import binascii
+import random
 import unittest
-
+from uuid import getnode
+import imp
+dn, fn = os.path.split(os.path.abspath(__file__))
+global ut
+ut = imp.load_source("ut",os.path.join(dn,"util.py"))
 
 ########################
 ###database functions###
@@ -29,7 +37,7 @@ def queryCatalog(sysNumber):
 '''
 queryFM_Single takes a sql command and returns a single row (row[0]) from FileMaker
 '''	
-def queryFM_Single(sqlstr,cnxn):
+def queryFM_single(sqlstr,cnxn):
 	cursor = cnxn.cursor()
 	cursor.execute(sqlstr)
 	row = cursor.fetchone()
@@ -38,14 +46,14 @@ def queryFM_Single(sqlstr,cnxn):
 '''
 queryFM_Multi takes a sql command and returns every row from FileMaker
 '''	
-def queryFM_Multi(sqlstr,cnxn):
+def queryFM_multi(sqlstr,cnxn):
 	cursor = cnxn.cursor()
 	cursor.execute(sqlstr)
 	rows = cursor.fetchall()
 	return rows
 
 '''
-insertFM takes a sql insert command and executes it, commiting the change to the record
+insertFM takes a sql insert command and executes it, committing the change to the record
 '''
 def insertFM(sqlstr,cnxn):
 	cursor = cnxn.cursor()
@@ -65,18 +73,129 @@ def insertFM(sqlstr,cnxn):
 insertHash takes a db connection and a list of id, filename, and hash and inserts thsoe values in a new row
 '''
 def insertHash(cnxn,**kwargs):
-	sqlstr = """
-		insert into File_instance(FK,filename,hash) 
-		values ((select Original_Key from Audio_Originals where Original_Tape_Number like 
-		'""" + kwargs['id'] + """/%'),'""" + kwargs['filename'] + """','""" + kwargs['hash'] + """')"""
+	if kwargs['materialType'] is 'tape':
+		sqlstr = """insert into
+			File_instance(FK,filename,hash) 
+			values ((select Original_Key from Audio_Originals where Original_Tape_Number like 
+			'""" + kwargs['id'] + """/%'),'""" + kwargs['filename'] + """','""" + kwargs['hash'] + """')"""
 	insertFM(sqlstr,cnxn)
+
+def makebext_codinghistory(cnxn,args):
+	ch = "--History="
+	if args.aNumber:
+		ch = "A=ANALOGUE,M=" + channelConfig + ",T=" + deckModel + ";SN" + deckSN + ";" + speed + "\n"
+		ch = ch + "A=PCM,F=96000,W=24,M=" + channelConfig + ",T=Prism Dream ADA 8XR;A/D"	
+	return ch	
+
+def makebext_umid():
+	'''mac_address = getnode()
+	u_ma = format(mac_address, '08x').decode("utf-8")
+	#u_ma = hex_mac_address.decode('utf-8')
+	timestamp = os.path.getctime(__file__)
+	#hex_timestamp = struct.unpack('<I', struct.pack('<f', timestamp))[0]
+	u_ts = format(int(timestamp), '08x').decode('utf-8')
+	#print hex(struct.pack('h', timestamp))
+	#print hex_timestamp
+	#u_ts = format(hex_timestamp, '08x').decode("utf-8")
+	#print hex_timestamp
+	#u_ts = hex_timestamp.decode('utf-8')
+	#umid = hex_universal_label.decode("hex").encode('utf-8') + "-" + hex_length.decode("hex").encode('utf-8') + hex_instance.decode("hex").encode('utf-8') + "-" + hex_mac_address.decode("hex").encode('utf-8') + "-" + hex_timestamp.decode("hex").encode('utf-8')'''
+	hex_universal_label = '\x06\x0c\x2b\x34\x01\x01\x01\x01\x01\x01\x02\x00\x00\x00\x00\x00'
+	u_ul = hex_universal_label.decode('utf-8')
+	hex_length = '\x13'
+	u_l = hex_length.decode('utf-8')
+	hex_instance = '\x00\x00\x00'
+	u_i = hex_instance.decode('utf-8')
+	charset = ["0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+	materialID = ""
+	count = 0
+	while count < 13:
+		materialID = materialID + random.choice(charset)
+		count = count + 1
+	umid = u_ul[:8] + "-" + u_ul[8:12] + "-" + u_ul[12:] + "-" + materialID
+	bext_umid = "--UMID=" + umid
+	return bext_umid
+	
+def makebext_description_parse_result(result,fieldlist):
+	if result is not None:
+		bext_description = "--Description="
+		if isinstance(result, ut.dotdict):
+			for key in result:
+				bext_description = bext_description + key + ":" + str(result[key]) + ";"
+		else:
+			count = 0 #init a counter
+			while count < len(fieldlist): #loop the same # of times as the field list is long
+				if result[count]: #if there's a value in the field
+					x[fieldlist[count]]=result[count] #set the FileMakerField:FileMakerValue pair according to the index
+				else: #Nonetypes can't be assigned directly
+					x[fieldlist[count]]="None"
+				bext_description = bext_description + fieldlist[count] + ":" + str(x[fieldlist[count]]) + ";"
+				count=count+1
+		return bext_description
+	elif result is None:
+		return None
+		
+def makebext_description(cnxn,args):
+	x = {} #dictionary for the resulting FileMakerField:FileMakerValue pairs
+	if args.aNumber:
+		fieldlist = ["Master_Key","Tape_Title","Mss_Number","Collection_Name","Master_Key"] #fields to select in FileMaker
+		sqlstr = """select 
+			ao.Master_Key, ao.Tape_Title, ao.Mss_Number, ao.Collection_Name, ao.Mastered
+			from Audio_Originals ao
+			join Audio_Masters am
+			on ao.Original_Key=am.Original_Key
+			where ao.Original_Tape_Number like '""" + args.aNumber + "/%'"
+		result = queryFM_single(sqlstr,cnxn)
+		bext_description = makebext_description_parse_result(result,fieldlist)
+	elif args.cylNumber:
+		fieldlist = ["PK","Label_Cat","Title","Performer","yr"]
+		sqlstr = """select
+			PK, Label_Cat, Title, Performer, yr
+			from Cylinders
+			where Call_Number_asText = '""" + args.cylNumber + "'"
+		result = queryFM_single(sqlstr,cnxn)
+		bext_description = makebext_description_parse_result(result,fieldlist)		
+	elif args.discID: 
+		soup = queryCatalog(args.discID)
+		l1, l2 = makeID3fromCatalogSoup(soup)
+		if args.side.lower() == "a":
+			result = l1
+		elif args.side.lower() == "b":
+			result = l2
+		bext_description = makebext_description_parse_result(result,None)
+	return bext_description
+	
+def makebext_complete(cnxn,**kwargs):
+	args = ut.dotdict(kwargs)
+	bext_description = makebext_description(cnxn,args)
+	if args.aNumber:
+		bext_originatorReference = "cusb-" + args.aNumber
+	elif args.cylNumber:
+		bext_originatorReference = "cusb-cyl" + args.cylNumber
+	elif args.discID:
+		bext_originatorReference = args.discBarcode.replace("ucsb","cusb")
+	if args.bextVersion == '1':
+		if args.umid:
+			umid = args.umid
+		else:
+			umid = makebext_umid()
+	else:
+		umid = ''
+	bextstr = "--Originator=US,CUSB,SRC --originatorReference="+ bext_originatorReference + " " + bext_description + " " + umid
+	try:
+		bext = bextstr.encode('utf-8')
+	except:
+		bext = bextstr
+	return bext
 	
 '''
 makeID3fromCatalogSoup takes a bs4 soup object and returns 1 or 2 lists of ID3 tags based on the MARC xml in Alma
 '''	
 def makeID3fromCatalogSoup(soup):
-	id3list1 = []
-	id3list2 =[]
+	id3list1 = {}
+	id3list2 ={}
+	id3list1 = ut.dotdict(id3list1)
+	id3list2 = ut.dotdict(id3list2)
 	list028ind0=[]
 	list028ind1=[]
 	subtitle=''
@@ -142,37 +261,37 @@ def makeID3fromCatalogSoup(soup):
 		title1 = title1 + subtitle
 	if not title1:
 		title1 = "Title Unavailable"
-	id3list1.append(title1)
+	id3list1.title = title1
 	if not artist1:
 		artist1 = "Artist Unavailable"
-	id3list1.append(artist1)
+	id3list1.artist = artist1
 	if not date:
 		date = "Date Unavailable"
-	id3list1.append(date)
+	id3list1.date = date
 	if not album:
 		album = "Album Unavailable"
-	id3list1.append(album)
+	id3list1.album = album
 	if list028ind1:
-		id3list1.append(list028ind1[0])
+		id3list1.label = list028ind1[0]
 	else:
-		id3list1.append(list028ind0[0])
+		id3list1.label = list028ind0[0]
 	if len(title2) > 0:
 		if not title2:
 			title2 = "Title Unavailable"
-		id3list2.append(title2)
+		id3list2.title = title2
 		if not artist2:
 			artist2 = "Artist Unavailable"
-		id3list2.append(artist2)
+		id3list2.artist = artist2
 		if not date:
 			date = "Date Unavailable"
-		id3list2.append(date)
+		id3list2.date = date
 		if not album:
 			album = "Album Unavailable"
-		id3list2.append(album)
+		id3list2.album = album
 		if list028ind1:
-			id3list2.append(list028ind1[1])
+			id3list2.label = list028ind1[1]
 		else:
-			id3list2.append(list028ind0[0])	
+			id3list2.label = list028ind0[0]	
 	if id3list2:
 		return id3list1,id3list2
 	else:
