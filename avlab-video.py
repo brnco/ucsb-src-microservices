@@ -98,7 +98,7 @@ def verifyFormatPolicy(sfull,canonicalName,formatPolicy):
 			print canonicalName + " failed at " + f
 			foo = raw_input("Eh")
 	
-def separateLTOpacket(sfull,canonicalName,ltoStage):
+def separateLTOpacket(sfull,canonicalName,repo):
 	endDirThousand = canonicalName.replace("v","")[:1]
 	endDirThousand = endDirThousand + "000"
 	dest = os.path.join(repo,endDirThousand,s)
@@ -157,7 +157,7 @@ def main():
 				verifyFormatPolicy(sfull,canonicalName,formatPolicy)
 				#verify quality of transfer
 				#verifytransferqc()
-			separateLTOpacket(sfull,canonicalName,repo,ltoStage)
+			separateLTOpacket(sfull,canonicalName,repo)
 			#send2repo(dn,newIngest,ltoStage,repo)
 	###END WALK###
 dependencies()
