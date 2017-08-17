@@ -88,33 +88,13 @@ def makebext_codinghistory(cnxn,args):
 	return ch	
 
 def makebext_umid():
-	'''mac_address = getnode()
-	u_ma = format(mac_address, '08x').decode("utf-8")
-	#u_ma = hex_mac_address.decode('utf-8')
-	timestamp = os.path.getctime(__file__)
-	#hex_timestamp = struct.unpack('<I', struct.pack('<f', timestamp))[0]
-	u_ts = format(int(timestamp), '08x').decode('utf-8')
-	#print hex(struct.pack('h', timestamp))
-	#print hex_timestamp
-	#u_ts = format(hex_timestamp, '08x').decode("utf-8")
-	#print hex_timestamp
-	#u_ts = hex_timestamp.decode('utf-8')
-	#umid = hex_universal_label.decode("hex").encode('utf-8') + "-" + hex_length.decode("hex").encode('utf-8') + hex_instance.decode("hex").encode('utf-8') + "-" + hex_mac_address.decode("hex").encode('utf-8') + "-" + hex_timestamp.decode("hex").encode('utf-8')'''
-	hex_universal_label = '\x06\x0c\x2b\x34\x01\x01\x01\x01\x01\x01\x02\x00\x00\x00\x00\x00'
-	u_ul = hex_universal_label.decode('utf-8')
-	hex_length = '\x13'
-	u_l = hex_length.decode('utf-8')
-	hex_instance = '\x00\x00\x00'
-	u_i = hex_instance.decode('utf-8')
-	charset = ["0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
-	materialID = ""
-	count = 0
-	while count < 13:
-		materialID = materialID + random.choice(charset)
-		count = count + 1
-	umid = u_ul[:8] + "-" + u_ul[8:12] + "-" + u_ul[12:] + "-" + materialID
+	universal_label = '060A2B340101010101010211'
+	length = '13'
+	instance = '000000'
+	material_number = '00000000000000000000000000000000'
+	umid = '--UMID=' + universal_label + length + instance + material_number
 	bext_umid = "--UMID=" + umid
-	return bext_umid
+	return umid
 	
 def makebext_description_parse_result(result,fieldlist):
 	if result is not None:
@@ -163,7 +143,7 @@ def makebext_description(cnxn,args):
 		elif args.side.lower() == "b":
 			result = l2
 		bext_description = makebext_description_parse_result(result,None)
-	return bext_description
+	return bext_description.replace(" ","")
 	
 def makebext_complete(cnxn,**kwargs):
 	args = ut.dotdict(kwargs)
@@ -175,10 +155,7 @@ def makebext_complete(cnxn,**kwargs):
 	elif args.discID:
 		bext_originatorReference = args.discBarcode.replace("ucsb","cusb")
 	if args.bextVersion == '1':
-		if args.umid:
-			umid = args.umid
-		else:
-			umid = makebext_umid()
+		umid = makebext_umid()
 	else:
 		umid = ''
 	bextstr = "--Originator=US,CUSB,SRC --originatorReference="+ bext_originatorReference + " " + bext_description + " " + umid
