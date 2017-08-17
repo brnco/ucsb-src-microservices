@@ -25,11 +25,13 @@ def main():
 	rawCapturePath = conf.NationalJukebox.VisualArchRawDir
 	if not os.path.exists(rawCapturePath):
 			os.makedirs(rawCapturePath)
-	barcode = sys.argv[1] #grab the lone argument that FM provides
+	barcode = sys.argv[1].strip() #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename
 	util = imp.load_source('util',os.path.join(dn,"util.py"))
 	log.log("started")
+	print conf.python
+	print os.path.join(dn,"capture-image.py")
 	subprocess.call([conf.python,os.path.join(dn,"capture-image.py"),"-nj"])
 	time.sleep(3)
 	with ut.cd(rawCapturePath): #cd into capture dir

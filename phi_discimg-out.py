@@ -98,6 +98,7 @@ def main():
 	parser.add_argument('-m','--mode',dest='m',choices=["single","batch"],help='mode, process a single file or every file in capture directory')
 	args = parser.parse_args()
 	imgCaptureDir = conf.NationalJukebox.VisualArchRawDir
+	print conf.NationalJukebox.VisualArchRawDir
 	log.log("started")
 	if args.m == "single":
 		startObj = startObjFP = args.so.replace("\\","/")
@@ -141,28 +142,32 @@ def main():
 	elif args.m == "batch":
 		for dirs,subdirs,files in os.walk(imgCaptureDir):
 			for f in files:
-				startObj = f
-				startObjFP = os.path.join(dirs,f)
-				fname,ext = os.path.splitext(f)
-				endDir = os.path.join(qcDir,fname)
-				if not os.path.exists(endDir):
-					os.makedirs(endDir)
-				print f
-				#get the orientation of the image and set output rotation accordingly
-				rotation = idSize(startObjFP)
-				
-				#rotate the tif
-				rotateTif(startObjFP,fname,rotation,endDir)
-				
-				#crop the tif
-				cropTif(startObjFP,fname,endDir)
-				
-				#convert to jpg
-				#should make jpeg from tiff moving forward
-				tifToJpg(startObjFP,fname,endDir)
-				
-				#move startObj
-				moveSO(startObjFP,endDir)
+				if not f.endswith(".DS_Store"):
+					startObj = f
+					startObjFP = os.path.join(dirs,f)
+					fname,ext = os.path.splitext(f)
+					endDir = os.path.join(conf.NationalJukebox.PreIngestQCDir,fname)
+					if not os.path.exists(endDir):
+						os.makedirs(endDir)
+					print f
+					#convert to tif
+					rawpyToTif(startObjFP,fname,endDir)
+
+					#get the orientation of the image and set output rotation accordingly
+					rotation = idSize(startObjFP,endDir)
+					
+					#rotate the tif
+					rotateTif(startObjFP,fname,rotation,endDir)
+					
+					#crop the tif
+					cropTif(startObjFP,fname,endDir)
+					
+					#convert to jpg
+					#should make jpeg from tiff moving forward
+					tifToJpg(startObjFP,fname,endDir)
+					
+					#move startObj
+					moveSO(startObjFP,endDir)
 	
 main()
 log.log("complete")

@@ -88,7 +88,7 @@ def makeTranscodeList(args,archiveDir):
 				for file in os.listdir(os.getcwd()):
 					if file.endswith("b.wav"):
 						b.append(os.path.join(os.getcwd(),file))
-					elif file.endswith("a.wav"):
+					elif file.endswith("a.wav") or file.endswith("m.wav"):
 						a.append(os.path.join(os.getcwd(),file))
 					elif file.endswith(".wav"):
 						u.append(os.path.join(os.getcwd(),file))
@@ -97,9 +97,13 @@ def makeTranscodeList(args,archiveDir):
 					elif file.endswith(".tif"):
 						i.append(os.path.join(os.getcwd(),file))
 		###DEDUPE LISTS###
+		print u
+		print m
+		print b
+		print a
 		for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
-			#_assetName = re.search(obj,f) #grab just the canonical name part
-			assetName = obj
+			#assetName = re.search(obj,f) #grab just the canonical name part
+			assetName = startObj
 			for v in u: #loop thru found mp3s in dir
 				if assetName in v: #if the string cubs-a1234 is in the list of mp3s
 					u.remove(v)
@@ -109,6 +113,9 @@ def makeTranscodeList(args,archiveDir):
 			for v in a:
 				if assetName in v:
 					a.remove(v)
+		for f in u:
+			for v in a:
+				a.remove(v)
 		for f in b: #loop thru broadcast master list and delete from other lists (transcoding from broadcast preferred)
 			#assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
 			for v in u:
@@ -135,7 +142,9 @@ def main():
 	parser.add_argument('-t','--tape',action='store_true',dest='t',default=False,help="make dip with audio template")
 	parser.add_argument('-d','--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
 	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
-	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")	
+	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")
+	parser.add_argument('-sys','--systemNumber',dest='sys',help="the system number for a disc in our catalog")
+	
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
 	args = parser.parse_args()
@@ -162,6 +171,10 @@ def main():
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+		elif args.d is True and args.hq is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-sys',args.sys])
+		elif args.d is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-n','-mp3','-sys',args.sys])
 	for f in b:
 		if args.t is True:
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
@@ -170,7 +183,10 @@ def main():
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
 		elif args.t is True:
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
-	
+		elif args.d is True and args.hq is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-sys',args.sys])
+		elif args.d is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-n','-mp3','-sys',args.sys])
 	#make a final list of stuff we gonna dip
 	veggies = []
 	for dir in startDirs:

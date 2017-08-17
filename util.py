@@ -25,7 +25,7 @@ def drivematch(path):
 
 def pythonpath():
 	if os.name == 'posix':
-		return "/usr/local/bin/python"
+		return "/usr/bin/python"
 	else:
 		return "C:/Python27/python.exe"
 		
