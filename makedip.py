@@ -103,7 +103,7 @@ def makeTranscodeList(args,archiveDir):
 		print a
 		for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
 			#assetName = re.search(obj,f) #grab just the canonical name part
-			assetName = startObj
+			assetName = obj
 			for v in u: #loop thru found mp3s in dir
 				if assetName in v: #if the string cubs-a1234 is in the list of mp3s
 					u.remove(v)
@@ -144,7 +144,6 @@ def main():
 	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")
 	parser.add_argument('-sys','--systemNumber',dest='sys',help="the system number for a disc in our catalog")
-	
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
 	args = parser.parse_args()
