@@ -165,47 +165,43 @@ def makebext_complete(cnxn,**kwargs):
 		bext = bextstr
 	return bext
 
-def get_name_format(cnxn,**kwargs):
+def get_aNumber_channelConfig_face(cnxn,**kwargs):
 	args = ut.dotdict(kwargs)
 	facelist = ["fAB","fCD"]
+	nameFormat = {}
 	row = ''
 	count = 0
+	cnxn = pyodbc.connect(cnxn)
 	while not row: #try to find the Tape Number and Format based on the rawCaptureName
-		if count > 1: #DO THIS BETTER
+		if count > 1: 
 			return None
 		else:
 			sqlstr="""select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format 
 					from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key 
 					where Audio_Masters.rawCaptureName_""" + facelist[count] + "='" + args.aNumber + "' or Audio_Masters.rawCaptureName_" + facelist[count] + "='" + args.aNumber + ".wav'"
 			#OR above necessary because sometimes the rawCaptureName has a ".wav" at the end :(
-			print cnxn
-			cnxn = pyodbc.connect(cnxn)
 			row = queryFM_single(sqlstr,cnxn)
 			face = facelist[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
 			count = count+1
 	if row:
-		print row
-		print type(row)
-		foo = raw_input("eh")
-		rowstr = str(row) #convert to string
-		if "Cassette" in rowstr: #if the rawCaptureName is of a cassette tape
-			rowtup = ast.literal_eval(rowstr) #turn the string into a tuple
-			rtnlist = [face] #init the return list with the face
-			rtnlist.append(rowtup[0]) #this is the aNumber(no "a")
-			rtnlist.append(rowtup[1]) #this is the channelConfig
-			return rtnlist
+		nameFormat["aNumber"] = row[0]
+		nameFormat["face"] = face
+		#rowstr = str(row) #convert to string
+		if "Cassette" in row: #if the rawCaptureName is of a cassette tape
+			nameFormat["channelConfig"] = row[1]
 		elif "Open Reel" in rowstr: #if the rawCaptureName is of an open reel
-			face = face.replace("'",'') #get rid of annoying punctuation
+			#face = face.replace("'",'') #get rid of annoying punctuation
 			#having the format isn't enough, we need the channel configuration for open reels
 			sqlstr = "select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
 			row = query(sqlstr,cnxn)
 			rowstr = str(row)
 			if row:
-				rowtup = ast.literal_eval(rowstr)
+				#rowtup = ast.literal_eval(rowstr)
 				rtnlist = [face]
 				rtnlist.append(rowtup[0])
 				rtnlist.append(rowtup[1])
 				return rtnlist
+		return nameFormat
 	else:
 		return None
 '''
