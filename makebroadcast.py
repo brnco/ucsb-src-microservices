@@ -104,6 +104,8 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		#_ffmpegstring = ffmpegstring.decode("utf-8")
 		#ffmpegstring = _ffmpegstring.encode("ascii","ignore")
 		#print ffmpegstring
+		print id3string
+		foo = raw_input("Eh")
 		subprocess.call(ffmpegstring)
 		cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 		time.sleep(4)
@@ -229,7 +231,7 @@ def makeid3str(id3fields,id3rawlist,assetName): #take the tag names and values a
 	#print id3str
 	id3str = UnicodeDammit.detwingle(id3str)
 	#print id3str
-	return id3str
+	return id3str.encode('utf-8')
 
 def makeEuseChar(SuseChar, fname): #makes the end use character for the output file
 	#end use characters correspond to different parts of our OAIS implementation
