@@ -13,6 +13,7 @@ import glob
 import re
 import argparse
 import imp
+import time
 from distutils import spawn
 
 #check that we have the required software to run this script
@@ -28,9 +29,10 @@ def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 	mtdObj = os.path.join(os.path.abspath(os.path.dirname(startObj)),assetName + "-mtd.txt") #name a metadata file
 	if not os.path.isfile(mtdObj):
 		subprocess.call(['ffmpeg','-i',startObj,'-f','ffmetadata','-y',mtdObj]) #export the id3 metadata that already exists in the media file to this text file
+	time.sleep(2)
 	b = os.path.getsize(mtdObj) #grab the size, in bytes, of the resulting text file
 	if b < 39: #40 is the size of a blank ;FFMETADATA1 file
-		#encourages users to put this metadata in the broadcast files because that's where it belongs, not just in the access copies
+		'''encourages users to put this metadata in the broadcast files because that's where it belongs, not just in the access copies
 		print " "
 		print " "
 		print "********************************************************************************"
@@ -41,12 +43,13 @@ def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 		print " "
 		print "By doing it this way, we have ID3 tags for the next time we need them"
 		print " "
-		print "********************************************************************************"
-		os.remove(assetName + "-mtd.txt") #delete it we don't need it here
+		print "********************************************************************************"'''
+		os.remove(os.path.join(os.path.abspath(os.path.dirname(startObj)),assetName + "-mtd.txt")) #delete it we don't need it here
 		return False
 	else:
 		return True
-
+	
+		
 def makeAudio(startObj, startDir, assetName, EuseChar, mtd):	#make the mp3
 	endObj = assetName + EuseChar + '.mp3' #give it a name
 	with ut.cd(startDir):

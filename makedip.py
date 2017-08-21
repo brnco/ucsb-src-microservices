@@ -101,6 +101,10 @@ def makeTranscodeList(args,archiveDir):
 		print m
 		print b
 		print a
+		if len(a) == 1 and len(u) == 1:
+			if a[0].replace("m.wav",".wav") == u[0]:
+				b.append(u[0])
+				u.remove(u[0])
 		for f in m: #loop thru mp3s to delete from other lists so we don't duplicate our efforts
 			#assetName = re.search(obj,f) #grab just the canonical name part
 			assetName = obj
@@ -117,7 +121,8 @@ def makeTranscodeList(args,archiveDir):
 			for v in a:
 				a.remove(v)
 		for f in b: #loop thru broadcast master list and delete from other lists (transcoding from broadcast preferred)
-			#assetName = re.search('cusb-a\d+',f) #grab just the cusb-a1234 part
+			print obj
+			assetName = obj #grab just the cusb-a1234 part
 			for v in u:
 				if assetName in v:
 					u.remove(v)
@@ -176,6 +181,8 @@ def main():
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-n','-mp3','-sys',args.sys])
 	for f in b:
 		if args.t is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
+		if args.d is True:
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
 	for f in u:
 		if args.t is True and args.hq is True: 

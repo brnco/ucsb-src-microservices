@@ -104,8 +104,6 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		#_ffmpegstring = ffmpegstring.decode("utf-8")
 		#ffmpegstring = _ffmpegstring.encode("ascii","ignore")
 		#print ffmpegstring
-		print id3string
-		foo = raw_input("Eh")
 		subprocess.call(ffmpegstring)
 		cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 		time.sleep(4)
