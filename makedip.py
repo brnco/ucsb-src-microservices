@@ -158,6 +158,10 @@ def main():
 	elif args.d is True:
 		#archiveDir = config.get("discs","repo")
 		startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
+		if "None" in startObj:
+			print "Sorry, it looks like this hasn't been digitized."
+			print "Double check the item name"
+			sys.exit()
 		startObj = startObj.replace("\\","/")[:-2]
 		print startObj
 		archiveDir = os.path.dirname(os.path.dirname(startObj))

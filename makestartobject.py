@@ -59,6 +59,7 @@ def avname(startObj,avlist):
 		
 def cylname(startObj,cyllist):	
 	return startObj
+	
 def discname(startObj,disclist):
 	foundirs = []
 	for dirpath in disclist:
@@ -70,6 +71,7 @@ def discname(startObj,disclist):
 			print f
 	elif len(foundirs) < 1:
 		print "Buddy, it looks like this hasn't been digitized"
+		return None
 	else:
 		startDir = foundirs[0]
 	if os.path.exists(os.path.join(startDir,startObj + "b.wav")):
