@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import time
 import unittest
 
 
@@ -54,6 +55,26 @@ def dependencies(depends):
 			sys.exit()
 	return        
 
+def rename_ucsb2cusb(path):
+	path = path.replace("\\","/")
+	if os.path.isfile(path):
+		newname = path.replace("ucsb","cusb")
+		os.rename(path,newname)
+	else:
+		for dirs, subdirs, files in os.walk(path):
+			for f in files:
+				if f.startswith("ucsb"):
+					print f
+					newname = f.replace("ucsb","cusb")
+					print os.path.join(dirs,newname)
+					os.rename(os.path.join(dirs,f),os.path.join(dirs,newname))
+		time.sleep(3)
+		for dirs, subdirs, files in os.walk(path):	
+			for s in subdirs:
+				if s.startswith("ucsb"):
+					newname = s.replace("ucsb","cusb")
+					os.rename(os.path.join(dirs,s),os.path.join(dirs,newname))
+	return				
 
 #add /usr/local/bin prefix to python calls for macs		
 class dotdict(dict):

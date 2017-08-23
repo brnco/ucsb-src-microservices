@@ -24,7 +24,7 @@ def main():
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	rawCapturePath = conf.NationalJukebox.VisualArchRawDir
 	if not os.path.exists(rawCapturePath):
-			os.makedirs(rawCapturePath)
+		os.makedirs(rawCapturePath)
 	barcode = sys.argv[1].strip() #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename
