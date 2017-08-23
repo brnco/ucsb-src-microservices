@@ -13,7 +13,6 @@ import struct
 import binascii
 import random
 import unittest
-from uuid import getnode
 import imp
 dn, fn = os.path.split(os.path.abspath(__file__))
 global ut
@@ -80,13 +79,9 @@ def insertHash(cnxn,**kwargs):
 			'""" + kwargs['id'] + """/%'),'""" + kwargs['filename'] + """','""" + kwargs['hash'] + """')"""
 	insertFM(sqlstr,cnxn)
 
-def makebext_codinghistory(cnxn,args):
-	ch = "--History="
-	if args.aNumber:
-		ch = "A=ANALOGUE,M=" + channelConfig + ",T=" + deckModel + ";SN" + deckSN + ";" + speed + "\n"
-		ch = ch + "A=PCM,F=96000,W=24,M=" + channelConfig + ",T=Prism Dream ADA 8XR;A/D"	
-	return ch	
-
+'''
+makebext_umid generates a 64byte string of numbers base on SMPTE 330M to use as a UMID. Second-half is zeroed out, we use this to validate every wave as bext v1
+'''
 def makebext_umid():
 	universal_label = '060A2B340101010101010211'
 	length = '13'
@@ -95,7 +90,10 @@ def makebext_umid():
 	umid = '--UMID=' + universal_label + length + instance + material_number
 	bext_umid = "--UMID=" + umid
 	return umid
-	
+
+'''
+makebext_description_parse_result takes the result of the FM query and transforms it into a string that can be read by BWFMetaEdit
+'''
 def makebext_description_parse_result(result,fieldlist):
 	if result is not None:
 		bext_description = "--Description="
@@ -114,7 +112,10 @@ def makebext_description_parse_result(result,fieldlist):
 		return bext_description
 	elif result is None:
 		return None
-		
+
+'''
+makebext_description is a handler for generating a bext description string that can be read by BWFMetaEdit
+'''
 def makebext_description(cnxn,args):
 	x = {} #dictionary for the resulting FileMakerField:FileMakerValue pairs
 	if args.aNumber:
@@ -144,7 +145,10 @@ def makebext_description(cnxn,args):
 			result = l2
 		bext_description = makebext_description_parse_result(result,None)
 	return bext_description.replace(" ","")
-	
+
+'''
+makebext_complete is a handler to generate a bext string that can be read by BWFMetaEdit
+'''	
 def makebext_complete(cnxn,**kwargs):
 	args = ut.dotdict(kwargs)
 	bext_description = makebext_description(cnxn,args)
@@ -165,6 +169,10 @@ def makebext_complete(cnxn,**kwargs):
 		bext = bextstr
 	return bext
 
+'''
+get_aNumber_channelConfig_face formats a query for FM to grip a tape's aNumber, channel configuration, and face, from that's tape's rawCaptureName in new_ingest
+returns list of [aNumber,channelConfig,face] e.g., ["a1234","1/4-inch Half Track Mono","fAB"]
+'''
 def get_aNumber_channelConfig_face(cnxn,**kwargs):
 	args = ut.dotdict(kwargs)
 	facelist = ["fAB","fCD"]
@@ -204,6 +212,7 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 		return nameFormat
 	else:
 		return None
+		
 '''
 makeID3fromCatalogSoup takes a bs4 soup object and returns 1 or 2 lists of ID3 tags based on the MARC xml in Alma
 '''	
