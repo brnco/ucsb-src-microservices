@@ -219,13 +219,10 @@ def main():
 		#output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname]) #get aNumber, channelconfig, face from FileMaker
 		kwargs = {"aNumber":args.so.capitalize()}
 		acf = makemtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
-		print acf
-		foo = raw_input("eh")
-		if processList is not None:
-			print processList
-			face = processList[0]
-			aNumber = "a" + processList[1]
-			channelConfig = processList[2]
+		if acf is not None:
+			face = acf[0]
+			aNumber = "a" + acf[1]
+			channelConfig = acf[2]
 			###END GET ANUMBER FACE CHANNELCONFIG FROM FILEMAKER###
 			###DO THE FFMPEG###
 			ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
@@ -277,22 +274,19 @@ def main():
 					rawfname,ext = os.path.splitext(file)
 					###END INIT###
 					###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
-					output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname])
-					print output
-					if not output.startswith("uh buddy"):
-						processList = ast.literal_eval(output)
-					else:
+					kwargs = {"aNumber":args.so.capitalize()}
+					acf = makemtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
+					if acf is None:
 						continue
-					if processList is not None:
-						for p in processList:
+					else:
+						for p in acf:
 							if p is None:
 								processNone = 1
 						if processNone > 0:
 							break
-						print processList
-						face = processList[0]
-						aNumber = "a" + processList[1]
-						channelConfig = processList[2]
+						face = acf[0]
+						aNumber = "a" + acf[1]
+						channelConfig = acf[2]
 						###END GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 						###DO FFMPEG###
 						ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
