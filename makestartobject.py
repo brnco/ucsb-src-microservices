@@ -45,11 +45,11 @@ def avname(startObj,avlist):
 				if os.path.exists("cusb-a" + aNumber + face + "b.wav"):
 					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "b.wav")
 					return startObj
-				elif os.path.exists("cusb-a" + aNumber + face + ".wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + ".wav")
-					return startObj
 				elif os.path.exists("cusb-a" + aNumber + face + "a.wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "a.wav")	
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "a.wav")
+					return startObj
+				elif os.path.exists("cusb-a" + aNumber + face + ".wav"):
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + ".wav")	
 					return startObj
 				else:
 					return soContainingDir
@@ -59,7 +59,6 @@ def avname(startObj,avlist):
 		
 def cylname(startObj,cyllist):	
 	return startObj
-	
 def discname(startObj,disclist):
 	foundirs = []
 	for dirpath in disclist:
@@ -71,7 +70,6 @@ def discname(startObj,disclist):
 			print f
 	elif len(foundirs) < 1:
 		print "Buddy, it looks like this hasn't been digitized"
-		return None
 	else:
 		startDir = foundirs[0]
 	if os.path.exists(os.path.join(startDir,startObj + "b.wav")):
