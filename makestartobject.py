@@ -45,11 +45,11 @@ def avname(startObj,avlist):
 				if os.path.exists("cusb-a" + aNumber + face + "b.wav"):
 					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "b.wav")
 					return startObj
-				elif os.path.exists("cusb-a" + aNumber + face + ".wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + ".wav")
-					return startObj
 				elif os.path.exists("cusb-a" + aNumber + face + "a.wav"):
-					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "a.wav")	
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + "a.wav")
+					return startObj
+				elif os.path.exists("cusb-a" + aNumber + face + ".wav"):
+					startObj = os.path.join(os.getcwd(),"cusb-a" + aNumber + face + ".wav")	
 					return startObj
 				else:
 					return soContainingDir

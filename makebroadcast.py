@@ -157,8 +157,8 @@ def gettapeid3(startDir, assetName):
 	match = re.search("a\d{4,5}",assetName) #grip just the a1234 part of the filename
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"fm-stuff.py"),"-so",assetName.capitalize(),"-id3","-t"]) #ask filemaker for the value for each field
-	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
+	kwargs = {"aNumber":assetName}
+	id3rawlist = mtd.get_tape_ID3(conf.magneticTape.cnxn,**kwargs) #ask filemaker for the value for each field
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str
 
@@ -169,8 +169,8 @@ def getcylinderid3(args,assetName):
 	match = re.search(r"\d{4,5}",assetName) #grip just the number of the cylinder
 	if match:
 		assetName = match.group()
-	id3rawlist = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"fm-stuff.py"),"-so",assetName.replace("cusb-cyl",""),"-id3","-c"]) #ask filemaker for the values for each field
-	id3rawlist = ast.literal_eval(id3rawlist) #convert the string coming back from FM to an actual python tuple
+	kwargs = {"cylNumber":assetName}
+	id3rawlist = mtd.get_cylinder_ID3(conf.cylinders.cnxn,**kwargs) #ask filemaker for the values for each field
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
 	return id3str	
 	
@@ -277,6 +277,8 @@ def main():
 	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	global mtd
+	mtd = imp.load_source('mtd',os.path.join(dn,'makemetadata.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
@@ -293,6 +295,7 @@ def main():
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	startObj = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
 	startObj = startObj.replace("\\","/")[:-2]
+	print startObj
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video
 	aexts = ['.wav'] #set extensions we recognize for audio
 	fnamext = os.path.basename(os.path.abspath(startObj)) #grabs the filename and extension

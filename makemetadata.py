@@ -212,7 +212,29 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 		return nameFormat
 	else:
 		return None
-		
+
+'''
+get_cylinder_ID3 takes a db connection and argument for the cylinder number (no prefix) and returns a raw list of Title, Performer, Label, and date
+'''
+def get_cylinder_ID3(cnxn,**kwargs):
+	args = ut.dotdict(kwargs)
+	cnxn = pyodbc.connect(cnxn)
+	sqlstr = """select Title, Performer, Composer, Label_Cat, yr
+				from Cylinders
+				where Call_Number_asText='""" + args.cylNumber + "'"
+	print sqlstr
+	row = queryFM_single(sqlstr,cnxn)
+	return row
+
+def get_tape_ID3(cnxn,**kwargs):
+	args = ut.dotdict(kwargs)
+	cnxn = pyodbc.connect(cnxn)
+	sqlstr = """select Tape_Title, Collection_Name, Original_Recording_Date
+				from Audio_Originals
+				where Original_Tape_Number like '""" + args.aNumber.upper() + "%'"
+	row = queryFM_single(sqlstr,cnxn)	
+	return row
+	
 '''
 makeID3fromCatalogSoup takes a bs4 soup object and returns 1 or 2 lists of ID3 tags based on the MARC xml in Alma
 '''	
