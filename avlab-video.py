@@ -91,8 +91,8 @@ def verifyFormatPolicy(sfull,canonicalName,formatPolicy):
 			print canonicalName + " failed at " + f
 			foo = raw_input("Eh")
 	
-def separateLTOpacket(sfull,canonicalName,ltoStage,s):
-	endDirThousand = canonicalName.replace("cusb-v","")[:1]
+def separateLTOpacket(sfull,canonicalName,repo):
+	endDirThousand = canonicalName.replace("v","")[:1]
 	endDirThousand = endDirThousand + "000"
 	dest = os.path.join(conf.video.repo,endDirThousand,s)
 	foo = raw_input("eh")
@@ -154,7 +154,11 @@ def main():
 				verifyFormatPolicy(sfull,canonicalName,formatPolicy)
 				#verify quality of transfer
 				#verifytransferqc()
+<<<<<<< HEAD
 			separateLTOpacket(sfull,canonicalName,ltoStage,s)
+=======
+			separateLTOpacket(sfull,canonicalName,repo)
+>>>>>>> fm-stuffy
 			#send2repo(dn,newIngest,ltoStage,repo)
 	###END WALK###
 
