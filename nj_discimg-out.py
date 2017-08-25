@@ -152,7 +152,7 @@ def main():
 				rawpyToTif(startObjFP,fname,endDir)
 				
 				#get the orientation of the image and set output rotation accordingly
-				rotation = idSize(startObjFP)
+				rotation = idSize(fname,endDir)
 				
 				#rotate the tif
 				rotateTif(startObjFP,fname,rotation,endDir)
