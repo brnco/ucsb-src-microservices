@@ -77,6 +77,11 @@ def insertHash(cnxn,**kwargs):
 			File_instance(FK,filename,hash) 
 			values ((select Original_Key from Audio_Originals where Original_Tape_Number like 
 			'""" + kwargs['id'] + """/%'),'""" + kwargs['filename'] + """','""" + kwargs['hash'] + """')"""
+	elif kwargs['materialType'] is 'video':
+		sqlstr = """insert into
+				file_instance(PK,filename,hash)
+				values ((select Original_Key from Visual_Originals where Original_Tape_Number like
+				'""" + kwargs['id'].capitalize() + """/%'),'""" + kwargs['filename'] + """','""" + kwargs['hash'] + """')"""
 	insertFM(sqlstr,cnxn)
 
 '''
@@ -192,23 +197,19 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 			face = facelist[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
 			count = count+1
 	if row:
+		print row
 		nameFormat["aNumber"] = row[0]
 		nameFormat["face"] = face
 		#rowstr = str(row) #convert to string
-		if "Cassette" in row: #if the rawCaptureName is of a cassette tape
+		if any("Cassette" in s for s in row): #if the rawCaptureName is of a cassette tape
 			nameFormat["channelConfig"] = row[1]
-		elif "Open Reel" in rowstr: #if the rawCaptureName is of an open reel
+		elif any("Open Reel" in s for s in row): #if the rawCaptureName is of an open reel
 			#face = face.replace("'",'') #get rid of annoying punctuation
 			#having the format isn't enough, we need the channel configuration for open reels
-			sqlstr = "select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
-			row = query(sqlstr,cnxn)
-			rowstr = str(row)
+			sqlstr = "select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + face + "='" + args.aNumber + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.aNumber + ".wav'"
+			row = queryFM_single(sqlstr,cnxn)
 			if row:
-				#rowtup = ast.literal_eval(rowstr)
-				rtnlist = [face]
-				rtnlist.append(rowtup[0])
-				rtnlist.append(rowtup[1])
-				return rtnlist
+				nameFormat["channelConfig"] = row[1]
 		return nameFormat
 	else:
 		return None
