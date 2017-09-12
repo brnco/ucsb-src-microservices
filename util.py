@@ -78,6 +78,32 @@ def rename_ucsb2cusb(path):
 					os.rename(os.path.join(dirs,s),os.path.join(dirs,newname))
 	return				
 
+def make_end_use_char(start_use_char,filename):#makes the end use character for the output file
+	#end use characters correspond to different parts of our OAIS implementation
+	#filenames ending in "a" are our archival masters
+	#filenames ending in "b" are our broadcast masters
+	#filenames ending in "c" are intermediate files
+	#filenames ending in "d" are access files
+	if start_use_char == 'a':
+		end_use_char = "b"
+	elif start_use_char == 'm':
+		end_use_char = ""
+	elif start_use_char == 'b':
+		end_use_char = 'c'
+	elif start_use_char == 'c':
+		end_use_char = "e"
+	else:
+		end_use_char = "b"
+	return end_use_char
+	
+def make_asset_name(start_use_char, filename):
+	if start_use_char:
+		asset_name = filename[:-1]
+	else:
+		asset_name = filename
+	return asset_name
+	
+	
 #add /usr/local/bin prefix to python calls for macs		
 class dotdict(dict):
 	"""dot.notation access to dictionary attributes"""

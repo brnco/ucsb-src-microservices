@@ -254,6 +254,13 @@ def get_tape_ID3(cnxn,**kwargs):
 				where Original_Tape_Number like '""" + args.aNumber.upper() + "%'"
 	row = queryFM_single(sqlstr,cnxn)	
 	return row
+
+'''
+id3Check takes an input file and verifies if there is ID3 metadata already in there
+'''	
+def check_ID3():
+	#basically copy lines 27-50 of makemp3
+	return
 	
 '''
 makeID3fromCatalogSoup takes a bs4 soup object and returns 1 or 2 lists of ID3 tags based on the MARC xml in Alma
