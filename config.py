@@ -46,7 +46,7 @@ def config():
 			pass
 	conf['ffmpeg'] = ut.dotdict(ff)
 	conf['scriptRepo'] = scriptRepo
-	conf['python'] = ut.pythonpath()	
+	conf['python'] = ut.pythonpath()
 	conf = ut.dotdict(conf)			
 	return conf
 
