@@ -12,7 +12,7 @@ def config():
 	conf = {'log':{},'NationalJukebox':{},'cylinders':{},'discs':{},'video':{},'magneticTape':{}}
 	tags = ['location','AudioArchDir','AudioBroadDir','PreIngestQCDir',
 			'VisualArchRawDir','BatchDir','scratch','new_ingest','repo',
-			'avlab','lto_stage','vid_leads','format_policy',
+			'avlab','lto_stage','vid_leads','master_format_policy','access_format_policy','ff_master_format_policy',
 			'cnxn']
 	for c in conf:
 		for t in tags:

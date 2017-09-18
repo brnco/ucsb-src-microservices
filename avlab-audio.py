@@ -97,7 +97,7 @@ def mono_silence(rawfname,face,aNumber,processDir): #silence removal for tapes t
 			if f.endswith(".wav"):#grip just wavs
 				try:
 					#silencedetect filter arguments are same order as on ffmpeg filters doc
-					returncode = subprocess.check_output("ffmpeg -i " + f + " -af silenceremove=1:0:-60dB:1:30:-60dB -c:a pcm_s24le -map 0 -threads 0 " + f.replace(".wav","") + "-silenced.wav")
+					returncode = subprocess.check_output("ffmpeg -i " + f + " -af silenceremove=1:0:-50dB:1:30:-50dB -c:a pcm_s24le -map 0 -threads 0 " + f.replace(".wav","") + "-silenced.wav")
 					#CHECK_OUTPUT IS THE BEST
 					returncode = 0
 				except subprocess.CalledProcessError,e: #if there's an error, set the returncode to that
