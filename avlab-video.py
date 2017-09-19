@@ -11,85 +11,90 @@ import sys
 import re
 import imp
 import shutil
-import xml.etree.ElementTree as ET
 from distutils import spawn
 
-def makeSidecars(sfull,canonicalName):
+def make_sidecar_qctools(sfull,canonicalName):
 	#instantiate var names of our output files
 	_qctfile = os.path.join(sfull,canonicalName + 'mxf.qctools.xml.gz')
-	_pbc2file = os.path.join(sfull,canonicalName + 'mxf.PBCore2.xml')
-	_framemd5 = os.path.join(sfull,canonicalName + 'mxf.framemd5')
+	#_framemd5 = os.path.join(sfull,canonicalName + 'mxf.framemd5')
 	#if there's not a qctools doc for it, make one
 	print _qct
 	if not os.path.exists(_qctfile):
-		subprocess.call(['python','S:/avlab/microservices/makeqctoolsreport.py','-so',canonicalName + "-pres.mxf"])
+		try:
+			output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'makeqctoolsreport.py'),'-so',canonicalName + "-pres.mxf"])
+			print output
+			rtncode = 0
+		except subprocess.CalledProcessError,e:
+			rtncode = e
+		return rtncode
+		
+	
+
+def make_sidecar_mediainfo(sfull, canonicalName):
+	_pbc2file = os.path.join(sfull,canonicalName + 'mxf.PBCore2.xml')
 	#if there's not a PBCore2 doc for it, make one
 	if not os.path.exists(_pbc2file):
 		#gotta give the PBCore2 filename as concat string here, _pbc2file is a file object
-		subprocess.call(['MediaInfo','--Output=PBCore2','--LogFile=' + _pbc2file,canonicalName + "-pres.mxf"])
+		try:
+			output = subprocess.check_output(['MediaInfo','--Output=PBCore2','--LogFile=' + _pbc2file,canonicalName + "-pres.mxf"])
+			print output
+			rtncode = 0
+		except subprocess.CalledProcessError,e:
+			rtncode = e
+		return
+
+def make_sidecar_framemd5(sfull,canonicalName):
 	#if there's not a framemd5 for it, make one
 	#if not os.path.exists(_framemd5):
-		#gotta give the framemd5 filename as concat string here, _framemd5 is a file object
-		#subprocess.call(['ffmpeg','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
+	#gotta give the framemd5 filename as concat string here, _framemd5 is a file object
+	subprocess.call(['ffmpeg','-i',presfile,'-f','framemd5',presfile + '.framemd5'])
 
 #checks that uploads from the opencube are complete and good
-def verifyOpenCubeUpload(sfull,canonicalName):
+def verify_opencube_upload(sfull,canonicalName):
 	filetypes = ["-pres.mxf","-acc.mp4"] #required filetypes
 	for f in filetypes:
 		fullf = os.path.join(sfull,canonicalName + f)
 		print fullf
 		if not os.path.exists(fullf):
-			print "Buddy, you need to check on " + s
-			sys.exit()
+			print "missing file " + fullf
+			return False
 		if not os.path.exists(fullf + ".md5"):
 			print "make a hash for " + fullf
+			return False
+	return True		
 
-#verifies that the uploads from opencube are well-formed and meet our format expectations
-def verifyFormatPolicy(sfull,canonicalName,formatPolicy):
-	fops = {} #format policy
-	fips = {} #file policy
-	ns = "{http://www.pbcore.org/PBCore/PBCoreNamespace.html}" #placeholder for namespace string, could be implemented as dict
-	fop = ET.parse(formatPolicy).getroot() #get xml root from formatPolicy xml doc
-	fip = ET.parse(os.path.join(sfull,canonicalName + "-pres.mxf.PBCore2.xml")).getroot() #get policy of file at hand
-	#fill dictionary with policy specs
-	for itrack in fop.findall(ns+'instantiationTracks'):
-		fops['instantiation_tracks'] = itrack.text
-	for ietrack in fop.findall(ns+'instantiationEssenceTrack'):
-		if ietrack.find(ns+'essenceTrackType').text == "Video":
-			fops['video_encoding'] = ietrack.find(ns+'essenceTrackEncoding').text
-			fops['video_framerate'] = ietrack.find(ns+'essenceTrackFrameRate').text
-			fops['video_bitdepth'] = ietrack.find(ns+'essenceTrackBitDepth').text
-			fops['video_framesize'] = ietrack.find(ns+'essenceTrackFrameSize').text
-		elif ietrack.find(ns+'essenceTrackType').text == "Audio":
-			fops['audio_encoding'] = ietrack.find(ns+'essenceTrackEncoding').text
-			fops['audio_samplingrate'] = ietrack.find(ns+'essenceTrackSamplingRate').text
-			fops['audio_bitdepth'] = ietrack.find(ns+'essenceTrackBitDepth').text
-			for eta in ietrack.findall(ns+'essenceTrackAnnotation'):
-				if eta.get('annotationType') == "Channel(s)":
-					fops['audio_channels'] = eta.text
-	#fill dicitonary with file specs
-	for itrack in fip.findall(ns+'instantiationTracks'):
-		fips['instantiation_tracks'] = itrack.text
-	for ietrack in fip.findall(ns+'instantiationEssenceTrack'):
-		if ietrack.find(ns+'essenceTrackType').text == "Video":
-			fips['video_encoding'] = ietrack.find(ns+'essenceTrackEncoding').text
-			fips['video_framerate'] = ietrack.find(ns+'essenceTrackFrameRate').text
-			fips['video_bitdepth'] = ietrack.find(ns+'essenceTrackBitDepth').text
-			fips['video_framesize'] = ietrack.find(ns+'essenceTrackFrameSize').text
-		elif ietrack.find(ns+'essenceTrackType').text == "Audio":
-			fips['audio_encoding'] = ietrack.find(ns+'essenceTrackEncoding').text
-			fips['audio_samplingrate'] = ietrack.find(ns+'essenceTrackSamplingRate').text
-			fips['audio_bitdepth'] = ietrack.find(ns+'essenceTrackBitDepth').text
-			for eta in ietrack.findall(ns+'essenceTrackAnnotation'):
-				if eta.get('annotationType') == "Channel(s)":
-					fips['audio_channels'] = eta.text
-	#compare the two
-	for f in fops:
-		print fops[f]
-		print fips[f]
-		if fops[f] != fips[f]:
-			print canonicalName + " failed at " + f
-			foo = raw_input("Eh")
+def frameRate_Original_bug_check(s1,fullpath):
+	fro_bug_str = 'fail! ' + fullpath + '''
+   --  [fail:master_format_policy.mxf]
+   --   [fail:Video/FrameRate_Original is 59.940]'''
+	remove = string.punctuation + string.whitespace
+	return s1.translate(None, remove) == fro_bug_str.translate(None, remove)
+
+def verify_format_policy(fullpath):
+	if "mxf" in fullpath:
+		policy = conf.video.master_format_policy
+	elif "mp4" in fullpath:
+		policy = conf.video.access_format_policy
+	output = subprocess.check_output(["mediaconch","-p",policy,fullpath])
+	if output.startswith("fail"):
+		fro_bug = frameRate_Original_bug_check(output,fullpath)
+		if fro_bug is True:
+			return True
+		else:
+			print "failed master"
+			print output
+			policy = conf.video.ff_master_format_policy
+			output = subprocess.check_output(["mediaconch","-p",policy,fullpath])
+			if output.startswith("fail"):
+				print "failed ff_master"
+				#print output
+				if "AudioCount" in output:
+					print "needs new audio"
+					return False
+			else:
+				return True
+	else:
+		return True
 	
 def separateLTOpacket(sfull,canonicalName,repo):
 	endDirThousand = canonicalName.replace("v","")[:1]
@@ -145,11 +150,13 @@ def main():
 				###END GET NAME###
 				#make sure our starting bits are correct, that we have hashes
 				print canonicalName
-				verifyOpenCubeUpload(sfull,canonicalName)
+				oc_upload_isgood = verify_opencube_upload(sfull,canonicalName)
+				if not oc_upload_isgood:
+					continue
 				#make sidecar files for:
 				#qctools report for the master
 				#PBCore2 document
-				makeSidecars(sfull,canonicalName)
+				make_sidecars(sfull,canonicalName)
 				#verify format policy
 				verifyFormatPolicy(sfull,canonicalName,formatPolicy)
 				#verify quality of transfer

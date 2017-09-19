@@ -254,7 +254,7 @@ def main():
 		print "The following file hash did not match: " + m
 	
 	#based on feedback, remove start objects
-	if args.c is False and args.v is False:
+	if args.c is False and args.v is False and args.nm is False:
 		deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir)
 		
 	#print log to cwd of what happened
