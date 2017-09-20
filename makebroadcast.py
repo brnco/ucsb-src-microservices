@@ -15,18 +15,14 @@ import re
 import ast
 import time
 import argparse
-import imp
 from bs4 import UnicodeDammit
-from distutils import spawn
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
-#check that we have required software installed
-def dependencies():
-	depends = ['ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return
 
 def makeVideo(startObj):
 	#print ffprobe output to txt file, we'll grep it later to see if we need to transcode for j2k/mxf
@@ -269,16 +265,8 @@ def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName): #deletes and re
 
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	global mtd
-	mtd = imp.load_source('mtd',os.path.join(dn,'mtd.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-i','--startObj',dest='i',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
@@ -320,5 +308,5 @@ def main():
 	
 	###THINGISDONE###
 
-dependencies()
-main()
+if __name__ == '__main__':
+	main()

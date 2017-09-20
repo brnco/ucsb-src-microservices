@@ -1,12 +1,15 @@
 #config
 import ConfigParser
 import os
-import imp
 import unittest
+###UCSB modules###
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def config():
-	scriptRepo, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	ut = imp.load_source('util',os.path.join(scriptRepo,"util.py"))
+	scriptRepo, fn = os.path.split(os.path.abspath(__file__))
 	config = ConfigParser.RawConfigParser(allow_no_value=True)
 	config.read(os.path.join(scriptRepo,"microservices-config.ini"))
 	conf = {'log':{},'NationalJukebox':{},'cylinders':{},'discs':{},'video':{},'magneticTape':{}}

@@ -5,28 +5,23 @@ import ConfigParser
 import getpass
 import os
 import subprocess
-import csv
-from distutils import spawn
-
-#check that we have the required software to run this script
-def dependencies():
-	depends = ['bwfmetaedit','ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
+import argparse
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 
 def main():
 	#initialize the stuff
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	parser = argparse.ArgumentParser(description="processes non-PHI disc transfers")
+	parser.add_argument('-m',dest='m',choices=['batch','single'],default=False,help='mode, for processing a single transfer or a bacth in new_ingest')
+	parser.add_argument('-i','--input',dest='i',help="the rawcapture file.wav to process, single mode only")
+	args = parser.parse_args()
 	captureDir = conf.discs.rawArchDir
 	archRepoDir = conf.discs.archRepoDir
 	bextsDir = conf.discs.mtdCaptures
@@ -47,5 +42,4 @@ def main():
 			subprocess.call(['python',os.path.join(conf.scriptRepo,"hashmove.py"),os.path.join(captureDir,s),os.path.join(archRepoDir,s)])
 	return
 
-dependencies()
 main()

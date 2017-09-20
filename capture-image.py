@@ -8,23 +8,22 @@ import subprocess
 import sys
 import ConfigParser
 import gphoto2 as gp
-import imp
 import argparse
 import re
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def main():
-    parser = argparse.ArgumentParser(description="captures image from first-connected camera")
+	global conf
+    conf = rawconfig.config()
+	parser = argparse.ArgumentParser(description="captures image from first-connected camera")
     parser.add_argument('-nj',action='store_true',default=False,dest='nj',help='run with National Jukebox file destinations, on //svmwindows/special/78rpm')
     parser.add_argument('-phi',action='store_true',default=False,dest="phi",help='run with PHI file destination, on ~/Desktop')
     args = parser.parse_args() #allows us to access arguments with args.argName
-    dn, fn = os.path.split(os.path.abspath(__file__))
-    global conf
-    rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
-    conf = rawconfig.config()
-    global ut
-    ut = imp.load_source("util",os.path.join(dn,"util.py"))
-    global log
-    log = imp.load_source('log',os.path.join(dn,'logger.py'))
     logging.basicConfig(
         format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
     gp.check_result(gp.use_python_logging())

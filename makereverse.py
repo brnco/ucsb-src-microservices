@@ -6,31 +6,20 @@ import re
 import argparse
 import sys
 import os
-import imp
-from distutils import spawn
-
-#check that we have required software installed
-def dependencies():
-	depends = ['ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 	
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("started")
 	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
-	parser.add_argument('-i','--startObj',dest='i',help='the full path to the file to be reversed',)
+	parser.add_argument('-i','--input',dest='i',help='the full path to the file to be reversed',)
 	args = parser.parse_args()
 	endObj = os.path.basename(args.i)
 	endObj,ext = os.path.splitext(endObj)
@@ -80,6 +69,5 @@ def main():
 						os.rename(endObj + "-reversed.wav", args.i)
 		else:
 			print "Buddy, there was a problem reversing that file"
-
-dependencies()	
-main()
+if __name__ == '__main__':
+	main()

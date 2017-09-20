@@ -7,25 +7,28 @@ import glob
 import os
 import sys
 import ConfigParser
+import argparse
 import getpass
 import subprocess
 import time
-import imp
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def main():
 	#initialize via the config file
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	parser = argparse.ArgumentParser(description="capture, import, and rename a photo for the PHI project")
+	parser.add_argument('barcode',help="the barcode for the disc side you want to capture")
+	args = parser.parse_args()
 	rawCapturePath = conf.NationalJukebox.VisualArchRawDir
 	if not os.path.exists(rawCapturePath):
 		os.makedirs(rawCapturePath)
-	barcode = sys.argv[1].strip() #grab the lone argument that FM provides
+	barcode = args.barcode.strip() #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename
 	util = imp.load_source('util',os.path.join(dn,"util.py"))
@@ -53,6 +56,6 @@ def main():
 		#output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"phi_discimg-out.py"),"-m","single","-i",fname])
 		#log.log(output)
 
-
-main()
-log.log("complete")
+if __name__ == '__main__':
+	main()
+	log.log("complete")

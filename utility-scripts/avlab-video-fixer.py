@@ -5,6 +5,14 @@ import pyodbc
 import subprocess
 import string
 import shutil
+import sys
+sys.path.insert(0,"S:/avlab/microservices")
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def get_existing_md5(md5str):
 	match = ''
@@ -126,19 +134,16 @@ def get_hash_on_disk(fullpath):
 			return False
 		
 def main():
-	global ut
-	ut = imp.load_source("ut","S:/avlab/microservices/util.py")
 	global conf
-	rawconfig = imp.load_source('config',"S:/avlab/microservices/config.py")
 	conf = rawconfig.config()
-	global makemtd
-	mtd = imp.load_source('makemtd',"S:/avlab/microservices/mtd.py")
-	global bagit
-	bagit = imp.load_source("bagit","S:/avlab/bagit-python/bagit.py")
-	global makeso
-	makeso = imp.load_source("makeso","S:/avlab/microservices/makestartobject.py")
-	startObj = makeso.parse_input("a12345")
-	print startObj
+	for dirs, subdirs, files in os.walk("S:/avlab/microservices"):
+		for f in files:
+			if f.endswith(".py") and not f == "makebarcodes.py":
+				fullf = os.path.join(dirs,f)
+				try:
+					output = subprocess.check_output("python " + fullf)
+				except subprocess.CalledProcessError,e:
+					print e
 	'''for dirs,subdirs,files in os.walk("I:/"):	
 		for f in files:
 			if f.endswith(".mxf"):

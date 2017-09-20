@@ -10,8 +10,13 @@ import sys
 import glob
 import ast
 import argparse
-import imp
 from distutils import spawn
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 #check that we have the required software to run this script
 def dependencies():
@@ -53,21 +58,15 @@ def makesimpleslice(args,startObj,startObjBoth,startDir,masterKey,ext):
 
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("Started")
 	parser = argparse.ArgumentParser(description="slices video into segments")
-	parser.add_argument('-i','--startObj',dest='i',help='the full path of the file to be sliced')
+	parser.add_argument('-i','--input',dest='i',help='the full path of the file to be sliced')
 	parser.add_argument('-m','--mode',dest='m',choices=['simple','complex'],help="mode, simple makes a single slice, complex takes a list - for video files with more than 1 vNumber in it")
 	parser.add_argument('-db','--doBoth',dest='db',action='store_true',help="slice both preservation and access copies")
-	parser.add_argument('-i','--in',dest='i',help="the start timestamp for the slice, HH:MM:SS.FF")
-	parser.add_argument('-o','--out',dest='o',help="the end timestamp for the slice, HH:MM:SS.FF")
+	parser.add_argument('-iTS','--inTimestamp',dest='its',help="the start timestamp for the slice, HH:MM:SS.FF")
+	parser.add_argument('-oTS','--outTimestamp',dest='ots',help="the end timestamp for the slice, HH:MM:SS.FF")
 	parser.add_argument('-vms',dest='vms',help="list of vmNumbers (complex only)")
 	parser.add_argument('-s','--slices',dest='s',help="list of slices (complex only)")
 	args = parser.parse_args() #allows us to access arguments with args.argName
@@ -88,5 +87,6 @@ def main():
 		makecomplexslices(fPres, fAcc, slicepoints, startPresObj, startAccObj) #calls the slicing function
 	else:
 		makesimpleslice(args,startObj,startObjBoth,startDir,masterKey,ext)
-dependencies()
-main()
+
+if __name__ == '__main__':
+	main()

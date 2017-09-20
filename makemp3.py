@@ -12,17 +12,13 @@ import sys
 import glob
 import re
 import argparse
-import imp
 import time
-from distutils import spawn
-
-#check that we have the required software to run this script
-def dependencies():
-	depends = ['ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 	print assetName
@@ -61,16 +57,10 @@ def makeAudio(startObj, startDir, assetName, EuseChar, mtd):	#make the mp3
 
 def main():
 	#initialize a buncha crap
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('-i','--startObj',nargs ='?',help='the file to be transcoded',)
+	parser = argparse.ArgumentParser(description="Makes an mp3 with ID3 tags")
+	parser.add_argument('-i','--input',help='the file to be transcoded',)
 	args = parser.parse_args() #create a dictionary instead of leaving args in NAMESPACE land
 	startObj = subprocess.check_output(['python',os.path.join(dn,'makestartobject.py'),'-i',args.startObj])
 	startObj = startObj.replace("\\",'/')[:-2] #for the windows peeps
@@ -101,5 +91,5 @@ def main():
 	mtd = id3Check(startObj, assetName) #call the id3 check function
 	makeAudio(startObj, startDir, assetName, EuseChar, mtd) #call the makeaudio function
 
-dependencies()
-main()
+if __name__ == '__main__':	
+	main()

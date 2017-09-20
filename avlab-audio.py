@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import imp
+
 import argparse
 import getpass
 import os
@@ -9,17 +9,12 @@ import re
 import ast
 import time
 import sys
-from distutils import spawn
-
-
-#check that we have the required software to run this script
-def dependencies():
-	depends = ['bwfmetaedit','ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 
 #hashmove processing folder to the repo	
@@ -188,19 +183,11 @@ def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
 	
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	global mtd
-	mtd = imp.load_source('mtd',os.path.join(dn,'mtd.py'))
-	parser = argparse.ArgumentParser(description="batch processes audio transfers")
-	parser.add_argument('-s',dest='s',action="store_true",default=False,help='single mode, for processing a single transfer')
-	parser.add_argument('-i','--startObj',dest='i',help="the rawcapture file.wav to process")
+	parser = argparse.ArgumentParser(description="processes magnetic tape transfers")
+	parser.add_argument('-m',dest='m',choices=['batch','single'],default=False,help='mode, for processing a single transfer or a batch in new_ingest')
+	parser.add_argument('-i','--input',dest='i',help="the rawcapture file.wav to process, single mode only")
 	args = parser.parse_args()
 	captureDir = conf.magneticTape.new_ingest
 	archRepoDir = conf.magneticTape.repo
@@ -209,7 +196,7 @@ def main():
 	###END INIT###
 
 	###SINGLE MODE###
-	if args.s is True:
+	if args.m is 'single':
 		###INIT###
 		file = args.i
 		rawfname,ext = os.path.splitext(file)
@@ -263,7 +250,7 @@ def main():
 				###END BEXT###
 	###END SINGLE MODE###
 	###BATCH MODE###
-	else:
+	elif args.m is 'batch':
 		for dirs,subdirs,files in os.walk(captureDir):
 			for file in files:
 				###GET RID OF BS###
@@ -331,5 +318,5 @@ def main():
 							
 				###END PROCESS CAPTURE###			
 	###END BATCH MODE###						
-dependencies()
-main()
+if __name__ == '__main__':
+	main()

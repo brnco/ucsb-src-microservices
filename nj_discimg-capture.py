@@ -7,22 +7,24 @@ import glob
 import os
 import sys
 import ConfigParser
+import argparse
 import getpass
 import subprocess
 import time
-import imp
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 
 def main():
 	#initialize via the config file
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
+	parser = argparse.ArgumentParser(description="captures, imports, renames image for the NJ project")
+	args = parser.parse_args()
 	barcode = sys.argv[1] #grab the lone argument that FM provides
 	barcode = barcode.replace("ucsb","cusb") #stupid, stupid bug
 	fname = barcode + ".cr2" #make the new filename

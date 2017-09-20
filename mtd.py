@@ -13,10 +13,10 @@ import struct
 import binascii
 import random
 import unittest
-import imp
-dn, fn = os.path.split(os.path.abspath(__file__))
-global ut
-ut = imp.load_source("ut",os.path.join(dn,"util.py"))
+###UCSB modules###
+import util as ut
+import logger as log
+import makestartobject as makeso
 
 ########################
 ###database functions###

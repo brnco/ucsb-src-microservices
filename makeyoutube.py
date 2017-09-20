@@ -6,18 +6,14 @@ import sys
 import glob
 import re
 import argparse
-import imp
 import getpass
 from distutils import spawn
-
-#check that we have required software installed
-def dependencies():
-	depends = ['ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def makeThem(startObj, archRepoDir,vidLeadDir):	
 	###INIT VARS###
@@ -88,15 +84,9 @@ def concatThem(startObj, archRepoDir,vidLeadDir):
 		
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
+	parser = argparse.ArgumentParser(description="makes a video for youtube")
 	parser.add_argument('-i','--startObject',dest='i',help='the canonical name of the disc to make a vid for, e.g. cusb_victor_123_04_567_89')
 	parser.add_argument('-d','--disc',dest='d',action='store_true',default=False,help='make a video for a disc. cylinder option coming soon')
 	args = parser.parse_args()
@@ -107,5 +97,5 @@ def main():
 		makeThem(args.i,archRepoDir,vidLeadDir)
 		concatThem(args.i,archRepoDir,vidLeadDir)
 	
-dependencies()
-main()
+if __name__ == '__main__':
+	main()

@@ -11,11 +11,16 @@ import sys
 import time
 import getpass
 import re
-import imp
 import rawpy
 import imageio
 from PIL import Image
 from distutils import spawn
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 	
 def idSize(fname,endDir):
 	'''with rawpy.imread(startObjFP) as raw:
@@ -85,16 +90,10 @@ def moveSO(startObjFP,endDir):
 	
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="processes image files for disc labels")
-	parser.add_argument('-i','--startObj',dest='i',help="the rawcapture file.cr2 to process, not full path")
+	parser.add_argument('-i','--input',dest='i',help="the rawcapture file.cr2 to process, not full path")
 	parser.add_argument('-m','--mode',dest='m',choices=["single","batch"],help='mode, process a single file or every file in capture directory')
 	args = parser.parse_args()
 	imgCaptureDir = conf.NationalJukebox.VisualArchRawDir
@@ -168,6 +167,7 @@ def main():
 					
 					#move startObj
 					moveSO(startObjFP,endDir)
-	
-main()
-log.log("complete")
+
+if __name__ == '__main__':					
+	main()
+	log.log("complete")

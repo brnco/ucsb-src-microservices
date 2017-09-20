@@ -8,16 +8,12 @@ import re
 import gzip
 import shutil
 import argparse
-from distutils import spawn
-
-#check to see that we have the required software to run this script
-def dependencies():
-	depends = ['ffmpeg','ffprobe']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def parseInput(startObj):
 	ffprobeout = subprocess.check_output(['ffprobe','-show_streams','-of','flat','-sexagesimal','-i',startObj])
@@ -40,7 +36,7 @@ def parseInput(startObj):
 	if codecName == 'jpeg2000':
 		inputCodec = ' -vcodec libopenjpeg '
 		filterstring = ' -vf tinterlace=mode=merge,setfield=bff '
-		ffmpegstring = 'ffmpeg' + inputCodec + '-vsync 0 -i ' + startObj + ' -vcodec rawvideo -acodec pcm_s24le' + filterstring + '-f nut -y ' + startObj + '.temp1.nut'
+		ffmpegstring = 'ffmpeg' + inputCodec + '-vsync 0 -i ' + startObj + ' -vcodec rawvideo -pix_fmt yuv422p10le -acodec pcm_s24le' + filterstring + '-f nut -y ' + startObj + '.temp1.nut'
 		subprocess.call(ffmpegstring)
 
 def makeReport(startObj):
@@ -58,11 +54,11 @@ def makeReport(startObj):
 
 def main():
 	parser = argparse.ArgumentParser(description="Makes a qctools report")
-	parser.add_argument('-i','--startObj',dest='i',help='the file we would like a qctools report for')
+	parser.add_argument('-i','--input',dest='i',help='the file we would like a qctools report for')
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	startObj = args.i.replace("\\","/")
 	parseInput(startObj)
 	makeReport(startObj)
 
-dependencies()
-main()
+if __name__ == '__main__':
+	main()

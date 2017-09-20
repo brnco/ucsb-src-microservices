@@ -13,9 +13,13 @@ import shutil
 import zipfile
 import zlib
 import time
-from distutils import spawn
-import imp
 import getpass
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def makeTranscodeList(args,archiveDir):
 	###INIT VARS###
@@ -135,14 +139,8 @@ def makeTranscodeList(args,archiveDir):
 	
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
-	#global log
-	#log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-t','--tape',action='store_true',dest='t',default=False,help="make dip with audio template")
 	parser.add_argument('-d','--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
@@ -231,5 +229,5 @@ def main():
 			zf.close()
 		if os.path.exists(tnDir + ".zip"):
 			shutil.rmtree(tnDir)
-
-main()
+if __name__ == '__main__':
+	main()

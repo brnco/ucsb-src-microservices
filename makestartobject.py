@@ -8,8 +8,13 @@
 
 import os
 import re
-import imp
 import argparse
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def avname(startObj,avlist):
 	if "v" in startObj:
@@ -121,15 +126,8 @@ def parse_input(startObj):
 		return startObj
 
 def make_lists():
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	tapeRepoDir = conf.magneticTape.repo
 	tapeNewIngest = conf.magneticTape.new_ingest
 	cylinderRepoDir = conf.cylinders.repo
@@ -153,7 +151,7 @@ def make_lists():
 def main():
 	###INIT VARS###
 	parser = argparse.ArgumentParser(description="makes a full path from a canonical asset name")
-	parser.add_argument('-i','--startObj',dest='i',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
+	parser.add_argument('-i','--input',dest='i',nargs ='?',help='the object, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	args = parser.parse_args()
 	allists = make_lists()
 	###END INIT###

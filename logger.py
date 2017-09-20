@@ -4,9 +4,14 @@ import os
 import psutil
 import time
 import ConfigParser
-import imp
 import getpass
 import unittest
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 class testAdditionalMethods(unittest.TestCase):
 	def test_current_pid(self):
@@ -32,13 +37,9 @@ def write(message,pid,level,caller,fname):
 #parses input, formats for write	
 def log(message,**kwargs):
 	###INIT FROM CONFIG FILE###
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
 	logLoc = conf.log.location
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	###END INIT###
 	###MAKE COMPONENTS###
 	if not 'pid' in kwargs:

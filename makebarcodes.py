@@ -7,8 +7,17 @@ import os
 import shutil
 import time
 import sys
+import argparse
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def makebarcodefile ():
+	parser = argparse.ArgumentParser(description="makes a barcode.bcd file on Desktop that can be sent to Zebra barcode printer")
+	args = parser.parse_args()
 	#initialize a barcode file in the current directory
 	try:
 		tmpBcdFile = os.path.join(os.environ["HOME"], "Desktop", 'temp-bcd-' + str(time.time()) + '.txt')
@@ -56,4 +65,5 @@ def outputPlace(tmpBcdFile): #saves the output barcode file somewhere
 		outputPlace()
 	return
 
-makebarcodefile()
+if __name__ == '__main__':
+	makebarcodefile()

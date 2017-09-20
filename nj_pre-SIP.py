@@ -5,7 +5,13 @@
 import getpass
 import os
 import subprocess
-import imp
+import argparse
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def makelist(qcDir, batchDir, extlist,scratch):
 	dirlist = []
@@ -24,20 +30,15 @@ def makelist(qcDir, batchDir, extlist,scratch):
 		
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("started")
-	global ut
-	ut = imp.load_source('util',os.path.join(dn,'util.py'))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
+	parser = argparse.ArgumentParser(description="makes a SIP for the NJ project")
+	args = parser.parse_args()
 	qcDir = conf.NationalJukebox.PreIngestQCDir
 	batchDir = conf.NationalJukebox.BatchDir
 	scratch = conf.NationalJukebox.scratch
 	extlist = ['m.wav','.wav','.tif']
-	print conf.NationalJukebox.qcDir
 	
 	###END INIT###
 	###UCSB BUG FIX###
@@ -53,5 +54,6 @@ def main():
 		subprocess.call(['python',os.path.join(conf.scriptRepo,'hashmove.py'),os.path.join(qcDir,d),os.path.join(batchDir,d)]) #hashmove it to the batch folder
 	###END MOVE DIRS###			
 
-main()
-log.log("complete")
+if __name__ == '__main__':
+	main()
+	log.log("complete")

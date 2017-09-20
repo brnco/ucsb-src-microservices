@@ -6,31 +6,22 @@ import os
 import sys
 import getpass
 import time
-import imp
 import subprocess
-from distutils import spawn
-
-#check that we have the required software to run this script
-def dependencies():
-	depends = ['ffmpeg','ffprobe','bwfmetaedit']
-	for d in depends:
-		if spawn.find_executable(d) is None:
-			print "Buddy, you gotta install " + d
-			sys.exit()
-	return		
-
+import argparse
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 	
 def main():
 	###INIT STUFF###
-	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("started")
-	global ut
-	ut = imp.load_source('util',os.path.join(dn,'util.py'))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
+	parser = argparse.ArgumentParser(description="processes disc transfers for NJ project")
+	args = parser.parse_args()
 	qcDir = conf.NationalJukebox.PreIngestQCDir
 	batchDir = conf.NationalJukebox.BatchDir
 	archDir = conf.NationalJukebox.AudioArchDir
@@ -117,6 +108,6 @@ def main():
 						pass					
 	###end delete bs###
 
-dependencies()
-main()
-log.log("complete")
+if __name__ == '__main__':
+	main()
+	log.log("complete")

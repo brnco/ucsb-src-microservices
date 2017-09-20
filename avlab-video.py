@@ -9,9 +9,14 @@ import os
 import subprocess
 import sys
 import re
-import imp
 import shutil
-from distutils import spawn
+import argparse
+###UCSB modules###
+import config as rawconfig
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 
 def make_sidecar_qctools(sfull,canonicalName):
 	#instantiate var names of our output files
@@ -115,15 +120,13 @@ def send2repo(dn,newIngest,ltoStage,repo):
 						
 def main():
 	###INIT VARS###
-	dn, fn = os.path.split(os.path.abspath(__file__))
 	global conf
-	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
-	global ut
-	ut = imp.load_source("util",os.path.join(dn,"util.py"))
-	global log
-	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("Started")
+	parser = argparse.ArgumentParser(description="processes video transfers")
+	parser.add_argument('-m',dest='m',choices=['batch','single'],default=False,help='mode, for processing a single transfer or a batch in new_ingest')
+	parser.add_argument('-i','--input',dest='i',help="the rawcapture file.wav to process, single mode only")
+	args = parser.parse_args()
 	#newIngest = conf.video.new_ingest
 	newIngest = "F:/"
 	ltoStage = conf.video.lto_stage
@@ -131,42 +134,39 @@ def main():
 	formatPolicy = conf.video.format_policy
 	###END INIT###
 	###WALK THRU NEW INGEST###
-	for dirs,subdirs,files in os.walk(newIngest):
-		for s in subdirs:
-			print ""
-			print s
-			if s.startswith("$") or s.startswith("."):
-				continue
-			sfull = os.path.join(dirs,s)
-			with ut.cd(sfull):
-				###GET NAME OF ASSET###
-				#can be cusb-v1234-pres or cusb-vm1234-pres or cusb-vm1234-5678-pres
-				match = ''
-				match = re.search(r"cusb-vm?" + s.replace("v","") + r"-(\d*-)?",os.listdir(os.getcwd())[0])
-				if not match:
-					print "Buddy, you need to check on " + s
-					sys.exit()
-				canonicalName = match.group()[:-1]
-				###END GET NAME###
-				#make sure our starting bits are correct, that we have hashes
-				print canonicalName
-				oc_upload_isgood = verify_opencube_upload(sfull,canonicalName)
-				if not oc_upload_isgood:
+	if args.m is 'batch':
+		for dirs,subdirs,files in os.walk(newIngest):
+			for s in subdirs:
+				print ""
+				print s
+				if s.startswith("$") or s.startswith("."):
 					continue
-				#make sidecar files for:
-				#qctools report for the master
-				#PBCore2 document
-				make_sidecars(sfull,canonicalName)
-				#verify format policy
-				verifyFormatPolicy(sfull,canonicalName,formatPolicy)
-				#verify quality of transfer
-				#verifytransferqc()
-<<<<<<< HEAD
-			separateLTOpacket(sfull,canonicalName,ltoStage,s)
-=======
-			separateLTOpacket(sfull,canonicalName,repo)
->>>>>>> fm-stuffy
-			#send2repo(dn,newIngest,ltoStage,repo)
-	###END WALK###
-
-main()
+				sfull = os.path.join(dirs,s)
+				with ut.cd(sfull):
+					###GET NAME OF ASSET###
+					#can be cusb-v1234-pres or cusb-vm1234-pres or cusb-vm1234-5678-pres
+					match = ''
+					match = re.search(r"cusb-vm?" + s.replace("v","") + r"-(\d*-)?",os.listdir(os.getcwd())[0])
+					if not match:
+						print "Buddy, you need to check on " + s
+						sys.exit()
+					canonicalName = match.group()[:-1]
+					###END GET NAME###
+					#make sure our starting bits are correct, that we have hashes
+					print canonicalName
+					oc_upload_isgood = verify_opencube_upload(sfull,canonicalName)
+					if not oc_upload_isgood:
+						continue
+					#make sidecar files for:
+					#qctools report for the master
+					#PBCore2 document
+					make_sidecars(sfull,canonicalName)
+					#verify format policy
+					verifyFormatPolicy(sfull,canonicalName,formatPolicy)
+					#verify quality of transfer
+					#verifytransferqc()
+				separateLTOpacket(sfull,canonicalName,repo)
+				#send2repo(dn,newIngest,ltoStage,repo)
+		###END WALK###
+if __name__ == '__main__':
+	main()
