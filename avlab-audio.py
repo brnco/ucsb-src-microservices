@@ -173,7 +173,7 @@ def sampleratenormalize(processDir):
 def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
 	try:
 		kwargs = {"aNumber":aNumber,"bextVersion":"1"}
-		bextstr = makemtd.makebext_complete(conf.magneticTape.cnxn,**kwargs)
+		bextstr = mtd.makebext_complete(conf.magneticTape.cnxn,**kwargs)
 	except:
 		bextstr = "--originator=US,CUSB,SRC --originatorReference=" + aNumber.capitalize()
 	with ut.cd(processDir):
@@ -196,8 +196,8 @@ def main():
 	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
-	global makemtd
-	makemtd = imp.load_source('makemtd',os.path.join(dn,'makemetadata.py'))
+	global mtd
+	mtd = imp.load_source('mtd',os.path.join(dn,'mtd.py'))
 	parser = argparse.ArgumentParser(description="batch processes audio transfers")
 	parser.add_argument('-s',dest='s',action="store_true",default=False,help='single mode, for processing a single transfer')
 	parser.add_argument('-i','--startObj',dest='i',help="the rawcapture file.wav to process")
@@ -217,7 +217,7 @@ def main():
 		###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 		#output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-i",rawfname]) #get aNumber, channelconfig, face from FileMaker
 		kwargs = {"aNumber":args.i.capitalize()}
-		acf = makemtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
+		acf = mtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
 		print acf
 		if acf is not None:
 			processNone = 0
@@ -286,7 +286,7 @@ def main():
 					###END INIT###
 					###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 					kwargs = {"aNumber":rawfname}
-					acf = makemtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
+					acf = mtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
 					if acf is None:
 						continue
 					else:

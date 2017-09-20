@@ -278,7 +278,7 @@ def main():
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	global mtd
-	mtd = imp.load_source('mtd',os.path.join(dn,'makemetadata.py'))
+	mtd = imp.load_source('mtd',os.path.join(dn,'mtd.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
 	parser.add_argument('-i','--startObj',dest='i',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
