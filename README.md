@@ -3,25 +3,23 @@ Please see AVLab Utility Software List & Installation Instructions (on the wiki)
 
 * [Intro](#intro)
 * [makesomethings](#makesomethings)
+   * [makebarcodes](#makebarcodes)
    * [makebroadcast](#makebroadcast)
+   * [makedip](#makedip)
    * [makemp3](#makemp3)
+   * [makeqctoolsreport](#makeqctoolsreport)
+   * [makestartobject](#makestartobject)
    * [makereverse](#makereverse)
    * [makeffmetadata](#makeffmetadata)
    * [makebext](#makebext)
-   * [makeqctoolsreport](#makeqctoolsreport)
-   * [makebarcodes](#makebarcodes)
    * [makevideoslices](#makevideoslices)
-   * [makedip](#makedip)
-   * [makevideoSIP (DEPRECATED)](#makevideosip-deprecated)
+   * [makeyoutube](#makeyoutube)
 * [avlab](#avlab)
    * [avlab-audio](#avlab-audio)
    * [avlab-cylinders](#avlab-cylinders)
    * [avlab-discs](#avlab-discs)
-   * [avlab-discimg-out](#avlab-discimg-out)
    * [avlab-video](#avlab-video)
-   * [changechannels](#changechannels)
-   * [listen2transfers-qc.py](#listen2transfers-qcpy)
-* [National Jukebox](#national-jukebox)
+* [National Jukebox / PHI](#national-jukebox/PHI)
    * [nj_audio](#nj_audio)
    * [nj_discimg-capture-fm](#nj_discimg-capture-fm)
    * [nj_discimg-out](#nj_discimg-out)
@@ -138,20 +136,8 @@ This script uses GraphicsMagick to transcode from .dng to .tif, cropping, rotati
 ## avlab-video
 post-processing for archival master video files. bundles makeqctoolsreport; generates frame level checksums with framemd5; makes a PBCore2.0 compliant xml file of technical metadata.
 
-## changechannels
-This script is used to edit the channel configuration of raw audio captures.
-
-Has 1 dependency for ffmpeg. Takes arguments for file(s) to be processed.
-
-## listen2transfers-qc.py
-This script automatically walks you through the last n days of audio transfers, listening starting at the 1min mark. You listen to 1/3 of the total transfers with this.
-
-Has dependencies for ffplay.
-
-Has arguments: -t to listen to magnetic tape transfers; -c to lsiten to cylinder transfers; -nj to listen to National Jukebox transfers; -d followed by a number for the number of days back to look, default 7.
-
-# National Jukebox
-Here's the scripts we use to process materials for the National Jukebox
+# National Jukebox / PHI
+Here's the scripts we use to process materials for the National Jukebox/ PHI digitization project
 
 ## nj_audio
 This script processes the archival and broadcast master files we make for the National Jukebox. For more info on how files are created, see Digitizing 78s for The National Jukebox on the wiki
