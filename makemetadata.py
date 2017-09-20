@@ -85,6 +85,25 @@ def insertHash(cnxn,**kwargs):
 	insertFM(sqlstr,cnxn)
 
 '''
+get_hash_fromFM returns the stored hash for the supplied filename
+'''
+def get_hash_fromFM(cnxn,**kwargs):
+	if kwargs['materialType'] is 'tape':
+		sqlstr = """select
+					hash from File_instance
+					where filename = '""" + kwargs['filename'] + "'"
+	elif kwargs['materialType'] is 'video':
+		sqlstr = """select
+					hash from file_instance
+					where filename = '""" + kwargs['filename'] + "'"
+	hash = queryFM_single(sqlstr,cnxn)
+	if hash:
+		hash = hash[0]
+	else:
+		hash = None
+	return hash
+	
+'''
 makebext_umid generates a 64byte string of numbers base on SMPTE 330M to use as a UMID. Second-half is zeroed out, we use this to validate every wave as bext v1
 '''
 def makebext_umid():
