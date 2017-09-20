@@ -82,7 +82,8 @@ def discname(startObj,disclist):
 		startObj = os.path.join(startDir,startObj + "a.wav")
 		return startObj
 		
-def startObjectParse(startObj,allists):
+def parse_input(startObj):
+	allists = make_lists()
 	match=''
 	match=re.search(r"\w\:\/",startObj)
 	if match:
@@ -119,12 +120,12 @@ def startObjectParse(startObj,allists):
 		startObj = cylname(startObj,allists['cylist'])
 		return startObj
 
-def main():
-	###INIT VARS###
+def make_lists():
 	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	global conf
 	rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
 	conf = rawconfig.config()
+	dn, fn = os.path.split(os.path.abspath(__file__)) #grip the path to the directory where ~this~ script is located
 	global ut
 	ut = imp.load_source("util",os.path.join(dn,"util.py"))
 	global log
@@ -147,12 +148,19 @@ def main():
 	allists["avlist"]=avlist
 	allists["cylist"]=cylist
 	allists["disclist"]=disclist
+	return allists
+
+def main():
+	###INIT VARS###
 	parser = argparse.ArgumentParser(description="makes a full path from a canonical asset name")
 	parser.add_argument('-i','--startObj',dest='i',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	args = parser.parse_args()
+	allists = make_lists()
 	###END INIT###
 	startObj = args.i.replace("\\",'/') #for the windows peeps
-	startObj = startObjectParse(startObj,allists)
+	startObj = parse_input(startObj)
 	#print len(startObj)
 	print startObj
-main()		
+
+if __name__ == "__main__":
+	main()		

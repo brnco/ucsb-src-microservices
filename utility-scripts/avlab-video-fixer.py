@@ -132,10 +132,14 @@ def main():
 	rawconfig = imp.load_source('config',"S:/avlab/microservices/config.py")
 	conf = rawconfig.config()
 	global makemtd
-	makemtd = imp.load_source('makemtd',"S:/avlab/microservices/makemetadata.py")
+	mtd = imp.load_source('makemtd',"S:/avlab/microservices/mtd.py")
 	global bagit
 	bagit = imp.load_source("bagit","S:/avlab/bagit-python/bagit.py")
-	for dirs,subdirs,files in os.walk("I:/"):	
+	global makeso
+	makeso = imp.load_source("makeso","S:/avlab/microservices/makestartobject.py")
+	startObj = makeso.parse_input("a12345")
+	print startObj
+	'''for dirs,subdirs,files in os.walk("I:/"):	
 		for f in files:
 			if f.endswith(".mxf"):
 				print ""
@@ -152,7 +156,7 @@ def main():
 						foo = raw_input("eh")
 					else:
 						continue
-				'''meets_policy = check_format_policy(fullpath)
+				meets_policy = check_format_policy(fullpath)
 				if meets_policy is True:
 					print "pass!"
 				#if not os.path.exists(os.path.join(dirs,f + ".qctools.xml.gz")):
