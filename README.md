@@ -2,7 +2,6 @@ This document contains an overview of the various post-processing scripts we use
 Please see AVLab Utility Software List & Installation Instructions (on the wiki) for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of those software functionalities.
 
 * [Intro](#intro)
-* [Configuration](#configuration)
 * [makesomethings](#makesomethings)
    * [makebroadcast](#makebroadcast)
    * [makemp3](#makemp3)
