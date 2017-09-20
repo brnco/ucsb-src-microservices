@@ -27,51 +27,16 @@ Please see AVLab Utility Software List & Installation Instructions (on the wiki)
    * [nj_discimg-capture-fm](#nj_discimg-capture-fm)
    * [nj_discimg-out](#nj_discimg-out)
    * [nj_pre-SIP](#nj_pre-sip)
+* [Tips](#Tips)
 * [hashmove](#hashmove)
+
 # Intro
 We use the microservices structure here, which breaks down complicated programs and processing steps into small, discreet, modular scripts, which can then be daisy-chained to fit particular applications.
 
 To run these scripts, type python [path of python file] [arguments]
- 
-# Configuration
-After cloning from the github repo, there are a couple of steps necessary to make these scripts go, on Windows. 
 
-### The first step is:
-set up a config file using the microservices-config-template.txt file found in the repo
 
-Save it in the same dir as this repo
-
-rename it to microservices-config.ini
-
-open this file in a text editor and fill out the fields
-
-example, under global -> scriptRepo:
-
-put the full path to the directory in which you cloned the github repo
-
-this way python knows where to draw sub-scripts from
-
-Do the same for the paths of other workflow stages
-
-### The second step (and this isn't strictly necessary) is to:
-
-change your default cmd.exe directory to the repo directory
-
-Start -> search "regedit" -> double-click "regedit.exe"
-
-HKEY_CURRENT_USER -> Software -> Microsoft -> Command Processor
-
-right click on the big empty space and select "new key"
-
-type "Autorun" and hit enter
-
-right-click "Autorun" in the regedit window and select "Edit"
-
-type "cd/ d [path to repo directory]"
-
-By doing this, you are set to open the cmd window in the directory with all the scripts so you don't have to type their full paths
-
-# makesomethings
+# make_something
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
 
 ## makebroadcast
@@ -296,6 +261,24 @@ If true, hashmove that directory to our batch folder (containing 1000 SIPs)
 here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input directory] [full path to batch directory]
+
+# Tips
+
+### change your default cmd.exe directory to the repo directory
+
+Start -> search "regedit" -> double-click "regedit.exe"
+
+HKEY_CURRENT_USER -> Software -> Microsoft -> Command Processor
+
+right click on the big empty space and select "new key"
+
+type "Autorun" and hit enter
+
+right-click "Autorun" in the regedit window and select "Edit"
+
+type "cd/ d [path to repo directory]"
+
+By doing this, you are set to open the cmd window in the directory with all the scripts so you don't have to type their full paths
 
 # hashmove
 
