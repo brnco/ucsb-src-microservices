@@ -50,7 +50,7 @@ def main():
 					print "It looks like you missed scanning a barcode"
 					a = raw_input("Better check on that")
 					sys.exit()'''
-		#output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"phi_discimg-out.py"),"-m","single","-so",fname])
+		#output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"phi_discimg-out.py"),"-m","single","-i",fname])
 		#log.log(output)
 
 

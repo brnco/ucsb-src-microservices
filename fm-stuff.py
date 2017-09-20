@@ -28,7 +28,7 @@ def makenameFormatList(args,cnxn):
 			print "uh buddy this isn't in FM"
 			sys.exit()
 		else:
-			sqlstr="select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.so + ".wav'"
+			sqlstr="select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + thingy[count] + "='" + args.i + ".wav'"
 			#OR above necessary because sometimes the rawCaptureName has a ".wav" at the end :(
 			row = query(sqlstr,cnxn)
 			face = thingy[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
@@ -44,7 +44,7 @@ def makenameFormatList(args,cnxn):
 		elif "Open Reel" in rowstr: #if the rawCaptureName is of an open reel
 			face = face.replace("'",'') #get rid of annoying punctuation
 			#having the format isn't enough, we need the channel configuration for open reels
-			sqlstr = "select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+			sqlstr = "select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 			row = query(sqlstr,cnxn)
 			rowstr = str(row)
 			if row:
@@ -64,7 +64,7 @@ def makeffstr_ftm(args,cnxn):
 	###init done###
 	###HALFSPEED###
 	hlvface = ''
-	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		print "is it here"
@@ -75,7 +75,7 @@ def makeffstr_ftm(args,cnxn):
 	###HALFSPEED DONE###
 	###DOUBLESPEED###
 	dblface = ''
-	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		for r in result:
@@ -112,7 +112,7 @@ def makeffstr_mono(args,cnxn):#returns an ffmpeg string for processing mono file
 	
 	###DELETE FACE###
 	#we don't delete faces technically, we just don't transcode them to the new files
-	sqlstr = "select deleting_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select deleting_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		for r in result:
@@ -125,7 +125,7 @@ def makeffstr_mono(args,cnxn):#returns an ffmpeg string for processing mono file
 	###END DELETE FACE###
 	###HALFSPEED###
 	hlvface = ''
-	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		for r in result:
@@ -137,7 +137,7 @@ def makeffstr_mono(args,cnxn):#returns an ffmpeg string for processing mono file
 	###END HALFSPEED###
 	###DOUBLESPEED###
 	dblface = ''
-	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		for r in result:
@@ -182,7 +182,7 @@ def makeffstr_stereo(args,cnxn):
 	###END INIT###
 	###HALFSPEED###
 	hlvface = ''
-	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select halving_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		for r in result:
@@ -192,7 +192,7 @@ def makeffstr_stereo(args,cnxn):
 	###END HALFSPEED###
 	#DOUBLESPEED###
 	dblface = ''
-	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+	sqlstr = "select doubling_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	if result is not None and result[0] is not None:
 		for r in result:
@@ -209,7 +209,7 @@ def makebext(args,cnxn): #makes a bext string for use with BWFMetaEdit
 	fieldlist = ["Master_Key","Tape_Title","Mss_Number","Collection_Name","Master_Key"] #fields to select in FileMaker
 	x = {} #dictionary for the resulting FileMakerField:FileMakerValue pairs
 	###END INIT###
-	sqlstr = "select Master_Key, Tape_Title, Mss_Number, Collection_Name, Mastered from Audio_Originals where Original_Tape_Number like '" + args.so + "/%'"
+	sqlstr = "select Master_Key, Tape_Title, Mss_Number, Collection_Name, Mastered from Audio_Originals where Original_Tape_Number like '" + args.i + "/%'"
 	result = query(sqlstr,cnxn)
 	if result is not None: #oooooooooook if we have value sin those fields
 		count = 0 #init a counter
@@ -220,27 +220,27 @@ def makebext(args,cnxn): #makes a bext string for use with BWFMetaEdit
 				x[fieldlist[count]]="None"
 			count=count+1					
 		###GET IT TOGETHER###
-		bextstr = "--Originator=US,CUSB,SRC --originatorReference=cusb-"+args.so+' --Description="AudioNumber:'+args.so+'; MSS Number:'+x['Mss_Number']+'; Collection:'+x['Collection_Name']+'; Tape Title:'+x['Tape_Title']+'; Master Key:'+str(x['Master_Key'])+'"'
+		bextstr = "--Originator=US,CUSB,SRC --originatorReference=cusb-"+args.i+' --Description="AudioNumber:'+args.i+'; MSS Number:'+x['Mss_Number']+'; Collection:'+x['Collection_Name']+'; Tape Title:'+x['Tape_Title']+'; Master Key:'+str(x['Master_Key'])+'"'
 		#^makes the actual string based on the dictionary x and values, x[FileMakerField]=FileMakerValue
 	return bextstr.encode('utf-8')	
 
 def checkotherface(args,cnxn): #checks if there are 1 or 2 captures per tape
 	if args.f == "fAB":
-		sqlstr = "select rawCaptureName_fCD from Audio_Masters where rawCaptureName_fAB='" + args.so + "' or rawCaptureName_fAB='" + args.so + ".wav'"
+		sqlstr = "select rawCaptureName_fCD from Audio_Masters where rawCaptureName_fAB='" + args.i + "' or rawCaptureName_fAB='" + args.i + ".wav'"
 	elif args.f == "fCD":
-		sqlstr = "select rawCaptureName_fAB from Audio_Masters where rawCaptureName_fCD='" + args.so + "' or rawCaptureName_fCD='" + args.so + ".wav'"
+		sqlstr = "select rawCaptureName_fAB from Audio_Masters where rawCaptureName_fCD='" + args.i + "' or rawCaptureName_fCD='" + args.i + ".wav'"
 	result = query(sqlstr,cnxn)
 	return result
 
 def insertHash(args,cnxn):
-	sqlstr = "insert into File_instance(FK,filename,hash) values ((select Original_Key from Audio_Originals where Original_Tape_Number like '" + args.so + "/%'),'" + args.fn + "','" + args.h + "')"
+	sqlstr = "insert into File_instance(FK,filename,hash) values ((select Original_Key from Audio_Originals where Original_Tape_Number like '" + args.i + "/%'),'" + args.fn + "','" + args.h + "')"
 	print sqlstr
 	insert(sqlstr,cnxn)
 	
 def main():		
 	###INIT VARS###
 	parser = argparse.ArgumentParser(description="queries, inserts, and returns data from our FileMaker dbs")
-	parser.add_argument('-so','--startObject',dest="so",help='the audio/ video number of the asset, a1234 for tapes, 1234 for cyls')
+	parser.add_argument('-i','--startObject',dest="i",help='the audio/ video number of the asset, a1234 for tapes, 1234 for cyls')
 	parser.add_argument('-t','--tape',dest="t",action='store_true',default=False,help='use Audio Originals database as source')
 	parser.add_argument('-c','--cylinder',dest='c',action='store_true',default=False,help='use Cylinders database as source')
 	parser.add_argument('-id3',dest="id3",action='store_true',default=False,help='generate ID3 tags for makebroadcast')
@@ -251,7 +251,7 @@ def main():
 	parser.add_argument('--filename',dest='fn',help="the filename for File_isntance you'd like to insert a hash for")
 	parser.add_argument('--hash',dest='h',help="the hash for --filename")
 	args = parser.parse_args()
-	args.so = args.so.replace(".wav","")
+	args.i = args.i.replace(".wav","")
 	result = ''
 	rtnlist = []
 	###END INIT###
@@ -261,14 +261,14 @@ def main():
 			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Audio Originals;UID=microservices')#init connection
 			fieldlist = ["Tape_Title","Collection_Name","Original_Recording_Date"] #init fieldlist for FileMaker
 			for field in fieldlist:#loop through the field list
-				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.so.upper() + "%'" 
+				sqlstr = "select " + field + " from Audio_Originals where Original_Tape_Number like '" + args.i.upper() + "%'" 
 				result = query(sqlstr,cnxn)#<^query the db for the value in that field for that cylinder object
 				rtnlist.append(result[0])#append the found value to the list of values
 		elif args.c:#if it's a cylinder
 			cnxn = pyodbc.connect('DRIVER={FileMaker ODBC};SERVER=filemaker.library.ucsb.edu;DATABASE=Cylinders;UID=microservices')
 			fieldlist = ["Title","Performer","Composer","Label_Cat","yr"]
 			for field in fieldlist:
-				sqlstr = "select " + field + " from Cylinders where Call_Number_asText='" + args.so + "'"
+				sqlstr = "select " + field + " from Cylinders where Call_Number_asText='" + args.i + "'"
 				result = query(sqlstr,cnxn)
 				rtnlist.append(result[0])
 		print rtnlist
@@ -306,7 +306,7 @@ def main():
 				face = args.f
 				revface = ''
 				###END INIT###
-				sqlstr = "select reversing_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.so + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.so + ".wav'"
+				sqlstr = "select reversing_" + face + " from Audio_Masters where rawCaptureName_" + face + "='" + args.i + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.i + ".wav'"
 				result = query(sqlstr,cnxn)
 				###GET IT TOGETHER###
 				if result is not None and result[0] is not None:

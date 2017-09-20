@@ -148,10 +148,10 @@ def main():
 	allists["cylist"]=cylist
 	allists["disclist"]=disclist
 	parser = argparse.ArgumentParser(description="makes a full path from a canonical asset name")
-	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
+	parser.add_argument('-i','--startObj',dest='i',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	args = parser.parse_args()
 	###END INIT###
-	startObj = args.so.replace("\\",'/') #for the windows peeps
+	startObj = args.i.replace("\\",'/') #for the windows peeps
 	startObj = startObjectParse(startObj,allists)
 	#print len(startObj)
 	print startObj

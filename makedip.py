@@ -28,8 +28,8 @@ def makeTranscodeList(args,archiveDir):
 	###END INIT###
 	###FOR TAPES###
 	if args.t is True:
-		for obj in args.so:
-			startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",obj])
+		for obj in args.i:
+			startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-i",obj])
 			startObj = startObj.replace("\n","").replace("\r","")
 			if startObj.endswith(".wav"):
 				###MAKE LIST OF DIRS TO SEARCH FOR OBJECTS###
@@ -81,7 +81,7 @@ def makeTranscodeList(args,archiveDir):
 	###END FOR TAPES###
 	###FOR DISCS###
 	elif args.d is True:
-		for obj in args.so:
+		for obj in args.i:
 			startDir = os.path.join(archiveDir,obj)
 			startDirs.append(startDir)
 			with ut.cd(startDir):
@@ -146,7 +146,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-t','--tape',action='store_true',dest='t',default=False,help="make dip with audio template")
 	parser.add_argument('-d','--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
-	parser.add_argument('-so','--startObj',dest='so',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
+	parser.add_argument('-i','--startObj',dest='i',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")
 	parser.add_argument('-sys','--systemNumber',dest='sys',help="the system number for a disc in our catalog")
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
@@ -157,7 +157,7 @@ def main():
 		archiveDir = conf.magneticTape.repo #grab archive directory for audio tapes
 	elif args.d is True:
 		#archiveDir = config.get("discs","repo")
-		startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
+		startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-i",args.i])
 		if "None" in startObj:
 			print "Sorry, it looks like this hasn't been digitized."
 			print "Double check the item name"
@@ -176,27 +176,27 @@ def main():
 	#transcode where necessary
 	for f in a:
 		if args.t is True and args.hq is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])
 		elif args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t','-n','-mp3'])
 		elif args.d is True and args.hq is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-sys',args.sys])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-sys',args.sys])
 		elif args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-n','-mp3','-sys',args.sys])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
 	for f in b:
 		if args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
 		if args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-so',f])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
 	for f in u:
 		if args.t is True and args.hq is True: 
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])
 		elif args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-t','-n','-mp3'])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t','-n','-mp3'])
 		elif args.d is True and args.hq is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-sys',args.sys])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-sys',args.sys])
 		elif args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',f,'-d','-n','-mp3','-sys',args.sys])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
 	#make a final list of stuff we gonna dip
 	veggies = []
 	for dir in startDirs:

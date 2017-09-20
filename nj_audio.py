@@ -81,7 +81,7 @@ def main():
 	###END INIT###
 	log.log("timeDiff = " + str(timeDiff))
 	###make broadcast master###
-	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-so',broadcastFP,'-ff','-nj'],stderr=subprocess.STDOUT) #makebroadcast with fades, nj naming
+	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',broadcastFP,'-ff','-nj'],stderr=subprocess.STDOUT) #makebroadcast with fades, nj naming
 	log.log(output)
 	#pop them into the qc dir in a subdir named after their filename
 	#hashmove makes end dir if it doesnt exist already

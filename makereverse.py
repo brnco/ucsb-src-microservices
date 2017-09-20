@@ -30,15 +30,15 @@ def main():
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("started")
 	parser = argparse.ArgumentParser(description="slices, reverses input file, concatenates back together")
-	parser.add_argument('-so','--startObj',dest='so',help='the full path to the file to be reversed',)
+	parser.add_argument('-i','--startObj',dest='i',help='the full path to the file to be reversed',)
 	args = parser.parse_args()
-	endObj = os.path.basename(args.so)
+	endObj = os.path.basename(args.i)
 	endObj,ext = os.path.splitext(endObj)
-	workingDir = os.path.dirname(args.so)
+	workingDir = os.path.dirname(args.i)
 	###END INIT###
 	with ut.cd(workingDir):
 		#ffprobe input file and find duraiton
-		output = subprocess.Popen(['ffprobe','-show_streams','-of','flat',args.so],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		output = subprocess.Popen(['ffprobe','-show_streams','-of','flat',args.i],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 		ffdata,err = output.communicate()
 		match = re.search(r".*duration=.*",ffdata) #get just the bit after duration
 		if match:
@@ -53,7 +53,7 @@ def main():
 		###end init###
 		try:
 			while (count < float(dur)): #loop through the file 300s at a time until u get to the end
-				ffmpegstring = "ffmpeg -i " + args.so + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
+				ffmpegstring = "ffmpeg -i " + args.i + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
 				output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
 				concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
 				count = count + 300 #incrase seconds by 300 (10min)
@@ -75,9 +75,9 @@ def main():
 					os.remove(f)
 			if os.path.exists(endObj + "-reversed.wav"):
 				if os.path.getsize(endObj.replace(".wav","") + "-reversed.wav") > 50000: #validate that the reversed file is actually good and ok
-					if os.path.exists(args.so):
-						os.remove(args.so)
-						os.rename(endObj + "-reversed.wav", args.so)
+					if os.path.exists(args.i):
+						os.remove(args.i)
+						os.rename(endObj + "-reversed.wav", args.i)
 		else:
 			print "Buddy, there was a problem reversing that file"
 

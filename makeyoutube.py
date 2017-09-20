@@ -97,15 +97,15 @@ def main():
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('-so','--startObject',dest='i',help='the canonical name of the disc to make a vid for, e.g. cusb_victor_123_04_567_89')
+	parser.add_argument('-i','--startObject',dest='i',help='the canonical name of the disc to make a vid for, e.g. cusb_victor_123_04_567_89')
 	parser.add_argument('-d','--disc',dest='d',action='store_true',default=False,help='make a video for a disc. cylinder option coming soon')
 	args = parser.parse_args()
 	archRepoDir = conf.discs.archRepoDir
 	vidLeadDir = conf.video.vid_leads
 	###END INIT###
 	if args.d is True:
-		makeThem(args.so,archRepoDir,vidLeadDir)
-		concatThem(args.so,archRepoDir,vidLeadDir)
+		makeThem(args.i,archRepoDir,vidLeadDir)
+		concatThem(args.i,archRepoDir,vidLeadDir)
 	
 dependencies()
 main()

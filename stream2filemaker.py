@@ -13,10 +13,10 @@ def main():
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="listen to an audio transfer")
-	parser.add_argument('-so','--startObj',dest='so',help="the aNumber that you want to listen to")
+	parser.add_argument('-i','--startObj',dest='i',help="the aNumber that you want to listen to")
 	#parser.add_argument('-m','--mode',dest='m',choices=["single","batch"],help='mode, process a single file or every file in capture directory')
 	args = parser.parse_args()
-	startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
+	startObj = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,"makestartobject.py"),"-i",args.i])
 	subprocess.call("ffplay " + startObj.replace("\\","/"),shell=True)
 	
 main()

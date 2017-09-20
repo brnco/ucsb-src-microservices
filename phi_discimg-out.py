@@ -94,14 +94,14 @@ def main():
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="processes image files for disc labels")
-	parser.add_argument('-so','--startObj',dest='so',help="the rawcapture file.cr2 to process, not full path")
+	parser.add_argument('-i','--startObj',dest='i',help="the rawcapture file.cr2 to process, not full path")
 	parser.add_argument('-m','--mode',dest='m',choices=["single","batch"],help='mode, process a single file or every file in capture directory')
 	args = parser.parse_args()
 	imgCaptureDir = conf.NationalJukebox.VisualArchRawDir
 	print conf.NationalJukebox.VisualArchRawDir
 	log.log("started")
 	if args.m == "single":
-		startObj = startObjFP = args.so.replace("\\","/")
+		startObj = startObjFP = args.i.replace("\\","/")
 		if not startObj.startswith(imgCaptureDir):
 			for dirs,subdirs,files in os.walk(imgCaptureDir):
 				for f in files:

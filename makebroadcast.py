@@ -108,7 +108,7 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName) #rename and delete as necessary
 		time.sleep(4)
 		if args.mp3 is True:
-			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-so',assetName])
+			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-i',assetName])
 
 #makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
 def makemanualid3(startDir, assetName):
@@ -280,7 +280,7 @@ def main():
 	global mtd
 	mtd = imp.load_source('mtd',os.path.join(dn,'makemetadata.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('-so','--startObj',dest='so',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
+	parser.add_argument('-i','--startObj',dest='i',nargs ='?',help='the file to be transcoded, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
 	parser.add_argument('-ff','--fades',dest='ff',action='store_true',default=False,help='adds 2s heads and tails fades to black/ silence')
 	#parser.add_argument('-s','--stereo',dest='s',action='store_true',default=False,help='outputs to stereo (mono is default)')
 	parser.add_argument('-mp3','--mp3',dest='mp3',action='store_true',default=False,help='make an mp3 when done making a broadcast master')
@@ -293,7 +293,7 @@ def main():
 	parser.add_argument('-sys','--systemNumber',dest='sys',help='the system number in Pegasus of the disc for which you want id3 tags')
 	parser.add_argument('-side',dest='side',help='the side of the disc (aA or bB) that we are working with, for catalog records w/out matrix numbers')
 	args = parser.parse_args() #allows us to access arguments with args.argName
-	startObj = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"makestartobject.py"),"-so",args.so])
+	startObj = subprocess.check_output(["python",os.path.join(conf.scriptRepo,"makestartobject.py"),"-i",args.i])
 	startObj = startObj.replace("\\","/")[:-2]
 	print startObj
 	vexts = ['.mxf','.mp4','.mkv'] #set extensions we recognize for video

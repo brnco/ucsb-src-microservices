@@ -63,7 +63,7 @@ def main():
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	log.log("Started")
 	parser = argparse.ArgumentParser(description="slices video into segments")
-	parser.add_argument('-so','--startObj',dest='so',help='the full path of the file to be sliced')
+	parser.add_argument('-i','--startObj',dest='i',help='the full path of the file to be sliced')
 	parser.add_argument('-m','--mode',dest='m',choices=['simple','complex'],help="mode, simple makes a single slice, complex takes a list - for video files with more than 1 vNumber in it")
 	parser.add_argument('-db','--doBoth',dest='db',action='store_true',help="slice both preservation and access copies")
 	parser.add_argument('-i','--in',dest='i',help="the start timestamp for the slice, HH:MM:SS.FF")
@@ -71,7 +71,7 @@ def main():
 	parser.add_argument('-vms',dest='vms',help="list of vmNumbers (complex only)")
 	parser.add_argument('-s','--slices',dest='s',help="list of slices (complex only)")
 	args = parser.parse_args() #allows us to access arguments with args.argName
-	startObj = args.so
+	startObj = args.i
 	startObj = startObj.replace("\\","/")
 	startObjBoth = ''
 	masterKey,ext = os.path.splitext(os.path.basename(startObj))

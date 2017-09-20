@@ -111,33 +111,33 @@ def mono_silence(rawfname,face,aNumber,processDir): #silence removal for tapes t
 
 def reverse(rawfname,face,aNumber,channelConfig,processDir):#calls makereverse
 	###INIT VARS###
-	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reverse","-so",rawfname,"-f",face,"-cc",channelConfig])
+	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reverse","-i",rawfname,"-f",face,"-cc",channelConfig])
 	###END INIT###
 	###REVERSE FACE###
 	if "fA" in revface and not "fAB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
 	elif "fC" in revface and not "fCD" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):	
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])	
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])	
 	elif "fB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):	
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
 	elif "fD" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Da.wav")):	
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Da.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Da.wav")])
 	elif "fAB" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
 		#sometimes the face isn't specified in the filename
 		elif os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "a.wav")):
 			print "2"
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "a.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "a.wav")])
 	elif "fCD" in revface:
 		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-so',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
+			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
 	###END REVERSE FACE###
 
 	
@@ -200,7 +200,7 @@ def main():
 	makemtd = imp.load_source('makemtd',os.path.join(dn,'makemetadata.py'))
 	parser = argparse.ArgumentParser(description="batch processes audio transfers")
 	parser.add_argument('-s',dest='s',action="store_true",default=False,help='single mode, for processing a single transfer')
-	parser.add_argument('-so','--startObj',dest='so',help="the rawcapture file.wav to process")
+	parser.add_argument('-i','--startObj',dest='i',help="the rawcapture file.wav to process")
 	args = parser.parse_args()
 	captureDir = conf.magneticTape.new_ingest
 	archRepoDir = conf.magneticTape.repo
@@ -211,12 +211,12 @@ def main():
 	###SINGLE MODE###
 	if args.s is True:
 		###INIT###
-		file = args.so
+		file = args.i
 		rawfname,ext = os.path.splitext(file)
 		###END INIT###
 		###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
-		#output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-so",rawfname]) #get aNumber, channelconfig, face from FileMaker
-		kwargs = {"aNumber":args.so.capitalize()}
+		#output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-i",rawfname]) #get aNumber, channelconfig, face from FileMaker
+		kwargs = {"aNumber":args.i.capitalize()}
 		acf = makemtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
 		print acf
 		if acf is not None:
@@ -229,14 +229,14 @@ def main():
 				print ""
 				print "ERROR - FileMaker record incomplete"
 				print "Please check FileMaker record for rawcapture:"
-				print args.so
+				print args.i
 				sys.exit()
 			face = acf["face"]
 			aNumber = "a" + acf["aNumber"]
 			channelConfig = acf["channelConfig"]
 			###END GET ANUMBER FACE CHANNELCONFIG FROM FILEMAKER###
 			###DO THE FFMPEG###
-			ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
+			ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-i",rawfname,"-f",face,"-cc",channelConfig])
 			if ffstring is not None:
 				#init folder to do the work in
 				processDir = os.path.join(captureDir,aNumber)
@@ -303,7 +303,7 @@ def main():
 						channelConfig = acf["channelConfig"]
 						###END GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 						###DO FFMPEG###
-						ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-so",rawfname,"-f",face,"-cc",channelConfig])
+						ffstring = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","ffstring","-i",rawfname,"-f",face,"-cc",channelConfig])
 						if ffstring is not None:
 							#init folder to do the work in
 							processDir = os.path.join(captureDir,aNumber)

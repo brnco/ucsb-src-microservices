@@ -70,9 +70,9 @@ def main():
 	global log
 	log = imp.load_source('log',os.path.join(dn,'logger.py'))
 	parser = argparse.ArgumentParser(description="Makes a broadcast-ready file from a single input file")
-	parser.add_argument('-so','--startObj',nargs ='?',help='the file to be transcoded',)
+	parser.add_argument('-i','--startObj',nargs ='?',help='the file to be transcoded',)
 	args = parser.parse_args() #create a dictionary instead of leaving args in NAMESPACE land
-	startObj = subprocess.check_output(['python',os.path.join(dn,'makestartobject.py'),'-so',args.startObj])
+	startObj = subprocess.check_output(['python',os.path.join(dn,'makestartobject.py'),'-i',args.startObj])
 	startObj = startObj.replace("\\",'/')[:-2] #for the windows peeps
 	fnamext = os.path.basename(os.path.abspath(startObj)) #filname plus extension of the startObj
 	fname, ext = os.path.splitext(fnamext) #split the filename from extension
