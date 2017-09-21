@@ -10,10 +10,14 @@ Please see AVLab Utility Software List & Installation Instructions (on the wiki)
    * [makeqctoolsreport](#makeqctoolsreport)
    * [makestartobject](#makestartobject)
    * [makereverse](#makereverse)
-   * [makeffmetadata](#makeffmetadata)
    * [makebext](#makebext)
    * [makevideoslices](#makevideoslices)
    * [makeyoutube](#makeyoutube)
+* [library scripts](#library scripts)
+   * [config](#config)
+   * [logger](#logger)
+   * [mtd](#mtd)
+   * [util](#util)
 * [avlab](#avlab)
    * [avlab-audio](#avlab-audio)
    * [avlab-cylinders](#avlab-cylinders)
@@ -32,117 +36,89 @@ We use the microservices structure here, which breaks down complicated programs 
 
 To run these scripts, type python [path of python file] [arguments]
 
+Every script can also be run with ypthon script.py -h for more info
 
-# make_something
+
+# makesomething
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
+
+## makebarcodes
+This script is used to generate barcode files that can be printed by our Zebra barcode printers. It makes a temporary file in your current directory. Then, for each side of a record, it asks for the title of the content, then the barcode: cusb_[label-abbrev]_[issue-number]_[copy(optional)]_[matrix-number]_[take-number]. Used for patron requests mostly. Once done, follow steps outlined in wiki doc Printing Barcodes
 
 ## makebroadcast
 Takes an input file, generally an archival master or raw-broadcast capture, inserts 2s fades, drops bitrate to 44.1k/16bit, embeds ID3 metadata if source txt file is present.
 
-Has dependencies for ffmpeg, ffprobe. Takes 1 argument for file to process. Has flags for fades (-ff), national jukebox names (-nj), stereo (-s).
+Has flags for fades (-ff), national jukebox names (-nj), stereo (-s), normalize (-n)
 
-"python makebroadcast.py -h" for more info
+## makedip
+Takes an input string which is the canonical name for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server.
+
+Has flags for startObject (-so), transactionNumber (-tn), mode (--tape for tapes, --disc coming soon), zip (-z) to make a .zip file
  
 ## makemp3
 Takes an input file, generally a broadcast master, transcodes to 320kbps mp3. Embeds ID3 tags if present (either in source file or in sidecar txt file). Embeds png image of "Cover Art" if png or tif present in source directory.
 
-Has dependencies for ffmpeg, ffprobe, graphicsmagick. Takes 1 argument for full path of file to process.
-
-"python makemp3.py -h" for more info
-
-## makereverse
-Takes an input file and stream-copies reversed slices of 600 seconds, then concatenates the slices back together. ffmpeg's areverse loads a whole ifle into memory, so for the large files we deal with we need this workaround.
-
-Has dependencies for ffmpeg. Takes 1 arg of the path to the file to process
-
-"python makereverse.py -h" for more info
-
-## makeffmetadata
-Takes input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and title, performer, album, and date, and makes an ;FFMETADATA text file suitable for ffmpeg to embed in a broadcast master or mp3 as ID3 tags. Is most often called by FileMaker, particularly for cylinders, or by makebroadcast
-
-Has dependencies for ffmpeg, ffprobe
-
-Has flags for cylinder (-cyl), disc (-disc), tape (-tape), that correspond to different ID3 templates. also has flags for title (-t), album (-a), performer (-p), copyright (-r), and date (-d)
-
-"python makeffmetadata.py -h" for more info
- 
-For info on making ID3 source files see: http://jonhall.info/how_to/create_id3_tags_using_ffmpeg
-
-## makebext
-Takes an input for canonical asset name [a1234, cusb_col_a12_01_5678_00] and a set of strings to be concatenated into a call to bwfmetaedit, prints a text file to given directory for asset type (tape, disc, etc). Used almost exclusively to format FileMaker outputs.
-
-Has 0 dependencies
-
-Has flags for start object (-so), tape (-tape, disc and cylinder coming soon), date (-d), master key (-mk), title (-t), manuscript number (-mss), collection name (-c).
- 
 ## makeqctoolsreport
 Takes an input video file, and outputs a compressed xml file that can be read by QCTools. It has to transcode it to a raw video format first so this script takes some time and processor space and is generally run Friday afternoon over a week of new captures, and runs into the weekend.
 
-Has dependencies for ffmpeg, ffprobe. Takes argument for full path of file to be processed.
+## makereverse
+Takes an input file and stream-copies reversed slices of 600 seconds, then concatenates the slices back together. ffmpeg's areverse loads a whole file into memory, so for the large files we deal with we need this workaround.
 
-"python makeqctoolsreport.py -h" for more info.
-
-## makebarcodes
-This script is used to generate barcode files that can be printed by our Zebra barcode printers. It makes a temporary file in your current directory. Then, for each side of a record, it asks for the title of the content, then the barcode: cusb_[label-abbrev]_[issue-number]_[copy(optional)]_[matrix-number]_[take-number]. Used for patron requests mostly. Once done, follow steps outlined in Printing Barcodes
-
-Has 0 dependencies. Takes no arguments.
+## makestartobject
+Takes a canonical name for an asset, e.g. a1234, cusb_col_a1234_01_5678_00, and returns a full path to an instance of that object. The instance is prioritized for transcoding in the following order: broadcast master, archival master, un-tagged archival master, access mp3.
 
 ## makevideoslices
 Slices preservation and access transfers of videos with more than 1 asset on the tape (eg. vm1234 also contains vm5678 and vm9101). Takes no arguments but you have to edit the in and out points in a list in the script, as well as corresponding vNums. Needs to be better, OpenCube editing interface is crappy and Premiere doesn't accept our preservation masters so.....
-
-Has dependencies for ffmpeg, ffprobe
-
-## makedip
-Takes n input strings that are the canonical names for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server. Flags for "high quality" and "archival" not yet working (patrons sometimes request these).
-
-Has dependencies for ffmpeg, ffprobe
-
-Has flags for startObject (-so), transactionNumber (-tn), mode (-tape for tapes, -disc coming soon)
-
-python makedip.py -h for more info
  
-## makevideoSIP (DEPRECATED)
-Take an argument of the vNumber (accession number for video) and outputs .tar.gz file for storage on LTO.
+## makeyoutube
+Still in development, this script makes a youtube-ready video for a digitized 78rpm disc, based on metadata in DAHR
 
-Has dependencies for ffmpeg, ffprobe
+# library scripts
 
+These scripts are basically collections of functions that are invoked by other scripts.
 
+## config
+config parses the microservices-config.ini file and returns a dictionary object that is accessible via dot notation, e.g. conf.cylinders.new_ingest rather than conf['cylinders']['new_ingest']. conf is declared globally in every script, this module is imported as rawconfig and conf = rawconfig.config() actually makes the conf dictionary.
+
+## logger
+logger is the handler for all logging functions. Generally, it makes logs for each script's full execution, linking sub-scripts to their parents via PIDs. logs are named "user-pid-timestamp.log"
+
+## mtd
+mtd is short for "metadata" and it's the handler for all FileMaker and catalog access. It implements pyodbc an and SRU string to get metadata from external sources, or to insert metadata into FileMaker.
+
+## util
+util is the handler for all utility functions. Two noteworthy ones are: desktop() - which returns the current user's desktop folder; and dotdict(dict) - which takes a regular dictionary and makes it accessible via dot notation, e.g. conf.cylinders.new\_ingest rather than conf['cylinders']['new\_ingest']
 
 # avlab
 These processes deal with all of the audio objects created in the AVLab, not part of the Jukebox
 
 ## avlab-audio
-Post-processing for magnetic-tape materials. Takes no arguments, has dependencies for ffmpeg, ffprobe, bwfmetaedit
+Post-processing for magnetic-tape materials. Gets metadata from Audio Originals FileMaker db
+
 Deletes sidecar files that Wavelab generates
 
-makes a lsit of files to process based on FileMaker outputs (see staff wiki)
+makes a list of files to process based on FileMaker outputs (see staff wiki)
 
-Deletes silences of longer than 10s, calls changechannels to correct any channel configuration mismatches
+Deletes silences of longer than 30s
 
 Embeds bext info, data chunk md5
 
 hashmoves it to the repo directory, greps the output of hashmove and, if successful, deletes raw capture and assocaited txt files
 
 ## avlab-cylinders
-Post-processing of cylinders and the creation of derivative files for ingest to the R:/ drive/ site.
-The key here is that you have to export the metadata from fm via makeffmetadata and it embeds in our broadcast masters and everything else downstream.
+Post-processing of cylinders and the creation of derivative files. Gets metadata from Cylinders FileMaker db.
 
 ## avlab-discs
 Post-processing for discs that are not part of NJ process. Bundles makemp3 and makebroadcast with configurable filepaths. Used for post-processing of patron requests, mostly, saves files to a QC directory on R:/. Has dependencies for ffmpeg, ffprobe, bwfmetaedit
 
-## avlab-discimg-out
-This script uses GraphicsMagick to transcode from .dng to .tif, cropping, rotating, and changing the dpi of the files in the process, according to LC's specs. It then hashmoves them to the avlab/new_ingest/pre-ingest-qc folder. For more info, see Imaging Disc Labels on the staff wiki
-
 ## avlab-video
-post-processing for archival master video files. bundles makeqctoolsreport; generates frame level checksums with framemd5; makes a PBCore2.0 compliant xml file of technical metadata.
+post-processing for archival master video files. bundles makeqctoolsreport; makes a PBCore2.0 compliant xml file of technical metadata.
 
 # National Jukebox / PHI
 Here's the scripts we use to process materials for the National Jukebox/ PHI digitization project
 
 ## nj_audio
 This script processes the archival and broadcast master files we make for the National Jukebox. For more info on how files are created, see Digitizing 78s for The National Jukebox on the wiki
-
-It has dependencies for ffmpeg and ffprobe. It takes no arguments
 
 The processing steps are:
 
@@ -174,10 +150,10 @@ here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
 
-## nj_discimg-capture-fm
+## nj_discimg-capture
 This script is used exclusively during disc label imaging and is called by FileMaker. It is run in conjunction with NJ Workflow DB's "discimg-in" script. For more info on the process of capturing disc label images, see Disc Imaging for National Jukebox
 
-It has 0 dependencies. It takes arguments for a barcode / filename (which Filemaker provides)
+It takes arguments for a barcode / filename (which Filemaker provides)
 
 The processing steps are:
 
@@ -202,7 +178,7 @@ return an error if true
 ## nj_discimg-out
 This script is used to process an intermediate set of disc label digital images (created with Adobe DNG converter). For more info, see Disc Imaging for National Jukebox
 
-It has 1 dependency for GraphicsMagick. It takes no arguments.
+It takes no arguments.
 
 The processing steps are:
 
