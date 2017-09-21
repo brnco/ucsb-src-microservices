@@ -9,6 +9,7 @@
 import os
 import re
 import argparse
+import sys
 ###UCSB modules###
 import config as rawconfig
 import util as ut
@@ -64,6 +65,7 @@ def avname(startObj,avlist):
 		
 def cylname(startObj,cyllist):	
 	return startObj
+	
 def discname(startObj,disclist):
 	foundirs = []
 	for dirpath in disclist:
@@ -73,8 +75,10 @@ def discname(startObj,disclist):
 		print "Buddy, it looks like there's two copies of this item"
 		for f in foundirs:
 			print f
+		sys.exit()	
 	elif len(foundirs) < 1:
 		print "Buddy, it looks like this hasn't been digitized"
+		sys.exit()
 	else:
 		startDir = foundirs[0]
 	if os.path.exists(os.path.join(startDir,startObj + "b.wav")):
