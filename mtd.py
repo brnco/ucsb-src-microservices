@@ -119,6 +119,7 @@ def makebext_umid():
 makebext_description_parse_result takes the result of the FM query and transforms it into a string that can be read by BWFMetaEdit
 '''
 def makebext_description_parse_result(result,fieldlist):
+	x = {}
 	if result is not None:
 		bext_description = "--Description="
 		if isinstance(result, ut.dotdict):
@@ -128,7 +129,10 @@ def makebext_description_parse_result(result,fieldlist):
 			count = 0 #init a counter
 			while count < len(fieldlist): #loop the same # of times as the field list is long
 				if result[count]: #if there's a value in the field
-					x[fieldlist[count]]=result[count] #set the FileMakerField:FileMakerValue pair according to the index
+					if count == 0:
+						x[fieldlist[count]]=str(int(result[count]))
+					else:	
+						x[fieldlist[count]]=result[count] #set the FileMakerField:FileMakerValue pair according to the index
 				else: #Nonetypes can't be assigned directly
 					x[fieldlist[count]]="None"
 				bext_description = bext_description + fieldlist[count] + ":" + str(x[fieldlist[count]]) + ";"
@@ -149,7 +153,7 @@ def makebext_description(cnxn,args):
 			from Audio_Originals ao
 			join Audio_Masters am
 			on ao.Original_Key=am.Original_Key
-			where ao.Original_Tape_Number like '""" + args.aNumber + "/%'"
+			where ao.Original_Tape_Number like '""" + args.aNumber.upper() + "/%'"
 		result = queryFM_single(sqlstr,cnxn)
 		bext_description = makebext_description_parse_result(result,fieldlist)
 	elif args.cylNumber:
@@ -210,7 +214,7 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 		else:
 			sqlstr="""select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format 
 					from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key 
-					where Audio_Masters.rawCaptureName_""" + facelist[count] + "='" + args.aNumber + "' or Audio_Masters.rawCaptureName_" + facelist[count] + "='" + args.aNumber + ".wav'"
+					where Audio_Masters.rawCaptureName_""" + facelist[count] + "='" + args.rawcapNumber + "' or Audio_Masters.rawCaptureName_" + facelist[count] + "='" + args.rawcapNumber + ".wav'"
 			#OR above necessary because sometimes the rawCaptureName has a ".wav" at the end :(
 			row = queryFM_single(sqlstr,cnxn)
 			face = facelist[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
@@ -225,14 +229,36 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 		elif any("Open Reel" in s for s in row): #if the rawCaptureName is of an open reel
 			#face = face.replace("'",'') #get rid of annoying punctuation
 			#having the format isn't enough, we need the channel configuration for open reels
-			sqlstr = "select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key where Audio_Masters.rawCaptureName_" + face + "='" + args.aNumber + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.aNumber + ".wav'"
+			sqlstr = '''select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format 
+						from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key 
+						where Audio_Masters.rawCaptureName_''' + face + "='" + args.rawcapNumber + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.rawcapNumber + ".wav'"
 			row = queryFM_single(sqlstr,cnxn)
 			if row:
 				nameFormat["channelConfig"] = row[1]
 		return nameFormat
 	else:
 		return None
-
+'''
+get_ff_processes returns the faces/ processes that need to be enacted on an audiofile prior to ingest
+it's the result of the form that digi techs fill out when digitizing a tape
+'''
+def get_ff_processes(args,cnxn):
+	#gets faces/ processes from filemaker form filled out by digi techs
+	processes = ['delface','hlvface','dblface','revface'] #list of processes
+	ffproc = {}
+	sqlstr = '''select 
+				deleting_''' + args.face + ",halving_" + args.face + ",doubling_" + args.face + ",reversing_" + args.face + ''' 
+				from Audio_Masters 
+				where rawCaptureName_''' + args.face + "='" + args.rawcapNumber + """'
+				or Audio_Masters.rawCaptureName_""" + args.face + "='" + args.rawcapNumber + ".wav'"
+	result = queryFM_single(sqlstr,cnxn) #use makemetadata to ask filemaker for this info
+	if result is not None:
+		for index,r in enumerate(result):
+			if r == 'None':
+				r = None #transform fm output of string "None" to python type None
+			ffproc[processes[index]] = r
+	return ffproc		
+		
 '''
 get_cylinder_ID3 takes a db connection and argument for the cylinder number (no prefix) and returns a raw list of Title, Performer, Label, and date
 '''

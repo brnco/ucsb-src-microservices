@@ -2,29 +2,20 @@ import os
 import imp
 import pyodbc
 import subprocess
-
-def get_processes(args,cnxn):
-	#gets faces/ processes from filemaker form filled out by digi techs
-	processes = ['delface','hlvface','dblface','revface'] #list of processes
-	ffproc = {}
-	sqlstr = '''select 
-				deleting_''' + args.face + ",halving_" + args.face + ",doubling_" + args.face + ",reversing_" + args.face + ''' 
-				from Audio_Masters 
-				where rawCaptureName_''' + args.face + "='" + args.so + """'
-				or Audio_Masters.rawCaptureName_""" + args.face + "='" + args.so + ".wav'"
-	result = mtd.queryFM_single(sqlstr,cnxn) #use makemetadata to ask filemaker for this info
-	if result is not None:
-		for index,r in enumerate(result):
-			if r == 'None':
-				r = None #transform fm output of string "None" to python type None
-			ffproc[processes[index]] = r
-	return ffproc
+###UCSB modules###
+import config as rawconfig
+global conf
+conf = rawconfig.config()
+import util as ut
+import logger as log
+import mtd
+import makestartobject as makeso
 	
 def audio_init_ffproc(cnxn,**kwargs):
 	#generates ffmpeg process data
 	args = ut.dotdict(kwargs)
 	cnxn = pyodbc.connect(cnxn)
-	ffproc = get_processes(args,cnxn) #get faces/ processes from filemaker"
+	ffproc = mtd.get_ff_processes(args,cnxn) #get faces/ processes from filemaker"
 	ffproc = ut.dotdict(ffproc)
 	if not "Stereo" in args.channelConfig:
 		###FOR MONO TAPES###
@@ -63,7 +54,14 @@ def audio_init_ffproc(cnxn,**kwargs):
 			ffproc.filename1 = filename1 = "cusb-" + args.aNumber + args.face[2] + "a." + conf.ffmpeg.acodec_master_format
 			ff_suffix1 = ff_suffix1 + ' -c:a ' + conf.ffmpeg.acodec_master + ' ' + filename1
 		###PUT IT TOGETHER###
-		ff_suffix = ff_suffix0 + ' ' + ff_suffix1
+		if ff_suffix0 and ff_suffix1:
+			ff_suffix = ff_suffix0 + ' ' + ff_suffix1
+		elif ff_suffix0:
+			ff_suffix = ff_suffix0
+		elif ff_suffix1:
+			ff_suffix = ff_suffix1
+		else:
+			ff_suffix = None
 		###END MONO###
 	else:
 		###FOR STEREO TAPES###
@@ -78,7 +76,7 @@ def audio_init_ffproc(cnxn,**kwargs):
 					channel0.af = 'asetrate=192000'
 				elif k == 'hlvface':
 					channel0.af = 'asetrate=48000'
-		ff_suffix0 = ' -af ' + channel0.silence
+		ff_suffix0 = '-af ' + channel0.silence
 		if channel0.af:
 			ff_suffix0 = ff_suffix0 + ',' + channel0.af 
 		ff_suffix0 = ff_suffix0 + ' -c:a ' + conf.ffmpeg.acodec_master
@@ -132,13 +130,3 @@ def go(ffstr):
 		
 
 ###INIT VARS###
-dn, fn = os.path.split(os.path.abspath(__file__))
-global conf
-rawconfig = imp.load_source('config',os.path.join(dn,'config.py'))
-conf = rawconfig.config()
-global ut
-ut = imp.load_source("util",os.path.join(dn,"util.py"))
-global log
-log = imp.load_source('log',os.path.join(dn,'logger.py'))
-global mtd
-mtd = imp.load_source('mtd',os.path.join(dn,'makemetadata.py'))
