@@ -5,6 +5,7 @@ import subprocess
 import argparse
 import re
 import time
+import shutil
 import sys
 sys.path.insert(0,"S:/avlab/microservices")
 #remove ^ in production
@@ -19,6 +20,13 @@ def main():
 	global conf
 	conf = rawconfig.config()
 	alreadythere = []
+	problems = []
+	'''for dirs, subdirs, files in os.walk(conf.NationalJukebox.PreIngestQCDir):
+		for s in subdirs:
+			qcfulls = os.path.join(dirs,s)
+			scratchfulls = os.path.join(conf.NationalJukebox.scratch,"20170922",s)
+			if os.path.exists(scratchfulls):
+				shutil.rmtree(qcfulls)'''		
 	for dirs, subdirs, files in os.walk(conf.NationalJukebox.PreIngestQCDir):
 		for s in subdirs:
 			if os.path.exists(os.path.join(conf.NationalJukebox.BatchDir,s)):
@@ -39,9 +47,13 @@ def main():
 					else:
 						print "There was a problem moving the SIP to the repo"
 						print kwargs['assetName']
-						foo = raw_input("")
+						problems.append(kwargs['assetName'])
+	print "alreadythere"
 	for at in alreadythere:
 		print at
-	
+	print ""
+	print "problems"
+	for p in problems:
+		print p
 if __name__ == '__main__':
 	main()
