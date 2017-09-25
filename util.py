@@ -96,6 +96,17 @@ def make_end_use_char(start_use_char,filename):#makes the end use character for 
 		end_use_char = "b"
 	return end_use_char
 	
+def make_endDirThousand(obj):
+	match = ''
+	match = re.search(r'\d+',obj)
+	if match:
+		anumber = match.group()
+		endHundreds = anumber[-3:]
+		endDirThousand = anumber.replace(endHundreds,"000")
+		return endDirThousand
+	else:
+		return None
+		
 def make_asset_name(start_use_char, filename):
 	if start_use_char:
 		asset_name = filename[:-1]

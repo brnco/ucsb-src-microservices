@@ -20,45 +20,21 @@ import ff
 
 
 #hashmove processing folder to the repo	
-def move(rawfname,aNumber,captureDir,archRepoDir):
-	if aNumber.endswith("A") or aNumber.endswith("B") or aNumber.endswith("C") or aNumber.endswith("D"):
-		aNumber = aNumber[:-1]
-	dirNumber = aNumber
-	processingDir = os.path.join(captureDir,dirNumber)
-	if os.path.isdir(processingDir):
-		endDirThousand = aNumber.replace("a","") #input arg here is a1234 but we want just the number
-		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
-		if len(endDirThousand) < 5:
-			endDirThousand = endDirThousand[:1] + "000"
-		else:
-			endDirThousand = endDirThousand[:2] + "000"
-		endDir = os.path.join(archRepoDir,endDirThousand,dirNumber)
-		#hashmove it and grip the output so we can delete the raw files YEAHHH BOY
-		output = subprocess.Popen(['python',os.path.join(conf.scriptRepo,'hashmove.py'),processingDir,endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+def move(kwargs):
+	endDirThousand = ut.make_endDirThousand(kwargs.aNumber) #input arg here is a1234 but we want just the number
+	kwargs.endDir = os.path.join(conf.magneticTape.repo,endDirThousand,kwargs.aNumber.lower())
+	#hashmove it and grip the output so we can delete the raw files YEAHHH BOY
+	output = subprocess.Popen(['python',os.path.join(conf.scriptRepo,'hashmove.py'),kwargs.processDir,kwargs.endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+	foo,err = output.communicate()
+	print foo
+	sourcehash = re.search('srce\s\S+\s\w{32}',foo)
+	desthash = re.search('dest\s\S+\s\w{32}',foo)
+	dh = desthash.group()
+	sh = sourcehash.group()
+	if sh[-32:] == dh[-32:]:
+		output = subprocess.Popen(['python',os.path.join(conf.scriptRepo,'hashmove.py'),os.path.join(conf.magneticTape.new_ingest,kwargs.rawcapNumber + ".wav"),kwargs.endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 		foo,err = output.communicate()
 		print foo
-		sourcehash = re.search('srce\s\S+\s\w{32}',foo)
-		desthash = re.search('dest\s\S+\s\w{32}',foo)
-		dh = desthash.group()
-		sh = sourcehash.group()
-		if sh[-32:] == dh[-32:]:
-			output = subprocess.Popen(['python',os.path.join(conf.scriptRepo,'hashmove.py'),os.path.join(captureDir,rawfname + ".wav"),endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-			foo,err = output.communicate()
-			print foo
-
-	
-def ffprocess(full_ffstr,processDir): #actually process with ffmpeg
-	if not os.path.exists(processDir):
-		os.makedirs(processDir) #actually make the processing directory
-	time.sleep(1) #give the file table time to catch up
-	###DO THE THING###
-	with ut.cd(processDir):
-		rtncode = ff.go(full_ffstr)
-		if rtncode > 0:
-			print "There was a problem processing " + os.path.basename(processDir)
-			return False
-	return True		
-	###END DOING THE THING###
 
 
 #def mono_silence(rawfname,face,aNumber,processDir): #silence removal for tapes that are mono
@@ -67,89 +43,62 @@ def mono_silence(kwargs):
 	with ut.cd(kwargs.processDir):
 		for f in os.listdir(os.getcwd()):#make a list of the whole directory contents
 			if f.endswith(".wav"):#grip just wavs
-				kwargs['filename'] = f
+				kwargs.filename = f
+				print kwargs.filename
 				full_ffstr = ff.prefix(f) + ff.audio_secondary_ffproc(**kwargs)
 				returncode = ff.go(full_ffstr)
-				if returncode > 0:
+				if returncode is not True:
 					print "There was a problem processing " + kwargs.aNumber
 					return False
 				else:
 					os.remove(f)
 					os.rename(f.replace(".wav","-silenced.wav"),f)
-	return True				
-	'''try:
-		#silencedetect filter arguments are same order as on ffmpeg filters doc
-		returncode = subprocess.check_output("ffmpeg -i " + f + " -af silenceremove=1:0:-50dB:1:30:-50dB -c:a pcm_s24le -map 0 -threads 0 " + f.replace(".wav","") + "-silenced.wav")
-		#CHECK_OUTPUT IS THE BEST
-		returncode = 0
-	except subprocess.CalledProcessError,e: #if there's an error, set the returncode to that
-		returncode = e.returncode
-	if returncode < 1: #if the returncode is not an error, we know that ffmepg was sucessful and that it's safe to delete the start file
-		os.remove(os.path.join(processDir,f))
-		os.rename(os.path.join(processDir,f.replace(".wav","-silenced.wav")),f)'''
-	#NOTE FOR LATER
-	#NEED TO RETURN THE RETURNCODE TO MAIN()
+					return True				
 	
 
-def reverse(rawfname,face,aNumber,channelConfig,processDir):#calls makereverse
-	###INIT VARS###
-	revface = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","reverse","-i",rawfname,"-f",face,"-cc",channelConfig])
-	###END INIT###
-	###REVERSE FACE###
-	if "fA" in revface and not "fAB" in revface:
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
-	elif "fC" in revface and not "fCD" in revface:
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):	
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])	
-	elif "fB" in revface:
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):	
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
-	elif "fD" in revface:
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Da.wav")):	
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Da.wav")])
-	elif "fAB" in revface:
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Aa.wav")])
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ba.wav")])
-		#sometimes the face isn't specified in the filename
-		elif os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "a.wav")):
-			print "2"
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "a.wav")])
-	elif "fCD" in revface:
-		if os.path.exists(os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")):
-			subprocess.check_output(['python',os.path.join(conf.scriptRepo,"makereverse.py"),'-i',os.path.join(processDir,"cusb-" + aNumber + "Ca.wav")])
-	###END REVERSE FACE###
+def reverse(ffproc,kwargs):#calls makereverse
+	iofile = make_iofile(ffproc,kwargs,"revface")
+	try:
+		output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'makereverse.py'),'-i',iofile])
+		rtncode = 0
+	except subprocess.CalledProcessError,e:
+		rtncode = e.returncode
+	return returncode	
 
+def make_iofile(ffproc,kwargs,process):
+	filenames = ['filename0','filename1']
+	iofile = ''
+	if process == 'revface':
+		face = ffproc.revface[1]
+	elif process == 'hlvface' or process == 'dblface':
+		if ffproc.hlvface:
+			face = ffproc.hlvface[1]
+		elif ffprov.dblface:
+			face = ffproc.dblface[1]
+	for f in filenames:
+		print f
+		if f in ffproc:
+			if face in ffproc[f]:
+				iofile = os.path.join(kwargs.processDir,ffproc[f])
+	if not iofile:
+		print "There was a filename mismatch between the face selected to reverse and the files available to be reversed"
+		print ""
+		return False
+	else:
+		return iofile
 	
-def sampleratenormalize(processDir):
-	#ok so by now every file in the processing dir is the correct channel config & plays in correct direction BUT
-	#we need to normalize to 96kHz
-	#files with speed changes are currently set to 192000Hz or 48000Hz
-	with ut.cd(processDir):
-		for f in os.listdir(os.getcwd()): #for each file in the processing dir
-			if f.endswith(".wav"):
-				print "ffprobe and resample if necessary"
-				#send ffprobe output to output.communicate()
-				output = subprocess.Popen("ffprobe -show_streams -of flat " + f,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-				ffdata,err = output.communicate()
-				###GET SAMPLE RATE###
-				match = ''
-				sr = ''
-				match = re.search(r".*sample_rate=.*",ffdata)
-				if match:
-					_sr = match.group().split('"')[1::2]
-					sr = _sr[0]
-				###END GET SAMPLE RATE###
-				###CONVERT SAMPLE RATE###
-				if not sr == "96000":
-					output = subprocess.call("ffmpeg -i " + f + " -ar 96000 -c:a pcm_s24le " + f.replace(".wav","") + "-resampled.wav")
-					if os.path.getsize(f.replace(".wav","") + "-resampled.wav") > 50000:
-						os.remove(os.path.join(os.getcwd(),f))
-						time.sleep(1)
-						os.rename(f.replace(".wav","") + "-resampled.wav",f) 
-				###END CONVERT###
+def sampleratenormalize(kwargs):
+	iofile = make_iofile(ffproc,kwargs,"hlvface")
+	kwargs.filename = os.path.join(kwargs.processDir,iofile)
+	full_ffstr = ff.sampleratenormalize(**kwargs)
+	returncode = ff.go(full_ffstr)
+	if returncode > 0:
+		print "There was a problem processing " + kwargs.aNumber
+		return False
+	else:
+		os.remove(kwargs.filename)
+		os.rename(kwargs.filename.replace(".wav","-resampled.wav"),kwargs.filename)
+		return True	
 
 	
 def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
@@ -169,7 +118,6 @@ def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
 
 def process(kwargs):
 	acf = mtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
-	print acf
 	if acf is not None:
 		processNone = 0
 		for p in acf:
@@ -190,12 +138,15 @@ def process(kwargs):
 		###DO THE FFMPEG###
 		#init folder to do the work in
 		kwargs.processDir = os.path.join(conf.magneticTape.new_ingest,kwargs.aNumber)
+		if not os.path.exists(kwargs.processDir):
+			os.makedirs(kwargs.processDir)
+			time.sleep(1)
 		#make the full ffstr using the paths we have
 		ffproc = ff.audio_init_ffproc(conf.magneticTape.cnxn,**kwargs)
 		full_ffstr = ff.prefix(os.path.join(conf.magneticTape.new_ingest,kwargs.rawcapNumber) + "." + conf.ffmpeg.acodec_master_format) + ffproc.ff_suffix
-		print full_ffstr
 		#run ffmpeg on the file and make sure it completes successfully
-		ffWorked = ffprocess(full_ffstr,kwargs.processDir)
+		with ut.cd(kwargs.processDir):
+			ffWorked = ff.go(full_ffstr)
 		if not ffWorked:
 			sys.exit()
 		#special add for mono files
@@ -204,16 +155,23 @@ def process(kwargs):
 		#if we need to reverse do it
 		if ffproc.revface:
 			print "reverse"
-			#reverse(rawfname,face,aNumber,channelConfig,processDir)
+			revWorked = reverse(ffproc,kwargs)
+			if not revWorked == 0:
+				print "there was a problem reversing the file"
+				print revWorked
+				sys.exit()
 		#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
 		if ffproc.hlvface or ffproc.dblface:
 			print "sample rate normalize"
-			#sampleratenormalize(processDir)
+			srnWorked = sampleratenormalize(ffproc,kwargs)
+			if not srnWorked:
+				print "there was a problem normalizing the sampel rate of the file"
+				sys.exit()
 		###END THE FFMPEG###
 		###EMBED BEXT###
 		makebext(kwargs.aNumber,kwargs.processDir)
 		#hashmove them to the repo dir
-		#move(rawfname,aNumber,captureDir,archRepoDir)
+		move(kwargs)
 		###END BEXT###
 				
 def main():
@@ -228,14 +186,13 @@ def main():
 
 	###SINGLE MODE###
 	if args.m == 'single':
-		print "here"
 		###INIT###
 		file = args.i
 		rawfname,ext = os.path.splitext(file)
 		###END INIT###
 		###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 		#output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-i",rawfname]) #get aNumber, channelconfig, face from FileMaker
-		kwargs = {"rawcapNumber":args.i}
+		kwargs = ut.dotdict({"rawcapNumber":args.i})
 		process(kwargs)
 	###END SINGLE MODE###
 	###BATCH MODE###
@@ -261,7 +218,7 @@ def main():
 					rawfname,ext = os.path.splitext(file)
 					###END INIT###
 					###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
-					kwargs = {"rawcapNumber":rawfname}
+					kwargs = ut.dotdict({"rawcapNumber":rawfname})
 					process(kwargs)
 				###END PROCESS CAPTURE###			
 	###END BATCH MODE###						

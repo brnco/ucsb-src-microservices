@@ -15,8 +15,10 @@ import ff
 global conf
 conf = rawconfig.config()
 
+foo = ut.make_endDirThousand('a12345')
+print foo
 
-args = {}
+'''args = {}
 args = ut.dotdict(args)
 args.so = "0b70bd7b-eaee-4819-beb8-995a0ea996ad3"
 args.face = "fCD"
@@ -39,4 +41,4 @@ if not "Stereo" in args.channelConfig:
 	if ffproc.filename1:
 		args.filename = ffproc.filename1
 		full_ffstr = ff.prefix("cusb-a19260Da.wav") + ff.audio_secondary_ffproc(**args)
-		print full_ffstr
+		print full_ffstr'''

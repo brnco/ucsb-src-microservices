@@ -220,7 +220,7 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 			face = facelist[count] #assign this now, if we assign at bottom of loop, count = count + 1 and it'll be the wrong index
 			count = count+1
 	if row:
-		print row
+		#print row
 		nameFormat["aNumber"] = row[0]
 		nameFormat["face"] = face
 		#rowstr = str(row) #convert to string

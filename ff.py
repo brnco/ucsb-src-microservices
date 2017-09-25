@@ -81,7 +81,7 @@ def audio_init_ffproc(cnxn,**kwargs):
 			ff_suffix0 = ff_suffix0 + ',' + channel0.af 
 		ff_suffix0 = ff_suffix0 + ' -c:a ' + conf.ffmpeg.acodec_master
 		###GENERATE FILENAME FOR THE OBJECT###
-		ffproc.filename0 = filename0 = 'cusb-' + args.aNumber + channel0.faceChar + 'a.' + conf.ffmpeg.acodec_master_format	
+		ffproc.filename0 = filename0 = 'cusb-' + args.aNumber + channel0.faceChar + 'a.' + conf.ffmpeg.acodec_master_format
 		###PUT IT TOGETHER###
 		ff_suffix = ff_suffix0 + ' ' + filename0
 		###END STEREO###
@@ -95,8 +95,8 @@ def audio_secondary_ffproc(**kwargs):
 		so, in order to do the heads and tails trims on mono files that were captured in stereo,
 		we need to run them through ffmpeg again
 	'''
-	args = ut.dotdict(kwargs)
-	ff_suffix = "-af " + conf.ffmpeg.filter_silence + " -c:a " + conf.ffmpeg.acodec_master + ' ' + args.filename.replace(".wav","-silenced.wav")
+	print kwargs
+	ff_suffix = "-af " + conf.ffmpeg.filter_silence + " -c:a " + conf.ffmpeg.acodec_master + ' ' + kwargs['filename'].replace(".wav","-silenced.wav")
 	return ff_suffix
 	
 def prefix(obj):
@@ -107,9 +107,10 @@ def reverse():
 	#checks if a file needs to be reversed
 	return
 	
-def sampleratenormalize():
-	#checks if a file needs to have its sample rate converted to 96kHz
-	return
+def sampleratenormalize(**kwargs):
+	#returns ff_str to normalize file's sample rate to 96kHz
+	full_ffstr = ff.prefix(kwargs.filename) + "-ar " + conf.ffmpeg.acodec_master_arate + " -c:a " + conf.ffmpeg.acodec_master + " " + kwargs.filename.replace(".wav","-resampled.wav")
+	return full_ffstr
 	
 def makebroadcast_audio():
 	#makes an ffmpeg string to make a broadcast master for given audio file and params
@@ -123,9 +124,10 @@ def makemp3():
 def go(ffstr):
 	try:
 		returncode = subprocess.check_output(ffstr)
-		returncode = 0
+		returncode = True
 	except subprocess.CalledProcessError,e:
 		returncode = e.returncode
+		print returncode
 	return returncode	
 		
 
