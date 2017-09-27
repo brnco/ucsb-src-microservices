@@ -82,7 +82,7 @@ def audio_init_ffproc(conf, kwargs):
 					channel0.af = 'asetrate=48000'
 		ff_suffix0 = '-af ' + channel0.silence
 		if channel0.af:
-			ff_suffix0 = ff_suffix0 + ', ' + channel0.af
+			ff_suffix0 = ff_suffix0 + ',' + channel0.af
 		ff_suffix0 = ff_suffix0 + ' -c:a ' + conf.ffmpeg.acodec_master
 		###GENERATE FILENAME FOR THE OBJECT###
 		ffproc.filename0 = filename0 = 'cusb-' + args.aNumber + channel0.faceChar + 'a.' + conf.ffmpeg.acodec_master_format
