@@ -10,11 +10,12 @@ Please see AVLab Utility Software List & Installation Instructions (on the wiki)
    * [makeqctoolsreport](#makeqctoolsreport)
    * [makestartobject](#makestartobject)
    * [makereverse](#makereverse)
-   * [makebext](#makebext)
+   * [makesip](#makesip)
    * [makevideoslices](#makevideoslices)
    * [makeyoutube](#makeyoutube)
 * [library scripts](#library scripts)
    * [config](#config)
+   * [ff](#ff)
    * [logger](#logger)
    * [mtd](#mtd)
    * [util](#util)
@@ -25,9 +26,8 @@ Please see AVLab Utility Software List & Installation Instructions (on the wiki)
    * [avlab-video](#avlab-video)
 * [National Jukebox / PHI](#national-jukebox/PHI)
    * [nj_audio](#nj_audio)
-   * [nj_discimg-capture-fm](#nj_discimg-capture-fm)
-   * [nj_discimg-out](#nj_discimg-out)
-   * [nj_pre-SIP](#nj_pre-sip)
+   * [phi_discimg-capture-fm](#phi_discimg-capture-fm)
+   * [phi_discimg-out](#phi_discimg-out)
 * [Tips](#Tips)
 * [hashmove](#hashmove)
 
@@ -64,6 +64,9 @@ Takes an input video file, and outputs a compressed xml file that can be read by
 ## makereverse
 Takes an input file and stream-copies reversed slices of 600 seconds, then concatenates the slices back together. ffmpeg's areverse loads a whole file into memory, so for the large files we deal with we need this workaround.
 
+## makesip
+makesip takes an input folder path and uses our rules to create a SubmissionInformation Package (SIP)
+
 ## makestartobject
 Takes a canonical name for an asset, e.g. a1234, cusb_col_a1234_01_5678_00, and returns a full path to an instance of that object. The instance is prioritized for transcoding in the following order: broadcast master, archival master, un-tagged archival master, access mp3.
 
@@ -79,6 +82,9 @@ These scripts are basically collections of functions that are invoked by other s
 
 ## config
 config parses the microservices-config.ini file and returns a dictionary object that is accessible via dot notation, e.g. conf.cylinders.new_ingest rather than conf['cylinders']['new_ingest']. conf is declared globally in every script, this module is imported as rawconfig and conf = rawconfig.config() actually makes the conf dictionary.
+
+## ff
+ff does everything ffmpeg-related. principally, it uses the provided dictionary objects to construct strings that can be sent to ffmpeg. it also describes a framework ("ff.go") which runs the supplied ffmpeg string and returns true if successful, the error if unsuccessful
 
 ## logger
 logger is the handler for all logging functions. Generally, it makes logs for each script's full execution, linking sub-scripts to their parents via PIDs. logs are named "user-pid-timestamp.log"
@@ -150,7 +156,7 @@ here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
 
-## nj_discimg-capture
+## phi_discimg-capture
 This script is used exclusively during disc label imaging and is called by FileMaker. It is run in conjunction with NJ Workflow DB's "discimg-in" script. For more info on the process of capturing disc label images, see Disc Imaging for National Jukebox
 
 It takes arguments for a barcode / filename (which Filemaker provides)
@@ -175,7 +181,7 @@ this indicates that we missed scanning a barcode
 
 return an error if true
 
-## nj_discimg-out
+## phi_discimg-out
 This script is used to process an intermediate set of disc label digital images (created with Adobe DNG converter). For more info, see Disc Imaging for National Jukebox
 
 It takes no arguments.
@@ -196,32 +202,7 @@ here's what that command would look like if you typed it out for each file
 
 python hashmove.py [full path to input file] [full path to qc directory + /discname]
 
-## nj_pre-SIP
-This script is used to verify the contents of a directory in our qc holding pen. If it meets the requirements for filetypes necessary for SIPping to LC, move it to our batch folder.
 
-It has 0 dependencies. It takes no arguments.
-
-The processing steps are:
-
-make sure that everything has been renames from "ucsb" to "cusb"
-
-I can't stress enough what a bother this is
-
-walk through the subdirectories of the qc directory, which are named with the disc filenames
-
-verify that:
-
-an archival master exists (m.wav)
-
-a broadcast master exists (.wav)
-
-a broadcast image exists (.tif)
-
-If true, hashmove that directory to our batch folder (containing 1000 SIPs)
-
-here's what that command would look like if you typed it out for each file
-
-python hashmove.py [full path to input directory] [full path to batch directory]
 
 # Tips
 
