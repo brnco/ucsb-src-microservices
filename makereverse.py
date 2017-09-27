@@ -38,22 +38,34 @@ def main():
 		###init###
 		count = 0 #init count
 		returncode = 0 #init returncode to check for errors, if we don't, we could delete original transfer by mistake
-		concat = open("concat.txt","wb") #init txt file that ffmpeg will parse later
 		###end init###
-		try:
-			while (count < float(dur)): #loop through the file 300s at a time until u get to the end
-				ffmpegstring = "ffmpeg -i " + args.i + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
+		if float(dur) <= 300.0:
+			ffmpegstring = "ffmpeg -i " + args.i + " -af areverse -c:a pcm_s24le " + args.i.replace(".wav","-reversed.wav")
+			try:
 				output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
-				concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
-				count = count + 300 #incrase seconds by 300 (10min)
-			concat.close() #housekeeping
-			returncode = 0
-		except subprocess.CalledProcessError,e:
-			output = e.output
-			returncode = output
-		#concatenate the revsered output from slicer loop
-		ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
-		output = subprocess.call(ffmpegstring)
+				rtncode = 0
+			except subprocess.CalledProcessError,e:
+				rtncode = e.returncode	
+		else:
+			concat = open("concat.txt","wb") #init txt file that ffmpeg will parse later
+			try:
+				while (count < float(dur)): #loop through the file 300s at a time until u get to the end
+					ffmpegstring = "ffmpeg -i " + args.i + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
+					output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
+					concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
+					count = count + 300 #incrase seconds by 300 (10min)
+				concat.close() #housekeeping
+				returncode = 0
+			except subprocess.CalledProcessError,e:
+				output = e.output
+				returncode = output
+			#concatenate the revsered output from slicer loop
+			ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
+			try:
+				output = subprocess.call(ffmpegstring)
+				rtncode = 0
+			except subprocess.CalledProcessError,e:
+				rtncode = e.returncode
 		###DELETE STUFF###
 		if returncode == 0:	
 			for f in os.listdir(os.getcwd()):

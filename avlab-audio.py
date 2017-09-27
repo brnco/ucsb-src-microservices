@@ -45,7 +45,7 @@ def mono_silence(kwargs):
 			if f.endswith(".wav"):#grip just wavs
 				kwargs.filename = f
 				print kwargs.filename
-				full_ffstr = ff.prefix(f) + ff.audio_secondary_ffproc(**kwargs)
+				full_ffstr = ff.prefix(f) + ff.audio_secondary_ffproc(conf,kwargs)
 				returncode = ff.go(full_ffstr)
 				if returncode is not True:
 					print "There was a problem processing " + kwargs.aNumber
@@ -63,7 +63,7 @@ def reverse(ffproc,kwargs):#calls makereverse
 		rtncode = 0
 	except subprocess.CalledProcessError,e:
 		rtncode = e.returncode
-	return returncode	
+	return rtncode	
 
 def make_iofile(ffproc,kwargs,process):
 	filenames = ['filename0','filename1']
@@ -73,26 +73,29 @@ def make_iofile(ffproc,kwargs,process):
 	elif process == 'hlvface' or process == 'dblface':
 		if ffproc.hlvface:
 			face = ffproc.hlvface[1]
-		elif ffprov.dblface:
+		elif ffproc.dblface:
 			face = ffproc.dblface[1]
 	for f in filenames:
-		print f
 		if f in ffproc:
 			if face in ffproc[f]:
-				iofile = os.path.join(kwargs.processDir,ffproc[f])
+				iofile = os.path.join(kwargs.processDir,ffproc[f])	
+	if not iofile:
+		for f in os.listdir(kwargs.processDir):
+			if f == 'cusb-'+kwargs.aNumber.lower() + "a.wav":
+				iofile = os.path.join(kwargs.processDir,'cusb-'+kwargs.aNumber.lower() + "a.wav")
 	if not iofile:
 		print "There was a filename mismatch between the face selected to reverse and the files available to be reversed"
 		print ""
-		return False
+		return None
 	else:
 		return iofile
 	
-def sampleratenormalize(kwargs):
+def sampleratenormalize(ffproc,kwargs):
 	iofile = make_iofile(ffproc,kwargs,"hlvface")
 	kwargs.filename = os.path.join(kwargs.processDir,iofile)
-	full_ffstr = ff.sampleratenormalize(**kwargs)
+	full_ffstr = ff.sampleratenormalize(conf,kwargs)
 	returncode = ff.go(full_ffstr)
-	if returncode > 0:
+	if returncode is not True:
 		print "There was a problem processing " + kwargs.aNumber
 		return False
 	else:
@@ -123,16 +126,18 @@ def process(kwargs):
 		for p in acf:
 			if acf[p] is None:
 				processNone = 1
-				break
+				return False
 		if processNone > 0:
 			print ""
 			print "ERROR - FileMaker record incomplete"
 			print "Please check FileMaker record for rawcapture:"
 			print args.i
-			sys.exit()
+			return False
 		for k,v in acf.iteritems():
 			kwargs[k] = v
 		kwargs = ut.dotdict(kwargs)
+		if "\r" in kwargs.channelConfig:
+			return False
 		kwargs.aNumber = "a" + kwargs.aNumber
 		###END GET ANUMBER FACE CHANNELCONFIG FROM FILEMAKER###
 		###DO THE FFMPEG###
@@ -142,37 +147,38 @@ def process(kwargs):
 			os.makedirs(kwargs.processDir)
 			time.sleep(1)
 		#make the full ffstr using the paths we have
-		ffproc = ff.audio_init_ffproc(conf.magneticTape.cnxn,**kwargs)
+		ffproc = ff.audio_init_ffproc(conf,kwargs)
 		full_ffstr = ff.prefix(os.path.join(conf.magneticTape.new_ingest,kwargs.rawcapNumber) + "." + conf.ffmpeg.acodec_master_format) + ffproc.ff_suffix
+		print full_ffstr
 		#run ffmpeg on the file and make sure it completes successfully
 		with ut.cd(kwargs.processDir):
 			ffWorked = ff.go(full_ffstr)
 		if not ffWorked:
-			sys.exit()
+			return False
 		#special add for mono files
-		if not "Stereo" in kwargs.channelConfig:
+		if not "Stereo" and not "Cassette" in kwargs.channelConfig:
 			ffWorked = mono_silence(kwargs)
 		#if we need to reverse do it
 		if ffproc.revface:
-			print "reverse"
 			revWorked = reverse(ffproc,kwargs)
 			if not revWorked == 0:
 				print "there was a problem reversing the file"
 				print revWorked
-				sys.exit()
+				return False
 		#if we need to normalize our sample rate to 96kHz, because we sped up or slowed down a recording, do it here
 		if ffproc.hlvface or ffproc.dblface:
 			print "sample rate normalize"
 			srnWorked = sampleratenormalize(ffproc,kwargs)
 			if not srnWorked:
 				print "there was a problem normalizing the sampel rate of the file"
-				sys.exit()
+				return False
 		###END THE FFMPEG###
 		###EMBED BEXT###
 		makebext(kwargs.aNumber,kwargs.processDir)
 		#hashmove them to the repo dir
 		move(kwargs)
 		###END BEXT###
+		return True
 				
 def main():
 	###INIT VARS###
@@ -193,11 +199,13 @@ def main():
 		###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 		#output = subprocess.check_output(["python","fm-stuff.py","-pi","-t","-p","nameFormat","-i",rawfname]) #get aNumber, channelconfig, face from FileMaker
 		kwargs = ut.dotdict({"rawcapNumber":args.i})
-		process(kwargs)
+		processWorked = process(kwargs)
+		if processWorked is not True:
+			print "there was an error processing that file"
 	###END SINGLE MODE###
 	###BATCH MODE###
-	elif args.m is 'batch':
-		for dirs,subdirs,files in os.walk(conf.magneticTape.captureDir):
+	elif args.m == 'batch':
+		for dirs,subdirs,files in os.walk(conf.magneticTape.new_ingest):
 			for file in files:
 				###GET RID OF BS###
 				if file.endswith(".gpk") or file.endswith(".mrk") or file.endswith(".bak") or file.endswith(".pkf"):
@@ -219,7 +227,9 @@ def main():
 					###END INIT###
 					###GET ANUMBER FACE AND CHANNELCONFIG FROM FILEMAKER###
 					kwargs = ut.dotdict({"rawcapNumber":rawfname})
-					process(kwargs)
+					processWorked = process(kwargs)
+					if not processWorked:
+						continue
 				###END PROCESS CAPTURE###			
 	###END BATCH MODE###						
 if __name__ == '__main__':

@@ -1,27 +1,31 @@
+'''
+generates ffmpeg strings
+runs ffmpeg and returns success or failure
+'''
 import os
 import imp
-import pyodbc
 import subprocess
+import pyodbc
 ###UCSB modules###
-import config as rawconfig
-global conf
-conf = rawconfig.config()
 import util as ut
 import logger as log
 import mtd
 import makestartobject as makeso
 	
-def audio_init_ffproc(cnxn,**kwargs):
-	#generates ffmpeg process data
+def audio_init_ffproc(conf, kwargs):
+	'''
+	generates ffmpeg process data for magnetic tape transfers
+	'''
 	args = ut.dotdict(kwargs)
-	cnxn = pyodbc.connect(cnxn)
-	ffproc = mtd.get_ff_processes(args,cnxn) #get faces/ processes from filemaker"
+	cnxn = pyodbc.connect(conf.magneticTape.cnxn)
+	ffproc = mtd.get_ff_processes(args, cnxn) #get faces/ processes from filemaker"
 	ffproc = ut.dotdict(ffproc)
-	if not "Stereo" in args.channelConfig:
+	print args.channelConfig
+	if not "Stereo" and not "Cassette" in args.channelConfig:
 		###FOR MONO TAPES###
 		channel0 = ut.dotdict({'map':"-map_channel 0.0.0"})
 		channel1 = ut.dotdict({'map':"-map_channel 0.0.1"})
-		for k,v in ffproc.iteritems():
+		for k, v in ffproc.iteritems():
 			#convert fm outputs to ffmpeg strings
 			if v is not None:
 				if k == 'dblface' and (v == 'fA' or v == 'fC'):
@@ -65,12 +69,12 @@ def audio_init_ffproc(cnxn,**kwargs):
 		###END MONO###
 	else:
 		###FOR STEREO TAPES###
-		channel0 = ut.dotdict({"silence":conf.ffmpeg.filter_silence,"af":'',"faceChar":''})
+		channel0 = ut.dotdict({"silence":conf.ffmpeg.filter_silence, "af":'', "faceChar":''})
 		if "Quarter" in args.channelConfig:
 			channel0.faceChar = args.face[1]
 		elif "Half" in args.channelConfig:
 			channel0.faceChar = ''
-		for k,v in ffproc.iteritems():
+		for k, v in ffproc.iteritems():
 			if v is not None:
 				if k == 'dblface':
 					channel0.af = 'asetrate=192000'
@@ -78,7 +82,7 @@ def audio_init_ffproc(cnxn,**kwargs):
 					channel0.af = 'asetrate=48000'
 		ff_suffix0 = '-af ' + channel0.silence
 		if channel0.af:
-			ff_suffix0 = ff_suffix0 + ',' + channel0.af 
+			ff_suffix0 = ff_suffix0 + ', ' + channel0.af
 		ff_suffix0 = ff_suffix0 + ' -c:a ' + conf.ffmpeg.acodec_master
 		###GENERATE FILENAME FOR THE OBJECT###
 		ffproc.filename0 = filename0 = 'cusb-' + args.aNumber + channel0.faceChar + 'a.' + conf.ffmpeg.acodec_master_format
@@ -88,47 +92,39 @@ def audio_init_ffproc(cnxn,**kwargs):
 	ffproc.ff_suffix = ff_suffix
 	return ffproc
 
-def audio_secondary_ffproc(**kwargs):
+def audio_secondary_ffproc(conf, kwargs):
 	'''
-		make a second ffmpeg string for mono files
+		make a second ffmpeg string for mono files of magnetic tape transfers
 		silenceremove works on the file level not stream level
 		so, in order to do the heads and tails trims on mono files that were captured in stereo,
 		we need to run them through ffmpeg again
 	'''
 	print kwargs
-	ff_suffix = "-af " + conf.ffmpeg.filter_silence + " -c:a " + conf.ffmpeg.acodec_master + ' ' + kwargs['filename'].replace(".wav","-silenced.wav")
+	ff_suffix = "-af " + conf.ffmpeg.filter_silence + " -c:a " + conf.ffmpeg.acodec_master + ' ' + kwargs['filename'].replace(".wav", "-silenced.wav")
 	return ff_suffix
-	
+
 def prefix(obj):
+	'''
+	makes an ffmpeg prefix for supplied filepath
+	'''
 	ff_prefix = "ffmpeg -i " + obj + " "
 	return ff_prefix
-	
-def reverse():
-	#checks if a file needs to be reversed
-	return
-	
-def sampleratenormalize(**kwargs):
-	#returns ff_str to normalize file's sample rate to 96kHz
-	full_ffstr = ff.prefix(kwargs.filename) + "-ar " + conf.ffmpeg.acodec_master_arate + " -c:a " + conf.ffmpeg.acodec_master + " " + kwargs.filename.replace(".wav","-resampled.wav")
+
+def sampleratenormalize(conf, kwargs):
+	'''
+	returns ff_str to normalize file's sample rate to 96kHz
+	'''
+	full_ffstr = prefix(kwargs.filename) + "-ar " + conf.ffmpeg.acodec_master_arate + " -c:a " + conf.ffmpeg.acodec_master + " " + kwargs.filename.replace(".wav", "-resampled.wav")
 	return full_ffstr
-	
-def makebroadcast_audio():
-	#makes an ffmpeg string to make a broadcast master for given audio file and params
-	#basically copy lines 57-106 of mbc
-	return
-	
-def makemp3():
-	#makes an ffmpeg string to make an mp3 from the input file
-	return
 
 def go(ffstr):
+	'''
+	runs ffmpeg, returns true is success, error is fail
+	'''
 	try:
 		returncode = subprocess.check_output(ffstr)
 		returncode = True
-	except subprocess.CalledProcessError,e:
+	except subprocess.CalledProcessError, e:
 		returncode = e.returncode
 		print returncode
-	return returncode	
-		
-
-###INIT VARS###
+	return returncode
