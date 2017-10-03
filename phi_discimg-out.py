@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+'''
 #phi_discimg-out
 #processes intermediate dng files to tiff
 #moves all image files to qcDir
-
+'''
 import ConfigParser
 import argparse
 import subprocess
@@ -23,13 +23,11 @@ import mtd
 import makestartobject as makeso
 	
 def idSize(fname,endDir):
-	'''with rawpy.imread(startObjFP) as raw:
-		height = raw.sizes[0]
-		width = raw.sizes[1]
-		if int(width) > int(height):
-			rotation = '180'
-		else:
-			rotation = '90'''
+	'''
+	images come in off the camera in the wrong orientation
+	this returns the correct orientation, given that the image should be landscape
+	and image is never at correct orientation as it comes off camera
+	'''
 	img = Image.open(os.path.join(endDir,fname + ".tif"))
 	if img.width > img.height:
 		rotation = 180
@@ -43,6 +41,9 @@ def idSize(fname,endDir):
 		sys.exit()
 	
 def rawpyToTif(startObjFP,fname,endDir):
+	'''
+	converts the raw cr2 file to tiff
+	'''
 	#output = subprocess.check_output(['gm','convert',startObjFP,'-rotate',rotation,'-crop','3648x3648+920','-density','300x300',os.path.join(endDir,fname + ".tif")])
 	with rawpy.imread(startObjFP) as raw:
 		rgb = raw.postprocess(use_camera_wb=True)
@@ -50,18 +51,20 @@ def rawpyToTif(startObjFP,fname,endDir):
 	
 
 def rotateTif(startObjFP,fname,rotation,endDir):	
-	#try:
+	'''
+	rotates the tiff
+	'''
 	img = Image.open(os.path.join(endDir,fname + ".tif"))
 	img2 = img.rotate(rotation,expand=True)
 	img2.save(os.path.join(endDir,fname + "-rotated.tif"))
 	time.sleep(2)
 	os.remove(os.path.join(endDir,fname + ".tif"))
 	os.rename(os.path.join(endDir,fname + "-rotated.tif"),os.path.join(endDir,fname + ".tif"))
-	'''except:
-		print "python unable to rotate tif"
-		sys.exit()'''
+
 def cropTif(startObjFP,fname,endDir):
-	#try:
+	'''
+	crops the tif to largest possible square
+	'''
 	img = Image.open(os.path.join(endDir,fname + ".tif"))
 	img2 = img.crop((920,0,img.width-920,3656))
 	img2.save(os.path.join(endDir,fname + "-cropped.tif"))
@@ -70,11 +73,12 @@ def cropTif(startObjFP,fname,endDir):
 	os.rename(os.path.join(endDir,fname + "-cropped.tif"),os.path.join(endDir,fname + ".tif"))
 	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".tif")])
 	log.log(output)
-	'''except:
-		print "python unable to crop tif"
-		sys.exit()'''
+
 	
 def tifToJpg(startObjFP,fname,endDir):
+	'''
+	converts the tiff to jpeg
+	'''
 	img = Image.open(os.path.join(endDir,fname + ".tif"))
 	img.save(os.path.join(endDir,fname + ".jpg"),"JPEG",quality=100)
 	#output = subprocess.check_output(['gm','convert',os.path.join(endDir,fname + ".tif"),'-resize','800x800',os.path.join(endDir,fname + ".jpg")])
@@ -85,11 +89,16 @@ def tifToJpg(startObjFP,fname,endDir):
 	log.log(output)
 
 def moveSO(startObjFP,endDir):
+	'''
+	hashmoves the original cr2 to pre-ingest-qc
+	'''
 	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),startObjFP,endDir])
 	log.log(output)
 	
 def main():
-	###INIT VARS###
+	'''
+	do the thing
+	'''
 	global conf
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="processes image files for disc labels")

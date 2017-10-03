@@ -21,12 +21,13 @@ def main():
 	global conf
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="processes disc transfers for NJ project")
+	parser.add_argument("input",help="the barcode of the disc you'd like to process")
 	args = parser.parse_args()
 	qcDir = conf.NationalJukebox.PreIngestQCDir
 	batchDir = conf.NationalJukebox.BatchDir
 	archDir = conf.NationalJukebox.AudioArchDir
 	broadDir = conf.NationalJukebox.AudioBroadDir
-	barcode = sys.argv[1] #grab the lone argument that FM provides
+	barcode = args.input #grab the lone argument that FM provides
 	_fname = barcode + ".wav"
 	if not os.path.exists(os.path.join(archDir,_fname)) or not os.path.exists(os.path.join(broadDir,_fname)):
 		log.log(**{"message":"file " + _fname + " missing from arch or broad dir, not processed","level":"error"})

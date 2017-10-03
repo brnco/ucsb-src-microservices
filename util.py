@@ -1,12 +1,17 @@
-#!/usr/bin/env python
+'''
+grab-bag of useful functions for the microservices
+'''
 import os
-import imp
 import re
 import time
 import unittest
 
 
 def drivematch(path):
+	'''
+	mac and windows drive mappings use different characters
+	this function normalizes the drive names based on the OS and the config file
+	'''
 	if path.startswith("/") or path.startswith("\\"):
 		path = path[1:]
 	path.replace("\\","/")	
@@ -27,63 +32,82 @@ def drivematch(path):
 	return realpath
 
 def pythonpath():
+	'''
+	pythonpath grabs the full path to the python executable, based on the os
+	'''
 	if os.name == 'posix':
 		return "/usr/bin/python"
 	else:
 		return "C:/Python27/python.exe"
 		
 def desktop():
+	'''
+	returns the location of the desktop of the current user
+	'''
 	try:
 		desktop = os.path.join(os.environ["HOME"], "Desktop")
 	except:
 		desktop = os.path.join(os.environ["USERPROFILE"], "Desktop")
 	return desktop
 
-#Context manager for changing the current working directory
 class cd:
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
+	'''
+	Context manager for changing the current working directory
+	'''
+	def __init__(self, newPath):
+		self.newPath = os.path.expanduser(newPath)
+	def __enter__(self):
+		self.savedPath = os.getcwd()
+		os.chdir(self.newPath)
+	def __exit__(self, etype, value, traceback):
+		os.chdir(self.savedPath)
 
-#check that we have the required software to run a script
+
 def dependencies(depends):
+	'''
+	check that we have the required software to run a script
+	'''
 	for d in depends:
 		if spawn.find_executable(d) is None:
 			print "Buddy, you gotta install " + d
 			sys.exit()
-	return        
 
 def rename_ucsb2cusb(path):
+	'''
+	years ago, somebody make a programming error
+	they thought that we meant to use the prefix "ucsb"
+	but really, we meant to use our OCLC prefix, "cusb"
+	this function changes the names of files and folder with "ucsb" to "cusb"
+	'''
 	path = path.replace("\\","/")
 	if os.path.isfile(path):
-		newname = path.replace("ucsb","cusb")
+		newname = path.replace("ucsb", "cusb")
 		os.rename(path,newname)
 	else:
 		for dirs, subdirs, files in os.walk(path):
 			for f in files:
 				if f.startswith("ucsb"):
 					print f
-					newname = f.replace("ucsb","cusb")
+					newname = f.replace("ucsb", "cusb")
 					print os.path.join(dirs,newname)
 					os.rename(os.path.join(dirs,f),os.path.join(dirs,newname))
 		time.sleep(3)
 		for dirs, subdirs, files in os.walk(path):	
 			for s in subdirs:
 				if s.startswith("ucsb"):
-					newname = s.replace("ucsb","cusb")
+					newname = s.replace("ucsb", "cusb")
 					os.rename(os.path.join(dirs,s),os.path.join(dirs,newname))
-	return				
+			
 
-def make_end_use_char(start_use_char,filename):#makes the end use character for the output file
-	#end use characters correspond to different parts of our OAIS implementation
-	#filenames ending in "a" are our archival masters
-	#filenames ending in "b" are our broadcast masters
-	#filenames ending in "c" are intermediate files
-	#filenames ending in "d" are access files
+def make_end_use_char(start_use_char, filename):
+	'''
+	makes the end use character for the output file
+	end use characters correspond to different parts of our OAIS implementation
+	filenames ending in "a" are our archival masters
+	filenames ending in "b" are our broadcast masters
+	filenames ending in "c" are intermediate files
+	filenames ending in "d" are access files
+	'''
 	if start_use_char == 'a':
 		end_use_char = "b"
 	elif start_use_char == 'm':
@@ -97,8 +121,13 @@ def make_end_use_char(start_use_char,filename):#makes the end use character for 
 	return end_use_char
 	
 def make_endDirThousand(obj):
+	'''
+	we organize folders by the thousands here
+	this function takes a number and returns the folder number rounded down to the thousand
+	e.g. 12345 -> 12000
+	'''
 	match = ''
-	match = re.search(r'\d+',obj)
+	match = re.search(r'\d+', obj)
 	if match:
 		anumber = match.group()
 		endHundreds = anumber[-3:]
@@ -108,14 +137,18 @@ def make_endDirThousand(obj):
 		return None
 		
 def make_asset_name(start_use_char, filename):
+	'''
+	lots of filenames have a suffix, e.g., cusb-a12345a.wav
+	this function takes the given aNumber and returns the asset name
+	'''
 	if start_use_char:
 		asset_name = filename[:-1]
 	else:
 		asset_name = filename
 	return asset_name
-	
-	
-#add /usr/local/bin prefix to python calls for macs		
+
+
+
 class dotdict(dict):
 	"""dot.notation access to dictionary attributes"""
 	__getattr__ = dict.get
