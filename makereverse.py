@@ -12,6 +12,31 @@ import util as ut
 import logger as log
 import mtd
 import makestartobject as makeso
+
+def process(args):
+	count = 0 #init count
+	concat = open("concat.txt","w") #init txt file that ffmpeg will parse later	
+	try:
+		while (count < float(args.dur)): #loop through the file 300s at a time until u get to the end
+			ffmpegstring = "ffmpeg -i " + args.i + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(args.workingDir,"concat" + str(count) + ".wav")
+			output = subprocess.check_output(ffmpegstring)
+			concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
+			count = count + 300 #incrase seconds by 300 (5min)
+		concat.close() #housekeeping
+		rtncode = True
+	except subprocess.CalledProcessError,e:
+		output = e.output
+		rtncode = output
+	return rtncode
+	
+def process_short(args):
+	ffmpegstring = "ffmpeg -i " + args.i + " -af areverse -c:a pcm_s24le " + args.i.replace(".wav","-reversed.wav")
+	try:
+		output = subprocess.check_output(ffmpegstring) #can't stream copy because of -af
+		rtncode = True
+	except subprocess.CalledProcessError,e:
+		rtncode = e.returncode
+	return rtncode
 	
 def main():
 	###INIT VARS###
@@ -23,7 +48,7 @@ def main():
 	args = parser.parse_args()
 	endObj = os.path.basename(args.i)
 	endObj,ext = os.path.splitext(endObj)
-	workingDir = os.path.dirname(args.i)
+	workingDir = args.workingDir = os.path.dirname(args.i)
 	###END INIT###
 	with ut.cd(workingDir):
 		#ffprobe input file and find duraiton
@@ -32,44 +57,23 @@ def main():
 		match = re.search(r".*duration=.*",ffdata) #get just the bit after duration
 		if match:
 			_dur = match.group().split('"')[1::2]
-			dur = _dur[0] #separate out single value from list _dur
-
-		#build a loop to slice and reverse audio, print fnames to txt to concat later	
-		###init###
-		count = 0 #init count
-		returncode = 0 #init returncode to check for errors, if we don't, we could delete original transfer by mistake
+			dur = args.dur = _dur[0] #separate out single value from list _dur
 		###end init###
 		if float(dur) <= 300.0:
-			ffmpegstring = "ffmpeg -i " + args.i + " -af areverse -c:a pcm_s24le " + args.i.replace(".wav","-reversed.wav")
-			try:
-				output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
-				rtncode = 0
-			except subprocess.CalledProcessError,e:
-				rtncode = e.returncode	
+			revWorked = process_short(args)	
 		else:
-			concat = open("concat.txt","wb") #init txt file that ffmpeg will parse later
-			try:
-				while (count < float(dur)): #loop through the file 300s at a time until u get to the end
-					ffmpegstring = "ffmpeg -i " + args.i + " -ss " + str(count) + " -t 300 -af areverse -acodec pcm_s24le -threads 0 " + os.path.join(workingDir,"concat" + str(count) + ".wav")
-					output = subprocess.check_output(ffmpegstring,shell=True) #can't stream copy because of -af
-					concat.write("file concat" + str(count) + ".wav\n") #write it with a newline
-					count = count + 300 #incrase seconds by 300 (10min)
-				concat.close() #housekeeping
-				returncode = 0
-			except subprocess.CalledProcessError,e:
-				output = e.output
-				returncode = output
+			revWorked = process(args)
 			#concatenate the revsered output from slicer loop
-			ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
-			try:
-				output = subprocess.call(ffmpegstring)
-				rtncode = 0
-			except subprocess.CalledProcessError,e:
-				rtncode = e.returncode
+			if revWorked is True:	
+				ffmpegstring = "ffmpeg -f concat -i concat.txt -c:a copy -threads 0 " + endObj + "-reversed.wav"
+				try:
+					output = subprocess.call(ffmpegstring)
+					revWorked = True
+				except subprocess.CalledProcessError,e:
+					revWorked = e.returncode
 		###DELETE STUFF###
-		if returncode == 0:	
+		if revWorked is True:	
 			for f in os.listdir(os.getcwd()):
-				print f
 				match = ''
 				match = re.match("concat",f)
 				if match:

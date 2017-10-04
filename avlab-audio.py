@@ -60,7 +60,7 @@ def reverse(ffproc,kwargs):#calls makereverse
 	iofile = make_iofile(ffproc,kwargs,"revface")
 	try:
 		output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'makereverse.py'),'-i',iofile])
-		rtncode = 0
+		rtncode = True
 	except subprocess.CalledProcessError,e:
 		rtncode = e.returncode
 	return rtncode	
@@ -153,6 +153,7 @@ def process(kwargs):
 		#run ffmpeg on the file and make sure it completes successfully
 		with ut.cd(kwargs.processDir):
 			ffWorked = ff.go(full_ffstr)
+		print "here"	
 		if not ffWorked:
 			return False
 		#special add for mono files
@@ -161,7 +162,7 @@ def process(kwargs):
 		#if we need to reverse do it
 		if ffproc.revface:
 			revWorked = reverse(ffproc,kwargs)
-			if not revWorked == 0:
+			if revWorked is not True:
 				print "there was a problem reversing the file"
 				print revWorked
 				return False

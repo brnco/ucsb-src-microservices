@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+'''
 #nj_audio.py
 #processes audio fles for the national jukebox project at UCSB
-
+'''
 import os
 import sys
 import getpass
@@ -14,7 +14,7 @@ import util as ut
 import logger as log
 import mtd
 import makestartobject as makeso
-	
+
 def main():
 	###INIT STUFF###
 	log.log("started")
@@ -29,6 +29,7 @@ def main():
 	broadDir = conf.NationalJukebox.AudioBroadDir
 	barcode = args.input #grab the lone argument that FM provides
 	_fname = barcode + ".wav"
+	
 	if not os.path.exists(os.path.join(archDir,_fname)) or not os.path.exists(os.path.join(broadDir,_fname)):
 		log.log(**{"message":"file " + _fname + " missing from arch or broad dir, not processed","level":"error"})
 		print "File " + _fname + " missing from arch or broad directory and was not processed"
