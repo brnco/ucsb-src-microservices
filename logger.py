@@ -21,8 +21,7 @@ class testAdditionalMethods(unittest.TestCase):
 		'''
 		self.assertEqual(makePID(os.getpid()), os.getpid())
 
-#makes a processID if none provided
-#searches up the stack for the top-most parent pid
+
 def makePID(pid):
 	'''
 	makes the pid which we'll attach to the log name
@@ -37,7 +36,7 @@ def makePID(pid):
 		except:	#if the assignment didn't work
 			return _pid #return the old pid
 
-#actually does the thing
+
 def write(message, caller, fname):
 	'''
 	write the log to the file
@@ -45,7 +44,7 @@ def write(message, caller, fname):
 	logging.basicConfig(filename=fname, format='%(asctime)s %(levelname)s %(name)s %(process)d-%(threadName)s:\n %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p', level=logging.DEBUG)
 	logging.getLogger(caller).info(str(message))
 
-#parses input, formats for write
+
 def log(message, **kwargs):
 	'''
 	do the thing
@@ -75,7 +74,13 @@ def log(message, **kwargs):
 	###END MAKE###
 	###DO THE THING###
 	write(message, caller, fname)
+	if "print" in kwargs:
+		if kwargs['print'] is True:
+			prnt(message)
 	###DONE###
 
+def prnt(message):
+	print message
+	
 if __name__ == '__main__':
     unittest.main()	

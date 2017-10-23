@@ -60,9 +60,9 @@ def main():
 	global conf
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="Makes an mp3 with ID3 tags")
-	parser.add_argument('-i','--input',help='the file to be transcoded',)
+	parser.add_argument('-i', '--input', dest='i', help='the file to be transcoded')
 	args = parser.parse_args() #create a dictionary instead of leaving args in NAMESPACE land
-	startObj = subprocess.check_output(['python',os.path.join(dn,'makestartobject.py'),'-i',args.startObj])
+	startObj = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'makestartobject.py'),'-i',args.i])
 	startObj = startObj.replace("\\",'/')[:-2] #for the windows peeps
 	fnamext = os.path.basename(os.path.abspath(startObj)) #filname plus extension of the startObj
 	fname, ext = os.path.splitext(fnamext) #split the filename from extension

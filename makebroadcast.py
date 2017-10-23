@@ -29,7 +29,8 @@ def makeVideo(startObj):
 	ffdata = open(startObj + ".ffdata.txt","w")
 	subprocess.call(['ffprobe','-show_streams','-of','flat','-sexagesimal','-i',startObj], stdout=ffdata)
 	ffdata.close()
-
+	ffstr1 = "ffmpeg -i cusb-v4546-pres.mxf -map 0:1 -map 0:0 -vf tinterlace -c:v libx264 -pix_fmt yuv420p -crf 18 -preset slow -c:a aac -b:a 192k -t 10 cusb-v4546-acc.mp4"
+	ffstr2 = "ffmpeg -i"
 	#find which stream is the video stream
 	ffdata = open(startObj + ".ffdata.txt","r")
 	for line in ffdata:
@@ -305,7 +306,8 @@ def main():
 	if ext in aexts:
 		EuseChar, assetName = makeEuseChar(SuseChar,fname) #grip the right filename endings, canonical name of the asset
 		makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar) #actually make the thing
-	
+	if ext in vexts:
+		makeVideo(startObj)
 	###THINGISDONE###
 
 if __name__ == '__main__':

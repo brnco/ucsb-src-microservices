@@ -119,8 +119,20 @@ def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
 				print "embedding BEXT chunk..."
 				subprocess.check_output("bwfmetaedit " + bextstr + " " + f) #embeds bext v0 info
 
+def size_check(kwargs):
+	size = os.path.getsize(os.path.join(conf.magneticTape.new_ingest,kwargs.rawcapNumber+ ".wav"))
+	if size >= 4294967296:
+		return True
+	else:
+		return False
+				
 def process(kwargs):
+	tooBig = size_check(kwargs)
+	if tooBig is True:
+		print "this file is too large to process with ffmpeg"
+		return False
 	acf = mtd.get_aNumber_channelConfig_face(conf.magneticTape.cnxn,**kwargs)
+	print acf
 	if acf is not None:
 		processNone = 0
 		for p in acf:
@@ -153,7 +165,6 @@ def process(kwargs):
 		#run ffmpeg on the file and make sure it completes successfully
 		with ut.cd(kwargs.processDir):
 			ffWorked = ff.go(full_ffstr)
-		print "here"	
 		if not ffWorked:
 			return False
 		#special add for mono files

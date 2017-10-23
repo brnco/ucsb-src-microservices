@@ -197,6 +197,18 @@ def makebext_complete(cnxn,**kwargs):
 		bext = bextstr
 	return bext
 
+def get_raw_captures(cnxn,**kwargs):
+	args = ut.dotdict(kwargs)
+	cnxn = pyodbc.connect(cnxn)
+	sqlstr = """select Audio_Masters.rawCaptureName_fAB, Audio_Masters.rawCaptureName_fCD
+				from Audio_Masters join Audio_Originals on Audio_Masters.Original_Key=Audio_Originals.Original_Key
+				where Audio_Originals.Tape_Number='""" + args.aNumber.replace("A","").replace("a","") + "'"
+	row = queryFM_single(sqlstr,cnxn)
+	if row:
+		return row
+	else:
+		return False
+
 '''
 get_aNumber_channelConfig_face formats a query for FM to grip a tape's aNumber, channel configuration, and face, from that's tape's rawCaptureName in new_ingest
 returns list of [aNumber,channelConfig,face] e.g., ["a1234","1/4-inch Half Track Mono","fAB"]
@@ -226,7 +238,7 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 		#rowstr = str(row) #convert to string
 		if any("Cassette" in s for s in row): #if the rawCaptureName is of a cassette tape
 			nameFormat["channelConfig"] = row[1]
-		elif any("Open Reel" in s for s in row): #if the rawCaptureName is of an open reel
+		elif any("Open Reel" in s for s in row) or any("Disc" in s for s in row): #if the rawCaptureName is of an open reel
 			#having the format isn't enough, we need the channel configuration for open reels
 			sqlstr = '''select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format 
 						from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key 

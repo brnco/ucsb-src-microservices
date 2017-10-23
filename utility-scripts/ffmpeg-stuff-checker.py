@@ -15,8 +15,11 @@ import ff
 global conf
 conf = rawconfig.config()
 
-foo = ut.make_endDirThousand('a12345')
-print foo
+obj = "R:/Visual/avlab/new_ingest/v0061/cusb-v0061-pres.mxf"
+
+streams = ff.probe_streams(obj)
+streams = ut.dotdict(streams)
+log.log(streams['0.pix_fmt'],**{"print":True})
 
 '''args = {}
 args = ut.dotdict(args)

@@ -1,6 +1,6 @@
 '''
 #nj_audio.py
-#processes audio fles for the national jukebox project at UCSB
+#processes audio files for the national jukebox project at UCSB
 '''
 import os
 import sys
@@ -11,13 +11,15 @@ import argparse
 ###UCSB modules###
 import config as rawconfig
 import util as ut
-import logger as log
+from logger import log
 import mtd
 import makestartobject as makeso
 
 def main():
-	###INIT STUFF###
-	log.log("started")
+	'''
+	do the thing
+	'''
+	log("started")
 	global conf
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="processes disc transfers for NJ project")
@@ -29,10 +31,9 @@ def main():
 	broadDir = conf.NationalJukebox.AudioBroadDir
 	barcode = args.input #grab the lone argument that FM provides
 	_fname = barcode + ".wav"
-	
+	log(**{"message":"processing " + barcode,"print":True})
 	if not os.path.exists(os.path.join(archDir,_fname)) or not os.path.exists(os.path.join(broadDir,_fname)):
-		log.log(**{"message":"file " + _fname + " missing from arch or broad dir, not processed","level":"error"})
-		print "File " + _fname + " missing from arch or broad directory and was not processed"
+		log(**{"message":"file " + _fname + " missing from arch or broad dir, not processed","level":"error","print":True})
 		#print "Please check that you saved the file to the right directory in Wavelab before indicating that it was transferred"
 		foo = raw_input("Please check that the file was named correctly and saved to the correct directory")
 		sys.exit()
@@ -64,32 +65,31 @@ def main():
 				time.sleep(60)
 				timeDiff = time.time() - startTime		
 		if timeDiff	>= 900.0:
-			log.log(**{"message":"attempt to process " + fname + " timed out","level":"warning"})
-			print "Processing of file " + fname + " has timed out because this file remains open in another program"
-			print "Please check that this file is closed in Wavelab"
+			log(**{"message":"attempt to process " + fname + " timed out because this file is open in another program","level":"warning","print":True})
+			log(**{"message":"Please check that this file is closed in Wavelab","print":True})
 			foo = raw_input("To re-try processing, uncheck and re-check the 'transferred' box on this matrix's FileMaker record")
 			sys.exit()
 		###END VERIFY###
 		
 	###END INIT###
-	log.log("timeDiff = " + str(timeDiff))
+	log("timeDiff = " + str(timeDiff))
 	###make broadcast master###
 	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',broadcastFP,'-ff','-nj'],stderr=subprocess.STDOUT) #makebroadcast with fades, nj naming
-	log.log(output)
+	log(output)
 	#pop them into the qc dir in a subdir named after their filename
 	#hashmove makes end dir if it doesnt exist already
 	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'hashmove.py'),broadcastFP,os.path.join(qcDir,barcode)])
-	log.log(output)
+	log(output)
 	###end make broadcast master###
 	###make archive master###
 	os.rename(archiveFP_pre,archiveFP_post)
-	log.log("file " + archiveFP_pre + "renamed " + archiveFP_post)
+	log("file " + archiveFP_pre + "renamed " + archiveFP_post)
 	#embed an md5 hash in the md5 chunk
 	subprocess.call(['bwfmetaedit','--in-core-remove',archiveFP_post])
 	subprocess.call(['bwfmetaedit','--MD5-Embed',archiveFP_post])
 	#move them to qc dir in subdir named after their canonical filename (actual file name has "m" at end)
 	output = subprocess.check_output(['python',os.path.join(conf.scriptRepo,'hashmove.py'),archiveFP_post,os.path.join(qcDir,barcode)])
-	log.log(output)
+	log(output)
 	###end make archive master###
 	###delete bs###
 	with ut.cd(archDir):
@@ -112,4 +112,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
-	log.log("complete")
+	log("complete")

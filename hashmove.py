@@ -33,9 +33,24 @@ import re
 import argparse
 import getpass
 import subprocess
+try:
+	sys.path.append(os.path.join(os.path.dirname(sys.path[0]), "bagit-python"))
+	import bagit
+except:
+	bagit = False
+	
+
+class dotdict(dict):
+	"""dot.notation access to dictionary attributes"""
+	__getattr__ = dict.get
+	__setattr__ = dict.__setitem__
+	__delattr__ = dict.__delitem__
 
 #generate lists of pairs of start and end files
-def makeflist(startObj,dest,startObjIsDir,hashalg,flist=[]):
+def makeflist(startObj,dest,startObjIsDir,hashalg,hashlengths,flist=[]):
+	'''
+	returns a list of file(s) to hashmove
+	'''
 	if startObjIsDir is False: #if first argument is a file it's p easy
 		endObj = os.path.join(dest, os.path.basename(startObj)) # this is the file that we wanted to move, in its destination
 		flist = (startObj, endObj)
@@ -50,13 +65,16 @@ def makeflist(startObj,dest,startObjIsDir,hashalg,flist=[]):
 				endObj = os.path.join(dest,b) #recombine the subdirtree with given destination (and file.extension)
 				startFile = os.path.join(dirs, x) #grab the start file full path
 				startFilename, ext = os.path.splitext(startFile) #separate extension from filename
-				if not ext == '.' + hashalg: #check that the file found doesn't have the hash extension (no hashes of hashes here my friend)
+				if not ext.replace(".","") in hashlengths: #check that the file found doesn't have the hash extension (no hashes of hashes here my friend)
 					flist.extend((startFile,endObj)) #add these items as a tuple to the list of files
 	it = iter(flist) #i dunno but it's necessary
 	flist = zip(it, it) #uhhhh, formally make that object into a list
 	return flist
 
 def makehlist(aflist,hashalg,hashlength,grip):
+	'''
+	returns a dictionary of filenames.ext : hash
+	'''
 	hd = {} #if you declare this a default in the function def you'll get a memory error :/
 	for af in aflist:
 		afhashfile = af + "." + hashalg #make a name for the start file's hash file
@@ -70,6 +88,9 @@ def makehlist(aflist,hashalg,hashlength,grip):
 
 #generate checksums for both source and dest
 def hashfile(afile, hashalg, blocksize=65536):
+	'''
+	using a buffer, hash the file
+	'''
 	hasher = hashlib.new(hashalg) #grab the hashing algorithm decalred by user
 	buf = afile.read(blocksize) # read the file into a buffer cause it's more efficient for big files
 	while len(buf) > 0: # little loop to keep reading
@@ -78,6 +99,10 @@ def hashfile(afile, hashalg, blocksize=65536):
 	return hasher.hexdigest()
 
 def printhashes(sflist,shd,eflist,ehd,hashalg):
+	'''
+	make txt files containing the hash and associated filename
+	txt file extension determined by alogirthm, e.g. .md5, .sha256
+	'''
 	sfhflist = []
 	for sf in sflist: #loop thru list of start files
 		sfhfile = sf + "." + hashalg #make the filename for the sidecar file
@@ -97,6 +122,10 @@ def printhashes(sflist,shd,eflist,ehd,hashalg):
 	return sfhflist
 	
 def copyfiles(flist):
+	'''
+	using the native copy utility for a given platform,
+	copy start file(s) to end file location(s)
+	'''
 	win=mac=False
 	if sys.platform.startswith("darwin"):
 		mac=True
@@ -117,12 +146,14 @@ def copyfiles(flist):
 			dest = os.path.dirname(ef)
 			name,ext = os.path.split(sf)
 			cmd=['robocopy',srce,dest,ext]
-			print cmd
+		print cmd
 		subprocess.call(cmd)
-	return
 	
-def deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir):
-	#initialize some lists
+def deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir,hashlengths):
+	'''
+	based on the list of files that matched,
+	delete source files
+	'''
 	delfiles = []
 	delhfiles = []
 	deldirs = []
@@ -151,11 +182,18 @@ def deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir):
 		time.sleep(1.0)
 		os.remove(rmh)
 	for rmd in reversed(sorted(deldirs, key=len)):
+		for file in os.listdir(rmd):
+			fname,ext = os.path.splitext(file)
+			if ext.replace(".","") in hashlengths:
+				os.remove(os.path.join(rmd,file))
 		time.sleep(1.0)
-		os.rmdir(rmd)	
-	return
+		os.rmdir(rmd)
 	
 def compare(shd, ehd):
+	'''
+	compare hashes in start hash dictionary and end hash dictionary
+	return lists of files which matched and files which didnt match
+	'''
 	matches = []
 	mismatches = []
 	for skey in shd:
@@ -168,6 +206,9 @@ def compare(shd, ehd):
 	return matches, mismatches
 
 def log(matches,mismatches,ehd):
+	'''
+	log into to txt file
+	'''
 	txtFile = open("log_" + time.strftime("%Y-%m-%d_%H%M%S") + ".txt", "w") #name log file log_YYYY-MM-DD_HourMinSec.txt
 	txtFile.write("The following were successful:\n")
 	for match in matches:
@@ -178,10 +219,59 @@ def log(matches,mismatches,ehd):
 		if mis in ehd:
 			txtfile.write(mis + " : " + ehd[mis] + "\n")
 	txtFile.close()
-	return
-	
-def main():
-	#initialize arguments coming in from cli
+
+def init_bag(bagDir,alg):
+	'''
+	returns a bag instance for a given directory
+	makes bare dir into bag if necessary - won't bag a bag
+	'''
+	try:
+		bag = bagit.Bag(bagDir)
+		return bag
+	except bagit.BagError,e:
+		bag = bagit.make_bag(bagDir,None,1,alg)
+		if bag.is_valid():
+			return bag
+		else:
+			return False
+
+def validate_bag(bag):
+	'''
+	validates the bag against the payload and manifest
+	'''
+	try:
+		bag.validate()
+		return True
+	except bagit.BagValidationError,e:
+		return e	
+
+def bagmove(init,args):
+	'''
+	works with LoC bag storage/ transmission standard
+	'''
+	bag = init_bag(init.startObj,init.hashAlgorithm)
+	if bag is False:
+		print "bag initialization failed"
+		sys.exit()
+	if args.nm is False:
+		flist = makeflist(init.startObj,init.endObj,True,init.hashAlgorithm,init.hashlengths)
+		copyfiles(flist)
+		bag = init_bag(init.endObj,init.hashAlgorithm)
+		if bag is False:
+			print "bag initialization failed"
+			sys.exit()	
+		valid = validate_bag(bag)
+		if valid is not True:
+			print "ERROR: There was an issue moving that bag"
+			print valid
+		elif args.c is False:
+			shutil.rmtree(init.startObj)
+			print "bagmove completed successfully"
+		
+def make_args():
+	'''
+	initialize arguments from the cli
+	'''
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-c','--copy',action='store_true',dest='c',default=False,help="copy, don't delete from source")
 	parser.add_argument('-l','--log',action='store_true',dest='l',default=False,help="write to log in cwd (editable)")
@@ -190,10 +280,18 @@ def main():
 	parser.add_argument('-a','--algorithm',action='store',dest='a',default='md5',choices=['md5','sha1','sha256','sha512'],help="the hashing algorithm to use")
 	parser.add_argument('-np','--noprint',action='store_true',dest='np',default=False,help="no print mode, don't generate sidecar hash files")
 	parser.add_argument('-nm','--nomove',action='store_true',dest='nm',default=False,help="no move mode, hash the file in place only")
+	parser.add_argument('-b','--bag',action='store_true',dest='b',default=False,help="move a bag")
 	parser.add_argument('-g','--grip',action='store_true',dest='g',default=False,help="use hash values from existing sidecar files, default is False")
 	parser.add_argument('startObj',help="the file or directory to hash/ move/ copy/ verify/ delete")
 	parser.add_argument('endObj',nargs='?',default=os.getcwd(),help="the destination parent directory")
-	args = parser.parse_args()
+	return parser.parse_args()
+	
+def main():
+	'''
+	do the thing
+	'''
+	#init args from cli
+	args = make_args()
 	###INIT VARS###
 	flist = []
 	sflist = []
@@ -224,9 +322,25 @@ def main():
 	else: #if something is up we gotta exit
 		print "Buddy, something isn't right here..."
 		sys.exit()
+	
+	#work with bags
+	if args.b is True:
+		if bagit is False:
+			print "You need to install bagit-python in the same parent directory as this script"
+			print "hashmove aborting"
+			sys.exit()
+		init = dotdict({})
+		init.startObj = startObj
+		init.endObj = endObj
+		init.hashAlgorithm = [args.a]
+		init.hashlengths = hashlengths
+		init.hashlength = hashlength
+		init.startObjIsDir = startObjIsDir
+		bagmove(init,args)
+		sys.exit()
 		
 	#make lists of files
-	flist = makeflist(startObj, endObj, startObjIsDir, args.a)
+	flist = makeflist(startObj, endObj, startObjIsDir, args.a, hashlengths)
 	sflist = [x for x,_ in flist] #make list of startfiles
 	if args.nm is False:
 		eflist = [x for _,x in flist] #make list of endfiles
@@ -243,7 +357,9 @@ def main():
 	#print the hashes
 	if args.np is False:
 		sfhflist = printhashes(sflist,shd,eflist,ehd,args.a)
-	
+	elif args.np is True:
+		sfhflist = []
+		
 	#compare the dict values and provide feedback
 	if args.nm is False:
 		matches, mismatches = compare(shd, ehd)
@@ -255,10 +371,10 @@ def main():
 	
 	#based on feedback, remove start objects
 	if args.c is False and args.v is False and args.nm is False:
-		deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir)
+		deletefiles(sflist,sfhflist,startObj,matches,startObjIsDir,hashlengths)
 		
 	#print log to cwd of what happened
 	if args.l is True:
 		log(matches,mismatches,ehd)
-
-main()
+if __name__ == "__main__":
+	main()	

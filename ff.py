@@ -21,7 +21,8 @@ def audio_init_ffproc(conf, kwargs):
 	ffproc = mtd.get_ff_processes(args, cnxn) #get faces/ processes from filemaker"
 	ffproc = ut.dotdict(ffproc)
 	print args.channelConfig
-	if not "Stereo" and not "Cassette" in args.channelConfig:
+	if not "Stereo" in args.channelConfig and not "Cassette" in args.channelConfig:
+		print "mono"
 		###FOR MONO TAPES###
 		channel0 = ut.dotdict({'map':"-map_channel 0.0.0"})
 		channel1 = ut.dotdict({'map':"-map_channel 0.0.1"})
@@ -117,6 +118,26 @@ def sampleratenormalize(conf, kwargs):
 	full_ffstr = prefix(kwargs.filename) + "-ar " + conf.ffmpeg.acodec_master_arate + " -c:a " + conf.ffmpeg.acodec_master + " " + kwargs.filename.replace(".wav", "-resampled.wav")
 	return full_ffstr
 
+def probe_streams(obj):
+	'''
+	returns dictionary with each stream element
+	e.g. {"0.pix_fmt":"yuv420p10le"}
+	'''
+	streams = {}
+	ffstr = "ffprobe -show_streams -of flat " + obj
+	output = subprocess.Popen(ffstr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	_out = output.communicate()
+	out = _out[0].splitlines()
+	for o in out:
+		key, value = o.split("=")
+		key = key.replace("streams.stream.","")
+		streams[str(key)] = value
+	if streams:	
+		return streams
+	else:
+		print _out[1]
+		return False
+	
 def go(ffstr):
 	'''
 	runs ffmpeg, returns true is success, error is fail
