@@ -35,7 +35,7 @@ def queryCatalog(sysNumber):
 
 '''
 queryFM_Single takes a sql command and returns a single row (row[0]) from FileMaker
-'''	
+'''
 def queryFM_single(sqlstr,cnxn):
 	cursor = cnxn.cursor()
 	cursor.execute(sqlstr)
@@ -44,7 +44,7 @@ def queryFM_single(sqlstr,cnxn):
 
 '''
 queryFM_Multi takes a sql command and returns every row from FileMaker
-'''	
+'''
 def queryFM_multi(sqlstr,cnxn):
 	cursor = cnxn.cursor()
 	cursor.execute(sqlstr)
@@ -59,7 +59,7 @@ def insertFM(sqlstr,cnxn):
 	cursor.execute(sqlstr)
 	cnxn.commit()
 
-	
+
 ########################
 #########END############
 ########################
@@ -74,8 +74,8 @@ insertHash takes a db connection and a list of id, filename, and hash and insert
 def insertHash(cnxn,**kwargs):
 	if kwargs['materialType'] is 'tape':
 		sqlstr = """insert into
-			File_instance(FK,filename,hash) 
-			values ((select Original_Key from Audio_Originals where Original_Tape_Number like 
+			File_instance(FK,filename,hash)
+			values ((select Original_Key from Audio_Originals where Original_Tape_Number like
 			'""" + kwargs['id'] + """/%'),'""" + kwargs['filename'] + """','""" + kwargs['hash'] + """')"""
 	elif kwargs['materialType'] is 'video':
 		sqlstr = """insert into
@@ -102,7 +102,7 @@ def get_hash_fromFM(cnxn,**kwargs):
 	else:
 		hash = None
 	return hash
-	
+
 '''
 makebext_umid generates a 64byte string of numbers base on SMPTE 330M to use as a UMID. Second-half is zeroed out, we use this to validate every wave as bext v1
 '''
@@ -131,7 +131,7 @@ def makebext_description_parse_result(result,fieldlist):
 				if result[count]: #if there's a value in the field
 					if count == 0:
 						x[fieldlist[count]]=str(int(result[count]))
-					else:	
+					else:
 						x[fieldlist[count]]=result[count] #set the FileMakerField:FileMakerValue pair according to the index
 				else: #Nonetypes can't be assigned directly
 					x[fieldlist[count]]="None"
@@ -148,7 +148,7 @@ def makebext_description(cnxn,args):
 	x = {} #dictionary for the resulting FileMakerField:FileMakerValue pairs
 	if args.aNumber:
 		fieldlist = ["Master_Key","Tape_Title","Mss_Number","Collection_Name","Master_Key"] #fields to select in FileMaker
-		sqlstr = """select 
+		sqlstr = """select
 			ao.Master_Key, ao.Tape_Title, ao.Mss_Number, ao.Collection_Name, ao.Mastered
 			from Audio_Originals ao
 			join Audio_Masters am
@@ -163,8 +163,8 @@ def makebext_description(cnxn,args):
 			from Cylinders
 			where Call_Number_asText = '""" + args.cylNumber + "'"
 		result = queryFM_single(sqlstr,cnxn)
-		bext_description = makebext_description_parse_result(result,fieldlist)		
-	elif args.discID: 
+		bext_description = makebext_description_parse_result(result,fieldlist)
+	elif args.discID:
 		soup = queryCatalog(args.discID)
 		l1, l2 = makeID3fromCatalogSoup(soup)
 		if args.side.lower() == "a":
@@ -176,7 +176,7 @@ def makebext_description(cnxn,args):
 
 '''
 makebext_complete is a handler to generate a bext string that can be read by BWFMetaEdit
-'''	
+'''
 def makebext_complete(cnxn,**kwargs):
 	args = ut.dotdict(kwargs)
 	bext_description = makebext_description(cnxn,args)
@@ -221,11 +221,11 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 	count = 0
 	cnxn = pyodbc.connect(cnxn)
 	while not row: #try to find the Tape Number and Format based on the rawCaptureName
-		if count > 1: 
+		if count > 1:
 			return None
 		else:
-			sqlstr="""select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format 
-					from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key 
+			sqlstr="""select Audio_Originals.Tape_Number, Audio_Originals.Original_Recording_Format
+					from Audio_Originals join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key
 					where Audio_Masters.rawCaptureName_""" + facelist[count] + "='" + args.rawcapNumber + "' or Audio_Masters.rawCaptureName_" + facelist[count] + "='" + args.rawcapNumber + ".wav'"
 			#OR above necessary because sometimes the rawCaptureName has a ".wav" at the end :(
 			row = queryFM_single(sqlstr,cnxn)
@@ -240,8 +240,8 @@ def get_aNumber_channelConfig_face(cnxn,**kwargs):
 			nameFormat["channelConfig"] = row[1]
 		elif any("Open Reel" in s for s in row) or any("Disc" in s for s in row): #if the rawCaptureName is of an open reel
 			#having the format isn't enough, we need the channel configuration for open reels
-			sqlstr = '''select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format 
-						from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key 
+			sqlstr = '''select Audio_Originals.Tape_Number, Audio_Originals.Tape_Format
+						from Audio_Originals inner join Audio_Masters on Audio_Originals.Original_Key=Audio_Masters.Original_Key
 						where Audio_Masters.rawCaptureName_''' + face + "='" + args.rawcapNumber + "' or Audio_Masters.rawCaptureName_" + face + "='" + args.rawcapNumber + ".wav'"
 			row = queryFM_single(sqlstr,cnxn)
 			if row:
@@ -257,9 +257,9 @@ def get_ff_processes(args,cnxn):
 	#gets faces/ processes from filemaker form filled out by digi techs
 	processes = ['delface','hlvface','dblface','revface'] #list of processes
 	ffproc = {}
-	sqlstr = '''select 
-				deleting_''' + args.face + ",halving_" + args.face + ",doubling_" + args.face + ",reversing_" + args.face + ''' 
-				from Audio_Masters 
+	sqlstr = '''select
+				deleting_''' + args.face + ",halving_" + args.face + ",doubling_" + args.face + ",reversing_" + args.face + '''
+				from Audio_Masters
 				where rawCaptureName_''' + args.face + "='" + args.rawcapNumber + """'
 				or Audio_Masters.rawCaptureName_""" + args.face + "='" + args.rawcapNumber + ".wav'"
 	result = queryFM_single(sqlstr,cnxn) #use makemetadata to ask filemaker for this info
@@ -268,12 +268,13 @@ def get_ff_processes(args,cnxn):
 			if r == 'None':
 				r = None #transform fm output of string "None" to python type None
 			ffproc[processes[index]] = r
-	return ffproc		
-		
-'''
-get_cylinder_ID3 takes a db connection and argument for the cylinder number (no prefix) and returns a raw list of Title, Performer, Label, and date
-'''
+	return ffproc
+
+
 def get_cylinder_ID3(cnxn,**kwargs):
+	'''
+	get_cylinder_ID3 takes a db connection and argument for the cylinder number (no prefix) and returns a raw list of Title, Performer, Label, and date
+	'''
 	args = ut.dotdict(kwargs)
 	cnxn = pyodbc.connect(cnxn)
 	sqlstr = """select Title, Performer, Composer, Label_Cat, yr
@@ -289,20 +290,20 @@ def get_tape_ID3(cnxn,**kwargs):
 	sqlstr = """select Tape_Title, Collection_Name, Original_Recording_Date
 				from Audio_Originals
 				where Original_Tape_Number like '""" + args.aNumber.upper() + "%'"
-	row = queryFM_single(sqlstr,cnxn)	
+	row = queryFM_single(sqlstr,cnxn)
 	return row
 
-'''
-id3Check takes an input file and verifies if there is ID3 metadata already in there
-'''	
 def check_ID3():
+	'''
+	id3Check takes an input file and verifies if there is ID3 metadata already in there
+	'''
 	#basically copy lines 27-50 of makemp3
 	return
-	
-'''
-makeID3fromCatalogSoup takes a bs4 soup object and returns 1 or 2 lists of ID3 tags based on the MARC xml in Alma
-'''	
+
 def makeID3fromCatalogSoup(soup):
+	'''
+	makeID3fromCatalogSoup takes a bs4 soup object and returns 1 or 2 lists of ID3 tags based on the MARC xml in Alma
+	'''
 	id3list1 = {}
 	id3list2 ={}
 	id3list1 = ut.dotdict(id3list1)
@@ -351,7 +352,7 @@ def makeID3fromCatalogSoup(soup):
 		###GRIP ALBUM###
 		elif sf.parent['tag']==	'852': #grip the Columbia A69 part
 			if sf['code']=='j':
-				album = sf.string.lstrip()		
+				album = sf.string.lstrip()
 		###END ALBUM###
 		###GRIP LABEL###
 		elif sf.parent['tag']=='028':
@@ -361,7 +362,7 @@ def makeID3fromCatalogSoup(soup):
 			elif sf.parent['ind1']=='1':
 				if sf['code']=='a':
 					list028ind1.append(sf.string)
-		###END LABEL###			
+		###END LABEL###
 	###YEAR###
 	for cf in soup.findAll('controlfield'):
 		if cf['tag']=='008':
@@ -402,15 +403,15 @@ def makeID3fromCatalogSoup(soup):
 		if list028ind1:
 			id3list2.label = list028ind1[1]
 		else:
-			id3list2.label = list028ind0[0]	
+			id3list2.label = list028ind0[0]
 	if id3list2:
 		return id3list1,id3list2
 	else:
 		return id3list1,None
-		
+
 ########################
 #########END############
 ########################
-	
+
 if __name__ == '__main__':
-    unittest.main()	
+    unittest.main()

@@ -8,6 +8,7 @@ import getpass
 import time
 import subprocess
 import argparse
+import pyodbc
 ###UCSB modules###
 import config as rawconfig
 import util as ut
@@ -97,6 +98,12 @@ def init():
 		kwargs.broadcastFP = os.path.join(broadDir,fname)
 	return args, kwargs
 
+def check_captured_FM(args, kwargs):
+	sqlstr = """insert into
+			table(field)
+			values (select key from table where filename='""" + args.input + "'), '1')"""
+	mtd.insertFM(sqlstr, pyodbc.connect(conf.National_Jukebox.cnxn))
+
 def main():
 	'''
 	do the thing
@@ -121,6 +128,7 @@ def main():
 	#move them to qc dir in subdir named after their canonical filename (actual file name has "m" at end)
 	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'), kwargs.archiveFP_post, os.path.join(kwargs.qcDir, kwargs.barcode)])
 	log(output)
+	check_captured_FM(args, kwargs)
 	###end make archive master###
 	delete_bs(kwargs)
 

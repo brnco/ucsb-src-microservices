@@ -19,12 +19,13 @@ import makestartobject as makeso
 import ff
 
 
-#hashmove processing folder to the repo	
+#hashmove processing folder to the repo
 def move(kwargs):
+	print "moving " + kwargs.aNumber
 	endDirThousand = ut.make_endDirThousand(kwargs.aNumber) #input arg here is a1234 but we want just the number
 	kwargs.endDir = os.path.join(conf.magneticTape.repo,endDirThousand,kwargs.aNumber.lower())
 	#hashmove it and grip the output so we can delete the raw files YEAHHH BOY
-	output = subprocess.Popen(['python',os.path.join(conf.scriptRepo,'hashmove.py'),kwargs.processDir,kwargs.endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+	output = subprocess.Popen([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),kwargs.processDir,kwargs.endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	foo,err = output.communicate()
 	print foo
 	sourcehash = re.search('srce\s\S+\s\w{32}',foo)
@@ -32,7 +33,7 @@ def move(kwargs):
 	dh = desthash.group()
 	sh = sourcehash.group()
 	if sh[-32:] == dh[-32:]:
-		output = subprocess.Popen(['python',os.path.join(conf.scriptRepo,'hashmove.py'),os.path.join(conf.magneticTape.new_ingest,kwargs.rawcapNumber + ".wav"),kwargs.endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		output = subprocess.Popen([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),os.path.join(conf.magneticTape.new_ingest,kwargs.rawcapNumber + ".wav"),kwargs.endDir],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 		foo,err = output.communicate()
 		print foo
 
@@ -53,8 +54,8 @@ def mono_silence(kwargs):
 				else:
 					os.remove(f)
 					os.rename(f.replace(".wav","-silenced.wav"),f)
-					return True				
-	
+					return True
+
 
 def reverse(ffproc,kwargs):#calls makereverse
 	iofile = make_iofile(ffproc,kwargs,"revface")
@@ -63,11 +64,12 @@ def reverse(ffproc,kwargs):#calls makereverse
 		rtncode = True
 	except subprocess.CalledProcessError,e:
 		rtncode = e.returncode
-	return rtncode	
+	return rtncode
 
 def make_iofile(ffproc,kwargs,process):
 	filenames = ['filename0','filename1']
 	iofile = ''
+	print ffproc
 	if process == 'revface':
 		face = ffproc.revface[1]
 	elif process == 'hlvface' or process == 'dblface':
@@ -78,7 +80,7 @@ def make_iofile(ffproc,kwargs,process):
 	for f in filenames:
 		if f in ffproc:
 			if face in ffproc[f]:
-				iofile = os.path.join(kwargs.processDir,ffproc[f])	
+				iofile = os.path.join(kwargs.processDir,ffproc[f])
 	if not iofile:
 		for f in os.listdir(kwargs.processDir):
 			if f == 'cusb-'+kwargs.aNumber.lower() + "a.wav":
@@ -89,7 +91,7 @@ def make_iofile(ffproc,kwargs,process):
 		return None
 	else:
 		return iofile
-	
+
 def sampleratenormalize(ffproc,kwargs):
 	iofile = make_iofile(ffproc,kwargs,"hlvface")
 	kwargs.filename = os.path.join(kwargs.processDir,iofile)
@@ -101,9 +103,9 @@ def sampleratenormalize(ffproc,kwargs):
 	else:
 		os.remove(kwargs.filename)
 		os.rename(kwargs.filename.replace(".wav","-resampled.wav"),kwargs.filename)
-		return True	
+		return True
 
-	
+
 def makebext(aNumber,processDir): #embed bext info using bwfmetaedit
 	try:
 		kwargs = {"aNumber":aNumber,"bextVersion":"1"}
@@ -125,7 +127,7 @@ def size_check(kwargs):
 		return True
 	else:
 		return False
-				
+
 def process(kwargs):
 	tooBig = size_check(kwargs)
 	if tooBig is True:
@@ -168,7 +170,7 @@ def process(kwargs):
 		if not ffWorked:
 			return False
 		#special add for mono files
-		if not "Stereo" and not "Cassette" in kwargs.channelConfig:
+		if not "Stereo" in kwargs.channelConfig and not "Cassette" in kwargs.channelConfig:
 			ffWorked = mono_silence(kwargs)
 		#if we need to reverse do it
 		if ffproc.revface:
@@ -191,7 +193,7 @@ def process(kwargs):
 		move(kwargs)
 		###END BEXT###
 		return True
-				
+
 def main():
 	###INIT VARS###
 	global conf
@@ -227,7 +229,7 @@ def main():
 						pass
 				###END BS###
 				###PROCESS CAPTURE###
-				elif file.endswith(".wav"):
+				elif os.path.exists(os.path.join(conf.magneticTape.new_ingest,file)) and file.endswith(".wav"):
 					try: #control for files currently in use
 						subprocess.call("ffprobe " + os.path.join(dirs,file))
 					except:
@@ -242,7 +244,7 @@ def main():
 					processWorked = process(kwargs)
 					if not processWorked:
 						continue
-				###END PROCESS CAPTURE###			
-	###END BATCH MODE###						
+				###END PROCESS CAPTURE###
+	###END BATCH MODE###
 if __name__ == '__main__':
 	main()
