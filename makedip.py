@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-#makedip
+'''
+make a Dissemination Information Package (DIP)
+takes input for full path or canonical name + transaction number from Aeon
+returns zipped folder on local /Desktop
+'''
 #coding=UTF-8
 
 
@@ -22,6 +26,9 @@ import mtd
 import makestartobject as makeso
 
 def makeTranscodeList(args,archiveDir):
+	'''
+	returns list of objects which need to be transcoded to our access format
+	'''
 	###INIT VARS###
 	a = [] #archive masters
 	b = [] #broadcast masters
@@ -136,8 +143,37 @@ def makeTranscodeList(args,archiveDir):
 		###END DEDUPE###
 	###END FOR DISCS###
 	return a,b,u,m,i,startDirs
-	
+
+def make_transcodes(a,b,u,m,i,startDirs):
+	#transcode where necessary
+	for f in a:
+		if args.t is True and args.hq is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])
+		elif args.t is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t','-n','-mp3'])
+		elif args.d is True and args.hq is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-sys',args.sys])
+		elif args.d is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
+	for f in b:
+		if args.t is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
+		if args.d is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
+	for f in u:
+		if args.t is True and args.hq is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])
+		elif args.t is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t','-n','-mp3'])
+		elif args.d is True and args.hq is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-sys',args.sys])
+		elif args.d is True:
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
+
 def main():
+	'''
+	DO THE THING
+	'''
 	###INIT VARS###
 	global conf
 	conf = rawconfig.config()
@@ -171,30 +207,9 @@ def main():
 
 	###GENERATE TRANSCODE LISTS###
 	a,b,u,m,i,startDirs = makeTranscodeList(args, archiveDir) #make a dictionary of files to work with
-	#transcode where necessary
-	for f in a:
-		if args.t is True and args.hq is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])
-		elif args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t','-n','-mp3'])
-		elif args.d is True and args.hq is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-sys',args.sys])
-		elif args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
-	for f in b:
-		if args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
-		if args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
-	for f in u:
-		if args.t is True and args.hq is True: 
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])
-		elif args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t','-n','-mp3'])
-		elif args.d is True and args.hq is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-sys',args.sys])
-		elif args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
+	###do the transcodes
+	make_transcodes(a,b,u,m,i,startDirs)
+
 	#make a final list of stuff we gonna dip
 	veggies = []
 	for dir in startDirs:
@@ -207,10 +222,10 @@ def main():
 					veggies.append(os.path.join(dir,file))
 			if file.endswith(".tif"):
 				veggies.append(os.path.join(dir,file))
-	print veggies		
-	
+	print veggies
+
 	#hashmove to dir on desktop named for TN
-	try:	
+	try:
 		dipDir = os.path.join(os.environ["HOME"], "Desktop",args.tn)
 	except:
 		dipDir = os.path.join(os.environ["USERPROFILE"], "Desktop",args.tn)
@@ -218,7 +233,7 @@ def main():
 		os.makedirs(dipDir)
 	for f in veggies:
 		subprocess.call([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),'-c',f,dipDir])
-	
+
 	#compress dir on desktop
 	if args.z is True:
 		tnDir = dipDir

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
-#nj_pre-SIP
-#verifies that all relevant filetypes exist (and, one day, conform) to NJ SIP
-
+'''
+nj_pre-SIP
+verifies that all relevant filetypes exist (and, one day, conform) to NJ SIP
+'''
 import getpass
 import os
 import subprocess
@@ -15,6 +16,9 @@ import mtd
 import makestartobject as makeso
 
 def verify_package_contents(**kwargs):
+	'''
+	checks that every file type is in the SIPable dir
+	'''
 	args = ut.dotdict(kwargs)
 	packageIsComplete = {}
 	for filetype in args.filetypes:
@@ -29,13 +33,16 @@ def verify_package_contents(**kwargs):
 	return True
 
 def move_package_toRepo(**kwargs):
+	'''
+	use hashmove to move the dir to the batch dir
+	'''
 	args = ut.dotdict(kwargs)
 	output = subprocess.Popen(['python',os.path.join(args.scriptRepo,'hashmove.py'),args.fullpath,os.path.join(args.repo,args.assetName)],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	foo,err = output.communicate()
 	if err:
 		print err
 		return False
-	else:	
+	else:
 		print foo
 		sourcehash = re.search('srce\s\S+\s\w{32}',foo)
 		desthash = re.search('dest\s\S+\s\w{32}',foo)
@@ -47,6 +54,9 @@ def move_package_toRepo(**kwargs):
 			return False
 
 def make_assetName_fullpath(startObj):
+	'''
+	returns the canonical assetName and fullpath to SIPable directory
+	'''
 	#if not (startObj.startswith("R:/") or startObj.startswith("//svmwindows")) and not os.path.isdir(startObj):
 	if not os.path.isdir(startObj):
 		sobj = makeso.parse_input(startObj)
@@ -56,8 +66,11 @@ def make_assetName_fullpath(startObj):
 		assetName = os.path.basename(os.path.normpath(startObj))
 		fullpath = startObj
 	return assetName, fullpath
-	
+
 def main():
+	'''
+	do the thing
+	'''
 	###INIT VARS###
 	log.log("started")
 	global conf

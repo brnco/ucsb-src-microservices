@@ -54,8 +54,8 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 	with ut.cd(startDir):
 		####INIT VARS###
 		#ac = '1' #audio channels
-		ar = '44100' #audio rate
-		acodec = 'pcm_s16le' #sample_fmt, signed 16-bit little-endian
+		ar = conf.ffmpeg.acodec_broadcast.rate #audio rate
+		acodec = conf.acodec.broadcast #sample_fmt, signed 16-bit little-endian
 		fadestring = '' #placeholder for fades, if we make em
 		normstring = '' #placeholder for loudnorm
 		filterstring = '' #placeholder for -af + fadestring + loudnorm
@@ -78,7 +78,7 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		###END ID3 TAGS###
 		###OTHER OPTIONS###
 		if args.n is True:#for normalize
-			normstring = "loudnorm=I=-16:TP=-1.5:LRA=11"
+			normstring = conf.ffmpeg.filter_loudnorm
 		#if args.s is True:#get the right channel config
 			#ac = '2'
 		if args.ff is True:#lets make fades!
@@ -97,7 +97,7 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 			filterstring = "-af " + fadestring
 		elif normstring and not fadestring:
 			filterstring = "-af " + normstring
-		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 -write_bext 1 ' + assetName + EuseChar + '.wav'
+		ffmpegstring = 'ffmpeg -i ' + startObj + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring + ' -id3v2_version 3 -write_id3v1 1 -write_bext 1 -y ' + assetName + EuseChar + '.wav'
 		#_ffmpegstring = ffmpegstring.decode("utf-8")
 		#ffmpegstring = _ffmpegstring.encode("ascii","ignore")
 		#print ffmpegstring
@@ -107,7 +107,7 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 		if args.mp3 is True:
 			subprocess.call(['python',os.path.join(conf.scriptRepo,'makemp3.py'),'-i',assetName])
 
-#makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master	
+#makes an id3 ;ffmetadata1 file that we can use to load tags into the broadcast master
 def makemanualid3(startDir, assetName):
 	###INIT VARS###
 	if assetName.endswith("A") or assetName.endswith("B"):
@@ -145,8 +145,8 @@ def makemanualid3(startDir, assetName):
 	###GET IT TOGETHER###
 	else:
 		id3String = "-i " + id3Obj + " -map_metadata 1" #if the object already exists, set the string so ffmpeg can find and use this obj
-	return id3String	
-	
+	return id3String
+
 #grips id3 info from FileMaker
 def gettapeid3(startDir, assetName):
 	id3fields=["title=","artist=","date="] #set the fields we need for this object type
@@ -169,8 +169,8 @@ def getcylinderid3(args,assetName):
 	kwargs = {"cylNumber":assetName}
 	id3rawlist = mtd.get_cylinder_ID3(conf.cylinders.cnxn,**kwargs) #ask filemaker for the values for each field
 	id3str = makeid3str(id3fields,id3rawlist,assetName)
-	return id3str	
-	
+	return id3str
+
 def getdiscid3(args,assetName):
 	id3fields=["title=","artist=","date="] #set the fields we need for this object type
 	id3str = ""
@@ -250,7 +250,7 @@ def makeEuseChar(SuseChar, fname): #makes the end use character for the output f
 		assetName = fname
 		EuseChar = "b"
 	return EuseChar, assetName
-	
+
 def cleanup(args,SuseChar,EuseChar,startDir,startObj,assetName): #deletes and renames stuff if the operation was successful
 	if SuseChar == 'b': #if we made a broadcast amster from a raw broadcast master
 		with ut.cd(startDir):
@@ -292,14 +292,14 @@ def main():
 	SuseChar = fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	startDir = os.path.abspath(os.path.join(startObj, os.pardir)) #grabs the directory that this object is in (we'll cd into it later)
 	###END INIT###
-	
+
 	###VALIDATE INPUT###
 	#if not os.path.isfile(startObj): #if it's not a file, say so
 		#print "Buddy, that's not a file"
 	if not ext in vexts and not ext in aexts: #if it's not a file we expect to deal with, say so, it probly needs special params
 		print "Buddy, this file can't be processed by makebroadcast"
 	###END VALIDATE###
-	
+
 	###DO THE THING###
 	#elif ext in vexts:
 		#makevideo(startObj, ) gotta get on this

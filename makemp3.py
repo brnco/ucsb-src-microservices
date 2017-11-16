@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-#makemp3
-#does the best that it can
-#takes 1 argument for object to convert to mp3
-#keep's input channel config
-#outputs 320k mp3
-#still gotta add png support for album covers?
-
+'''
+makemp3
+does the best that it can
+takes 1 argument for object to convert to mp3
+keeps input channel config
+outputs 320k mp3
+still gotta add png support for album covers?
+'''
 import os
 import subprocess
 import sys
@@ -21,7 +22,11 @@ import mtd
 import makestartobject as makeso
 
 def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
-	print assetName
+	'''
+	prints -mtd.txt file from INPUT
+	if -mtd.txt < 39 bytes, there is no id3 metadata in INPUT
+	encourages user to make an -mtd.txt file
+	'''
 	mtdObj = os.path.join(os.path.abspath(os.path.dirname(startObj)),assetName + "-mtd.txt") #name a metadata file
 	if not os.path.isfile(mtdObj):
 		subprocess.call(['ffmpeg','-i',startObj,'-f','ffmetadata','-y',mtdObj]) #export the id3 metadata that already exists in the media file to this text file
@@ -44,9 +49,12 @@ def id3Check(startObj, assetName): #checks to see if the ID3 tags exist already
 		return False
 	else:
 		return True
-	
-		
+
+
 def makeAudio(startObj, startDir, assetName, EuseChar, mtd):	#make the mp3
+	'''
+	actually use everything we've configured so far to make an mp3
+	'''
 	endObj = assetName + EuseChar + '.mp3' #give it a name
 	with ut.cd(startDir):
 		if mtd:
@@ -56,7 +64,9 @@ def makeAudio(startObj, startDir, assetName, EuseChar, mtd):	#make the mp3
 			subprocess.call(['ffmpeg','-i',startObj,'-ar','44100','-ab','320k','-f','mp3','-id3v2_version','3','-write_id3v1','1','-y',endObj]) #atually do it
 
 def main():
-	#initialize a buncha crap
+	'''
+	do the thing
+	'''
 	global conf
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="Makes an mp3 with ID3 tags")
@@ -91,5 +101,5 @@ def main():
 	mtd = id3Check(startObj, assetName) #call the id3 check function
 	makeAudio(startObj, startDir, assetName, EuseChar, mtd) #call the makeaudio function
 
-if __name__ == '__main__':	
+if __name__ == '__main__':
 	main()
