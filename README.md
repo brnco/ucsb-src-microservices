@@ -2,6 +2,7 @@ This document contains an overview of the various post-processing scripts we use
 Please see AVLab Utility Software List & Installation Instructions (on the wiki) for more info on the software used, dependencies, installation instructions, etc. The scripts described here build off of those software functionalities.
 
 * [Intro](#intro)
+* [config](#config)
 * [makesomethings](#makesomethings)
    * [makebarcodes](#makebarcodes)
    * [makebroadcast](#makebroadcast)
@@ -38,6 +39,11 @@ To run these scripts, type python [path of python file] [arguments]
 
 Every script can also be run with ypthon script.py -h for more info
 
+# config
+The scripts rely on a configuration file named microservices-config.ini. Because this file contains passwords, and because UCSB IT policy doesn't allow for .jar files (like BFG) to run, and because I don't actually know how to use git-filter, it's no longer tracked in this repo. The version here is thus out of date and you'll need to make the necessary changes.
+
+For UCSB users, the "canonical" config file can be found at S:/avlab/microservices/microservices-config.ini
+
 
 # makesomething
 the make-scripts are kind of the atomic units of our microservices. They work on single files and are very dumb but effective.
@@ -54,7 +60,7 @@ Has flags for fades (-ff), national jukebox names (-nj), stereo (-s), normalize 
 Takes an input string which is the canonical name for our digitized objects [a1234, cusb_col_a12_01_5678_00] and the transaction number from Aeon to which this DIP is linked. Transcodes from source objects if necessary, hashmoves them to DIP directory, zips DIP directory in anticipation of upload via FTP to Aeon server.
 
 Has flags for startObject (-so), transactionNumber (-tn), mode (--tape for tapes, --disc coming soon), zip (-z) to make a .zip file
- 
+
 ## makemp3
 Takes an input file, generally a broadcast master, transcodes to 320kbps mp3. Embeds ID3 tags if present (either in source file or in sidecar txt file). Embeds png image of "Cover Art" if png or tif present in source directory.
 
@@ -72,7 +78,7 @@ Takes a canonical name for an asset, e.g. a1234, cusb_col_a1234_01_5678_00, and 
 
 ## makevideoslices
 Slices preservation and access transfers of videos with more than 1 asset on the tape (eg. vm1234 also contains vm5678 and vm9101). Takes no arguments but you have to edit the in and out points in a list in the script, as well as corresponding vNums. Needs to be better, OpenCube editing interface is crappy and Premiere doesn't accept our preservation masters so.....
- 
+
 ## makeyoutube
 Still in development, this script makes a youtube-ready video for a digitized 78rpm disc, based on metadata in DAHR
 

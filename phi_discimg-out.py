@@ -13,6 +13,7 @@ import getpass
 import re
 import rawpy
 import imageio
+import pyodbc
 from PIL import Image
 from distutils import spawn
 ###UCSB modules###
@@ -21,7 +22,7 @@ import util as ut
 import logger as log
 import mtd
 import makestartobject as makeso
-	
+
 def idSize(fname,endDir):
 	'''
 	images come in off the camera in the wrong orientation
@@ -32,14 +33,14 @@ def idSize(fname,endDir):
 	if img.width > img.height:
 		rotation = 180
 	else:
-		rotation = 90			
+		rotation = 90
 	if rotation:
 		return rotation
 	else:
 		print "buddy, something's up"
 		log.log({"message":"something is wrong with the rotation calculation","level":"error"})
 		sys.exit()
-	
+
 def rawpyToTif(startObjFP,fname,endDir):
 	'''
 	converts the raw cr2 file to tiff
@@ -47,10 +48,10 @@ def rawpyToTif(startObjFP,fname,endDir):
 	#output = subprocess.check_output(['gm','convert',startObjFP,'-rotate',rotation,'-crop','3648x3648+920','-density','300x300',os.path.join(endDir,fname + ".tif")])
 	with rawpy.imread(startObjFP) as raw:
 		rgb = raw.postprocess(use_camera_wb=True)
-	imageio.imsave(os.path.join(endDir,fname + ".tif"),rgb)	
-	
+	imageio.imsave(os.path.join(endDir,fname + ".tif"),rgb)
 
-def rotateTif(startObjFP,fname,rotation,endDir):	
+
+def rotateTif(startObjFP,fname,rotation,endDir):
 	'''
 	rotates the tiff
 	'''
@@ -74,7 +75,7 @@ def cropTif(startObjFP,fname,endDir):
 	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),'-nm',os.path.join(endDir,fname + ".tif")])
 	log.log(output)
 
-	
+
 def tifToJpg(startObjFP,fname,endDir):
 	'''
 	converts the tiff to jpeg
@@ -94,7 +95,11 @@ def moveSO(startObjFP,endDir):
 	'''
 	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'),startObjFP,endDir])
 	log.log(output)
-	
+
+def mark_processed_FM(file):
+	sqlstr = """update SONYLOCALDIG set imageProcessed='1' where filename='""" + file + """'"""
+	mtd.insertFM(sqlstr, pyodbc.connect(conf.NationalJukebox.cnxn))
+
 def main():
 	'''
 	do the thing
@@ -106,7 +111,7 @@ def main():
 	parser.add_argument('-m','--mode',dest='m',choices=["single","batch"],help='mode, process a single file or every file in capture directory')
 	args = parser.parse_args()
 	imgCaptureDir = conf.NationalJukebox.VisualArchRawDir
-	print conf.NationalJukebox.VisualArchRawDir
+	#print conf.NationalJukebox.VisualArchRawDir
 	log.log("started")
 	if args.m == "single":
 		startObj = startObjFP = args.i.replace("\\","/")
@@ -126,26 +131,32 @@ def main():
 		endDir = os.path.join(conf.NationalJukebox.PreIngestQCDir,fname)
 		if not os.path.exists(endDir):
 			os.makedirs(endDir)
-		
-		
+
+
 		#convert to tif
 		rawpyToTif(startObjFP,fname,endDir)
-		
+
 		#get the orientation of the image and set output rotation accordingly
 		rotation = idSize(fname,endDir)
 
 		#rotate the tif
 		rotateTif(startObjFP,fname,rotation,endDir)
-		
+
 		#crop the tif
 		cropTif(startObjFP,fname,endDir)
-		
+
 		#convert to jpg
 		#should make jpeg from tiff moving forward
 		tifToJpg(startObjFP,fname,endDir)
-		
+
 		#move startObj
 		moveSO(startObjFP,endDir)
+
+		#mark in FM that it's been processed
+		mark_processed_FM(args.i.replace("cusb_","ucsb_").replace(".cr2",""))
+
+		#see if it's ready to qc
+		subprocess.call([conf.python, os.path.join(conf.scriptRepo, "makesip.py"), "-m", "nj", "-i", args.i.replace(".cr2","")])
 
 	elif args.m == "batch":
 		for dirs,subdirs,files in os.walk(imgCaptureDir):
@@ -163,20 +174,26 @@ def main():
 
 					#get the orientation of the image and set output rotation accordingly
 					rotation = idSize(fname,endDir)
-					
+
 					#rotate the tif
 					rotateTif(startObjFP,fname,rotation,endDir)
-					
+
 					#crop the tif
 					cropTif(startObjFP,fname,endDir)
-					
+
 					#convert to jpg
 					#should make jpeg from tiff moving forward
 					tifToJpg(startObjFP,fname,endDir)
-					
+
 					#move startObj
 					moveSO(startObjFP,endDir)
 
-if __name__ == '__main__':					
+					#mark in FM that it's been processed
+					mark_processed_FM(f.replace("cusb_","ucsb_").replace(".cr2",""))
+
+					#check if it's ready to qc
+					subprocess.call([conf.python, os.path.join(conf.scriptRepo, "makesip.py"), "-m", "nj", "-i", args.i.replace(".cr2","")])
+
+if __name__ == '__main__':
 	main()
 	log.log("complete")

@@ -38,7 +38,7 @@ def avname(startObj, avlist):
 		match = re.search(r"\D\Z", aNumber)
 		if match:
 			face = match.group()
-			aNumber = aNumber.replace(face, "")	
+			aNumber = aNumber.replace(face, "")
 		#the following separates out the first digit and assigns an appropriate number of zeroes to match our dir structure
 		if len(aNumber) < 5:
 			endDirThousand = aNumber[:1] + "000"
@@ -56,20 +56,20 @@ def avname(startObj, avlist):
 					startObj = os.path.join(os.getcwd(), "cusb-a" + aNumber + face + "a.wav")
 					return startObj
 				elif os.path.exists("cusb-a" + aNumber + face + ".wav"):
-					startObj = os.path.join(os.getcwd(), "cusb-a" + aNumber + face + ".wav")	
+					startObj = os.path.join(os.getcwd(), "cusb-a" + aNumber + face + ".wav")
 					return startObj
 				else:
 					return soContainingDir
 		else:
 			print "Buddy, the directory " + soContainingDir + " doesn't exist. This asset has probably not yet been digitized"
-		
-		
-def cylname(startObj, cyllist):	
+
+
+def cylname(startObj, cyllist):
 	'''
 	in process
 	'''
 	return startObj
-	
+
 def discname(startObj, disclist):
 	'''
 	makes start object for disc
@@ -82,7 +82,7 @@ def discname(startObj, disclist):
 		print "Buddy, it looks like there's two copies of this item"
 		for f in foundirs:
 			print f
-		sys.exit()	
+		sys.exit()
 	elif len(foundirs) < 1:
 		print "Buddy, it looks like this hasn't been digitized"
 		sys.exit()
@@ -97,7 +97,10 @@ def discname(startObj, disclist):
 	elif os.path.exists(os.path.join(startDir, startObj + "a.wav")):
 		startObj = os.path.join(startDir, startObj + "a.wav")
 		return startObj
-		
+	else:
+		return startDir
+
+
 def parse_input(startObj):
 	'''
 	parses input to find type of object for which to make a start object
@@ -181,4 +184,4 @@ def main():
 	print startObj
 
 if __name__ == "__main__":
-	main()		
+	main()

@@ -9,10 +9,13 @@ import sys
 import argparse
 import subprocess
 import time
+import pyodbc
 ###UCSB modules###
 import config as rawconfig
 import logger as log
 import util as ut
+import mtd
+
 def main():
 	'''
 	do the thing
@@ -43,6 +46,7 @@ def main():
 		newest = max(glob.iglob('*.[Cc][Rr]2'), key=os.path.getctime) #sort dir by creation date of .cr2 or .CR2 files
 		os.rename(newest, fname) #rename the newest file w/ the barcode just scanned
 		log.log("renamed " + newest + " " + fname)
+		mtd.insertFM("""update SONYLOCALDIG set capturedImage='1' where filename='""" + args.barcode.strip() + """'""", pyodbc.connect(conf.NationalJukebox.cnxn))
 
 if __name__ == '__main__':
 	main()

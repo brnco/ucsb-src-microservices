@@ -8,6 +8,7 @@ import os
 import subprocess
 import argparse
 import re
+import pyodbc
 ###UCSB modules###
 import config as rawconfig
 import util as ut
@@ -90,11 +91,12 @@ def main():
 		if packageIsComplete:
 			moveSuccess = move_package_toRepo(**kwargs)
 			if moveSuccess:
-				print "yeah"
+				mtd.insertFM("""update SONYLOCALDIG set readyToQC='1' where filename='""" + args.i.replace("cusb_","ucsb_") + """'""", pyodbc.connect(conf.NationalJukebox.cnxn))
 			else:
 				print "There was a problem moving the SIP to the repo"
 		else:
 			print "The supplied package is not complete, no SIP made"
+
 
 if __name__ == '__main__':
 	main()
