@@ -14,6 +14,13 @@ def check_captured_FM(args, kwargs):
 			values (select key from table where filename='""" + args.input + "'), '1')"""
 	mtd.insertFM(sqlstr, pyodbc.connect(conf.NationalJukebox.cnxn))
 
+table:field
+SONYLOCALDIG:imageProcessed
+SONYLOCALDIG:capturedImage
+SONYLOCALDIG:audioProcessed
+SONYLOCALDIG:readyToQC
+
+
 def main():
     global conf
     conf = rawconfig.config()
