@@ -10,6 +10,7 @@ sys.path.insert(0,"S:/avlab/microservices")
 #remove ^ in production
 ###UCSB modules###
 import config as rawconfig
+conf = rawconfig.config()
 import util as ut
 import logger as log
 import mtd
@@ -17,6 +18,6 @@ import makestartobject as makeso
 
 def main():
 	print "fubar"
-	
+
 if __name__ == '__main__':
 	main()

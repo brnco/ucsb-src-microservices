@@ -81,21 +81,23 @@ def init():
 	kwargs.archDir = conf.NationalJukebox.AudioArchDir
 	kwargs.broadDir = conf.NationalJukebox.AudioBroadDir
 	kwargs.barcode = args.input #grab the lone argument that FM provides
-	kwargs._fname = barcode + ".wav"
-	log(**{"message":"processing " + barcode,"print":True})
+	kwargs._fname = kwargs.barcode + ".wav"
+	log(**{"message":"processing " + kwargs.barcode,"print":True})
 	if not os.path.exists(os.path.join(kwargs.archDir, kwargs._fname)) or not os.path.exists(os.path.join(kwargs.broadDir, kwargs._fname)):
 		log(**{"message":"file " + kwargs._fname + " missing from arch or broad dir, not processed","level":"error","print":True})
 		#print "Please check that you saved the file to the right directory in Wavelab before indicating that it was transferred"
 		foo = raw_input("Please check that the file was named correctly and saved to the correct directory")
 		sys.exit()
 	else:
+		os.rename(os.path.join(kwargs.archDir, kwargs._fname), os.path.join(kwargs.archDir, kwargs._fname).replace("ucsb_","cusb_"))
+		os.rename(os.path.join(kwargs.broadDir, kwargs._fname), os.path.join(kwargs.broadDir, kwargs._fname).replace("ucsb_","cusb_"))
 		kwargs.barcode = kwargs.barcode.replace("ucsb","cusb") #stupid, stupid bug
 		kwargs.fname = kwargs.barcode + ".wav"
-		kwargs.archive_fname = barcode + "m.wav" #make the new filename
-		kwargs.broadcast_fname = barcode + ".wav"
-		kwargs.archiveFP_pre = os.path.join(archDir,fname)
-		kwargs.archiveFP_post = os.path.join(archDir,archive_fname)
-		kwargs.broadcastFP = os.path.join(broadDir,fname)
+		kwargs.archive_fname = kwargs.barcode + "m.wav" #make the new filename
+		kwargs.broadcast_fname = kwargs.barcode + ".wav"
+		kwargs.archiveFP_pre = os.path.join(kwargs.archDir, kwargs.fname)
+		kwargs.archiveFP_post = os.path.join(kwargs.archDir, kwargs.archive_fname)
+		kwargs.broadcastFP = os.path.join(kwargs.broadDir, kwargs.fname)
 	return args, kwargs
 
 def mark_processed_FM(file):
@@ -118,18 +120,18 @@ def main():
 	log(output)
 	###end make broadcast master###
 	###make archive master###
-	os.rename(archiveFP_pre,archiveFP_post)
+	os.rename(kwargs.archiveFP_pre, kwargs.archiveFP_post)
 	log("file " + kwargs.archiveFP_pre + "renamed " + kwargs.archiveFP_post)
 	#embed an md5 hash in the md5 chunk
-	subprocess.call(['bwfmetaedit','--in-core-remove',archiveFP_post])
-	subprocess.call(['bwfmetaedit','--MD5-Embed',archiveFP_post])
+	subprocess.call(['bwfmetaedit','--in-core-remove', kwargs.archiveFP_post])
+	subprocess.call(['bwfmetaedit','--MD5-Embed', kwargs.archiveFP_post])
 	#move them to qc dir in subdir named after their canonical filename (actual file name has "m" at end)
 	output = subprocess.check_output([conf.python,os.path.join(conf.scriptRepo,'hashmove.py'), kwargs.archiveFP_post, os.path.join(kwargs.qcDir, kwargs.barcode)])
 	log(output)
 	#check the box in FM
 	mark_processed_FM(args.input)
 	#see if this is ready to qc
-	subprocess.call([conf.python, os.path.join(conf.scriptRepo, "makesip.py"), "-m", "nj", "-i", args.input.strip()])
+	subprocess.call([conf.python, os.path.join(conf.scriptRepo, "makesip.py"), "-m", "nj", "-i", kwargs.barcode.strip()])
 	###end make archive master###
 	delete_bs(kwargs)
 

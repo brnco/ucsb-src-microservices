@@ -54,8 +54,8 @@ def makeAudio(args, startObj, startDir, assetName, SuseChar, EuseChar):
 	with ut.cd(startDir):
 		####INIT VARS###
 		#ac = '1' #audio channels
-		ar = conf.ffmpeg.acodec_broadcast.rate #audio rate
-		acodec = conf.acodec.broadcast #sample_fmt, signed 16-bit little-endian
+		ar = conf.ffmpeg.acodec_broadcast_rate #audio rate
+		acodec = conf.ffmpeg.acodec_broadcast #sample_fmt, signed 16-bit little-endian
 		fadestring = '' #placeholder for fades, if we make em
 		normstring = '' #placeholder for loudnorm
 		filterstring = '' #placeholder for -af + fadestring + loudnorm

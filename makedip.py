@@ -182,9 +182,10 @@ def main():
 	parser.add_argument('-d','--disc',action='store_true',dest='d',default=False,help="make a dip with disc template")
 	parser.add_argument('-i','--startObj',dest='i',nargs='+',required=True,help="the asset(s) that we want to make a dip for")
 	parser.add_argument('-tn','--transactionNumber',dest='tn',required=True,help="the transaction number from aeon")
-	parser.add_argument('-sys','--systemNumber',dest='sys',help="the system number for a disc in our catalog")
+	parser.add_argument('-sys','--systemNumber',dest='sys',help="the system number for a disc in our catalog (Alma MMS ID)")
 	parser.add_argument('-hq','--highquality',action='store_true',dest='hq',default=False,help="don't transcode to mp3, dip a cd-quality wave")
 	parser.add_argument('-z','--zip',action='store_true',dest='z',default=False,help="compress the dip folder when everything is in there")
+	global args
 	args = parser.parse_args()
 	#log.log("started")
 	if args.t is True:
