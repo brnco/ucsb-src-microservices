@@ -15,6 +15,12 @@ import config as rawconfig
 import util as ut
 
 
+def make_thefile(allists, startObj):
+	'''
+	return thefile, a dotdict with file attributes
+	'''
+
+
 def avname(startObj, avlist):
 	'''
 	makes and SO for AV names - magnetic audio tape and video
@@ -112,6 +118,10 @@ def parse_input(startObj):
 		#print "it's a fullpath"
 		return startObj
 	match=''
+	match=re.search(r"/Volumes", startObj)
+	if match:
+		return startObj
+	match=''
 	match=re.search(r"^cusb-(a|v)\d+", startObj)
 	if match:
 		#print "it's a cusb-AVassetname"
@@ -175,6 +185,7 @@ def main():
 	###INIT VARS###
 	parser = argparse.ArgumentParser(description="makes a full path from a canonical asset name")
 	parser.add_argument('-i', '--input', dest='i', nargs ='?', help='the object, can be full path or assetname, e.g. a1234, cusb_col_a123_01_456_00')
+	parser.add_argument('-tf', '--thefile', dest='tf', action='store_true', default=False, help='return thefile, a dotdict with file attributes')
 	args = parser.parse_args()
 	allists = make_lists()
 	###END INIT###

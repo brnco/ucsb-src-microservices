@@ -11,7 +11,7 @@ import util as ut
 import logger as log
 import mtd
 import makestartobject as makeso
-	
+
 def audio_init_ffproc(conf, kwargs):
 	'''
 	generates ffmpeg process data for magnetic tape transfers
@@ -132,18 +132,18 @@ def probe_streams(obj):
 		key, value = o.split("=")
 		key = key.replace("streams.stream.","")
 		streams[str(key)] = value
-	if streams:	
+	if streams:
 		return streams
 	else:
 		print _out[1]
 		return False
-	
+
 def go(ffstr):
 	'''
 	runs ffmpeg, returns true is success, error is fail
 	'''
 	try:
-		returncode = subprocess.check_output(ffstr)
+		returncode = subprocess.check_output(ffstr, shell=True)
 		returncode = True
 	except subprocess.CalledProcessError, e:
 		returncode = e.returncode

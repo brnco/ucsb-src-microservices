@@ -23,7 +23,7 @@ def main():
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="captures image from first-connected camera")
 	parser.add_argument('-nj', action='store_true', default=False, dest='nj', help='run with National Jukebox file destinations, on //svmwindows/special/78rpm')
-	parser.add_argument('-phi', action='store_true', default=False, dest="phi", help='run with PHI file destination, on ~/Desktop')
+	#parser.add_argument('-phi', action='store_true', default=False, dest="phi", help='run with PHI file destination, on ~/Desktop')
 	args = parser.parse_args() #allows us to access arguments with args.argName
 	logging.basicConfig(format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
 	gp.check_result(gp.use_python_logging())
@@ -51,7 +51,6 @@ def main():
 	gp.check_result(gp.gp_file_save(camera_file, target))
 	#subprocess.call(['xdg-open', target])
 	#gp.check_result(gp.gp_camera_exit(camera, context))
-	return 0
 
 if __name__ == "__main__":
 	sys.exit(main())

@@ -3,7 +3,6 @@ sets configuration dictionary for pathnames and ffmpeg options using microservic
 '''
 import ConfigParser
 import os
-import unittest
 ###UCSB modules###
 import util as ut
 
@@ -51,6 +50,3 @@ def config():
 	conf['python'] = ut.pythonpath()
 	conf = ut.dotdict(conf)
 	return conf
-
-if __name__ == '__main__':
-   unittest.main()	

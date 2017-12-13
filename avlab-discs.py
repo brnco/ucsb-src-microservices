@@ -14,10 +14,9 @@ def main():
 	'''
 	do the thing
 	'''
-	#initialize the stuff
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="processes non-PHI disc transfers")
-	parser.add_argument('-m', dest='m', choices=['batch', 'single'], default=False, help='mode, for processing a single transfer or a bacth in new_ingest')
+	#parser.add_argument('-m', dest='m', choices=['batch', 'single'], default=False, help='mode, for processing a single transfer or a bacth in new_ingest')
 	parser.add_argument('-i', '--input', dest='i', help="the rawcapture file.wav to process, single mode only")
 	args = parser.parse_args()
 	captureDir = conf.discs.rawArchDir
