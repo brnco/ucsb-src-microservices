@@ -16,7 +16,6 @@ import re
 import ast
 import time
 import argparse
-from bs4 import UnicodeDammit
 ###UCSB modules###
 import config as rawconfig
 import util as ut
@@ -49,7 +48,7 @@ def make_audio(args, thefile):
 		'''
 		makes the fadestring
 		'''
-		streams = ff.probe_streams(thefile.fullpath)
+		streams = ff.probe_streams(thefile.infullpath)
 		fadestart = float(streams['0.duration']) - 2.0
 		fadestring = "afade=t=in:ss=0:d=2,afade=t=out:st=" + str(fadestart) + ":d=2" #generate the fade string using the fade out start time
 
@@ -59,7 +58,7 @@ def make_audio(args, thefile):
 	elif fadestring or normstring:
 		filterstring = "-af " + fadestring + normstring
 	ffmpegstring = 'ffmpeg -i ' + thefile.infullpath + " " + id3string + ' -ar ' + ar + ' -c:a ' + acodec + ' ' + filterstring \
-	+ conf.ffmpeg.acodec_writeid3 + ' ' + conf.ffmpeg.acodec_master_writebext + ' -y ' + thefile.outfullpath
+	+ ' ' + conf.ffmpeg.acodec_writeid3 + ' ' + conf.ffmpeg.acodec_master_writebext + ' -y ' + thefile.outfullpath
 	#_ffmpegstring = ffmpegstring.decode("utf-8")
 	#ffmpegstring = _ffmpegstring.encode("ascii","ignore")
 	#print ffmpegstring
@@ -118,25 +117,28 @@ def make_discid3(args, thefile):
 	id3fields=["title=","artist=","date="] #set the fields we need for this object type
 	id3str = ""
 	soup = mtd.query_catalog(args.sys)
-	id3list1, id3list2 = mtd.make_ID3fromCatalogSoup(soup)
-	elements = assetName.split('_') #splits the disc filename by underscore into a list
+	id3dict1, id3dict2 = mtd.make_ID3fromCatalogSoup(soup)
+	elements = thefile.assetName.split('_') #splits the disc filename by underscore into a list
 	matrixNumber = elements[-2] #second from the last underscore-separated value is always the matrix number
-	if matrixNumber in id3list1[-1]: #if the matrix number is in id3list1, then set the output id3list to it
-		id3list = id3list1
-	elif matrixNumber in id3list2[-1]: #if the matrix number is in id3list2, then set the output id3list to it instead
-		id3list = id3list2
+	if matrixNumber in id3dict1['label']: #if the matrix number is in id3list1, then set the output id3list to it
+		id3dict = id3dict1
+	elif matrixNumber in id3dict2['label']: #if the matrix number is in id3list2, then set the output id3list to it instead
+		id3dict = id3dict2
 	else: #if we can't find the matrix number in the catalog record
 		if args.side is None: #if the user didn't specify
 			print "Buddy, you need to specify which side of the disc we're working on"
 			sys.exit()
 		else: #if the user specified, set it this way
 			if args.side.capitalize() == "A":
-				id3list = id3list1
+				id3dict = id3dict1
 			if args.side.capitalize() == "B":
-				id3list = id3list2
+				id3dict = id3dict2
 			else:
 				print "Buddy, the side you specified is outta range. Use A or B instead"
-	id3str = makeid3str(id3fields,id3list,assetName) #make a thing that ffmpeg understands
+	id3rawlist = []
+	for id3tag in id3fields:
+		id3rawlist.append(id3dict[id3tag.replace("=",'')])
+	id3str = mtd.make_id3str({"id3fields":id3fields,"id3rawlist":id3rawlist,"assetName":thefile.assetName}) #make a thing that ffmpeg understands
 	return id3str
 
 def make_endUseChar(thefile): #makes the end use character for the output file
@@ -162,19 +164,20 @@ def cleanup(args, thefile): #deletes and renames stuff if the operation was succ
 	'''
 	rename things
 	'''
-	if thefile.startUseChar == 'b': #if we made a broadcast master from a raw broadcast master
-		print thefile.assetName + "b.wav"
-		print thefile.assetName + "c.wav"
-		if os.path.exists(thefile.assetName + "b.wav") and os.path.exists(thefile.assetName + "c.wav"):
-			if args.nd is False: #if we didn't say not to delete it
-				print "os.remove " + thefile.assetName + "b.wav"
-				os.remove(thefile.assetName + "b.wav")
-				print "os.rename " + thefile.assetName + "c.wav" + " " + thefile.assetName + "b.wav"
-				os.rename(thefile.assetName + "c.wav", thefile.assetName + "b.wav")
 	if args.nj is True:
 		if args.nd is False:
 			os.remove(thefile.infullpath)
-		os.rename(thefile.assetName + thefile.endUseChar + '.wav', thefile.assetName + '.wav')
+		time.sleep(2.0)
+		os.rename(os.path.join(thefile.dir, thefile.assetName + thefile.endUseChar + '.wav'), thefile.infullpath)
+	else:
+		if thefile.startUseChar == 'b': #if we made a broadcast master from a raw broadcast master
+			if os.path.exists(thefile.assetName + "b.wav") and os.path.exists(thefile.assetName + "c.wav"):
+				if args.nd is False: #if we didn't say not to delete it
+					print "os.remove " + thefile.assetName + "b.wav"
+					os.remove(thefile.assetName + "b.wav")
+					print "os.rename " + thefile.assetName + "c.wav" + " " + thefile.assetName + "b.wav"
+					os.rename(thefile.assetName + "c.wav", thefile.assetName + "b.wav")
+
 
 def parse_input(args):
 	'''
@@ -186,7 +189,11 @@ def parse_input(args):
 	thefile.fname, thefile.ext = os.path.splitext(os.path.basename(os.path.abspath(thefile.infullpath))) #splits filename and extension
 	thefile.startUseChar = thefile.fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	thefile.dir = os.path.dirname(thefile.infullpath) #grabs the directory that this object is in (we'll cd into it later)
-	thefile = make_endUseChar(thefile) #grip the right filename endings, canonical name of the asset
+	if args.nj is False:
+		thefile = make_endUseChar(thefile) #grip the right filename endings, canonical name of the asset
+	else:
+		thefile.endUseChar = "x"
+		thefile.assetName = thefile.fname
 	thefile.outfname = thefile.assetName + thefile.endUseChar + "." + conf.ffmpeg.acodec_broadcast_format
 	thefile.outfullpath = os.path.join(thefile.dir, thefile.outfname)
 	if args.t:
@@ -230,7 +237,6 @@ def main():
 	args = init_args()
 	thefile = parse_input(args)
 	aexts = ['.wav'] #set extensions we recognize for audio
-	print thefile.infullpath
 	if not os.path.exists(thefile.infullpath): #if it's not a file, say so
 		print "Buddy, that's not a file"
 	###DO THE THING###

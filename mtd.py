@@ -1,6 +1,8 @@
 '''
 handles all database communication for src-avlab-microservices
 formats metadata sometimes
+TO DO
+make_id3 move from lists to dicts
 '''
 import sys
 sys.path.insert(0,"/Library/Python/2.7/site-packages")
@@ -19,6 +21,7 @@ import binascii
 import random
 import unittest
 import subprocess
+from bs4 import UnicodeDammit
 ###UCSB modules###
 import util as ut
 import logger as log
@@ -28,7 +31,7 @@ import makestartobject as makeso
 ## DATABASE FUNCTIONS ##
 ########################
 
-def queryCatalog(sysNumber):
+def query_catalog(sysNumber):
 	'''
 	takes an Alma system number and returns the MARC XML for the resource as a bs4 soup object
 	'''
@@ -305,18 +308,18 @@ def get_tape_ID3(cnxn,**kwargs):
 	return row
 
 #def make_id3str(id3fields,id3rawlist,assetName): #take the tag names and values and make them into something ffmpeg understands
-def make_id3str(**kwargs):
+def make_id3str(kwargs):
 	'''
 	take existing id3 info and turn it into something ffmpeg understands
 	'''
 	args = ut.dotdict(kwargs)
 	id3str = ''
-	for index, tag in enumerate(kwargs.id3fields): #loop thru the raw list of id3 values, grip the index
+	for index, tag in enumerate(args.id3fields): #loop thru the raw list of id3 values, grip the index
 		if tag is not None:
-			if kwargs.id3rawlist[index] is not None:
-				id3str = id3str + " -metadata " + tag + '"' + kwargs.id3rawlist[index].replace('"','') + '"'
-	if not "album=" in id3fields:
-		id3str = id3str + ' -metadata album="' + kwargs.assetName + '" -metadata publisher="UCSB Special Research Collections"'
+			if args.id3rawlist[index] is not None:
+				id3str = id3str + " -metadata " + tag + '"' + args.id3rawlist[index].replace('"','') + '"'
+	if not "album=" in args.id3fields:
+		id3str = id3str + ' -metadata album="' + args.assetName + '" -metadata publisher="UCSB Special Research Collections"'
 	else:
 		id3str = id3str + ' -metadata publisher="UCSB Special Research Collections"'
 	id3str = UnicodeDammit.detwingle(id3str)
@@ -376,7 +379,7 @@ def check_id3obj(kwargs):
 	'''
 	if kwargs.assetName.endswith("A") or kwargs.assetName.endswith("B"):
 		assetName = kwargs.assetName[:-1]
-	id3Obj = os.path.join(kwargs.dir, assetName + "-mtd.txt") #in same dir as audio object should be a -mtd.txt object with a ;FFMETADATA1 id3 tags inside
+	id3Obj = os.path.join(kwargs.dir, kwargs.assetName + "-mtd.txt") #in same dir as audio object should be a -mtd.txt object with a ;FFMETADATA1 id3 tags inside
 	id3String = ""
 	if not os.path.exists(id3Obj):
 		subprocess.call(['ffmpeg','-i',kwargs.infullpath,'-f','ffmetadata','-y',id3Obj]) #export the id3 metadata that already exists in the media file to this text file

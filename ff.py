@@ -131,7 +131,7 @@ def probe_streams(obj):
 	for o in out:
 		key, value = o.split("=")
 		key = key.replace("streams.stream.","")
-		streams[str(key)] = value
+		streams[str(key)] = value.replace('"','')
 	if streams:
 		return streams
 	else:
@@ -143,7 +143,10 @@ def go(ffstr):
 	runs ffmpeg, returns true is success, error is fail
 	'''
 	try:
-		returncode = subprocess.check_output(ffstr, shell=True)
+		if os.name == 'posix':
+			returncode = subprocess.check_output(ffstr, shell=True)
+		else:
+			returncode = subprocess.check_output(ffstr)
 		returncode = True
 	except subprocess.CalledProcessError, e:
 		returncode = e.returncode

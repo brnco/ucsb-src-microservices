@@ -45,7 +45,6 @@ def wait_for_wavelab(kwargs):
 		log(**{"message":"Please check that this file is closed in Wavelab","print":True})
 		foo = raw_input("To re-try processing, uncheck and re-check the 'transferred' box on this matrix's FileMaker record")
 		sys.exit()
-	###END VERIFY###
 
 def delete_bs(kwargs):
 	###delete bs###
@@ -65,7 +64,7 @@ def delete_bs(kwargs):
 						os.remove(f)
 					except:
 						pass
-	###end delete bs###
+
 def init():
 	'''
 	initialize VARS
@@ -112,7 +111,7 @@ def main():
 	args, kwargs = init()
 	wait_for_wavelab(kwargs)
 	###make broadcast master###
-	output = subprocess.check_output([conf.python, os.path.join(conf.scriptRepo,'makebroadcast.py'), '-i', kwargs.broadcastFP,'-ff','-nj'],stderr=subprocess.STDOUT) #makebroadcast with fades, nj naming
+	output = subprocess.check_output([conf.python, os.path.join(conf.scriptRepo,'makebroadcast.py'), '-i', kwargs.broadcastFP,'-f','-nj']) #makebroadcast with fades, nj naming
 	log(output)
 	#pop them into the qc dir in a subdir named after their filename
 	#hashmove makes end dir if it doesnt exist already
