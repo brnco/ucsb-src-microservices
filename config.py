@@ -37,9 +37,9 @@ def config():
 			'acodec_access_arate', 'acodec_access_bitrate', 'acodec_writeid3',
 			'vcodec_master', 'vcodec_master_pixel_format', 'vcodec_master_dimensions',
 			'vcodec_master_vrate', 'vcodec_master_acodec', 'vcodec_master_arate',
-			'vcodec_broadcast', 'vcodec_master_format', 'vcodec_broadcast_pixel_format',
-			'vcodec_broadcast_acodec', 'vcodec_broadcast_arate', 'vcodec_broadcast_format',
-			'vcodec_broadcast_dimensions', 'vcodec_broadcast_vrate', 'vcodec_broadcast_bitrate']
+			'vcodec_broadcast_format', 'vcodec_access', 'vcodec_master_format', 'vcodec_access_pixel_format',
+			'vcodec_access_acodec', 'vcodec_access_arate', 'vcodec_access_format',
+			'vcodec_access_dimensions', 'vcodec_access_vrate', 'vcodec_access_bitrate']
 	for t in tags:
 		try:
 			ff[t] = config.get("ffmpeg", t)

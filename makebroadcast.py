@@ -24,6 +24,64 @@ import mtd
 import ff
 import makestartobject as makeso
 
+def concat_vobs(file):
+	'''
+	concatenates VOB files into single VOB
+	'''
+	with open(file.concatxt, 'a') as concat:
+		for vob in os.listdir(file.vobDir):
+			if vob.startswith('VTS') and vob.endswith('.VOB'):
+				concat.write("file '" + vob + "'\n")
+	ffstr = 'ffmpeg -f concat -i concat.txt -c copy ' + file.vobOutFullPath
+	print ffstr
+	with ut.cd(file.vobDir):
+		ffWorked = ff.go(ffstr)
+		if ffWorked is not True:
+			print 'makebroadcast encountered the following error trying to concatenate the VOBs'
+			print ffWorked
+			return False
+		else:
+			return True
+
+def transcode_vob(file):
+	'''
+	streamcopy the concatenated VOB to mpeg
+	'''
+	ffstr = 'ffmpeg -i ' + file.vobOutFullPath + ' -c copy -target ntsc-dvd ' + file.outputFullPath
+	ffWorked = ff.go(ffstr)
+	if ffWorked is not True:
+		print 'makebroadcast encountered the following error trying to streamcopy the VOBs to ' + conf.ffmpeg.vcodec_broadcast_format
+		print ffWorked
+		return False
+	else:
+		return True
+
+def make_video(args):
+	'''
+	handles making broadcast masters from VIDEO_TS DVD/ VOB files
+	'''
+	file = ut.dotdict({})
+	file.vobDir = args.i
+	file.vNum = os.path.basename(os.path.dirname(file.vobDir))
+	file.name = 'cusb-' + file.vNum
+	file.vobOutFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-concat.VOB')
+	file.outputFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-broadcast.' + conf.ffmpeg.vcodec_broadcast_format)
+	file.concatxt = os.path.join(file.vobDir, 'concat.txt')
+	#worked = concat_vobs(file)
+	worked = True
+	if worked is not True:
+		print 'makebroadcast encountered an error'
+		sys.exit()
+	else:
+		if os.path.exists(file.concatxt):
+			os.remove(file.concatxt)
+		worked = transcode_vob(file)
+		if worked is not True:
+			print 'makebroadcast encountered an error'
+			sys.exit()
+		else:
+			os.remove(file.vobOutFullPath)
+
 def make_audio(args, thefile):
 	'''
 	process audio objects into broadcast masters
@@ -235,20 +293,23 @@ def main():
 	global conf
 	conf = rawconfig.config()
 	args = init_args()
-	thefile = parse_input(args)
-	aexts = ['.wav'] #set extensions we recognize for audio
-	if not os.path.exists(thefile.infullpath): #if it's not a file, say so
-		print "Buddy, that's not a file"
-	###DO THE THING###
-	elif thefile.ext in aexts:
-		with ut.cd(thefile.dir):
-			make_audio(args, thefile) #actually make the thing
-			if args.mp3 is True:
-				subprocess.call(["python",os.path.join(conf.scriptRepo,'makemp3.py'),'-i', thefile.assetName])
+	if "VIDEO_TS" in args.i:
+		make_video(args)
 	else:
-		print "makebroadcast cannot process the file specified"
-		print "allowable filetypes are:"
-		print aexts
+		thefile = parse_input(args)
+		aexts = ['.wav'] #set extensions we recognize for audio
+		if not os.path.exists(thefile.infullpath): #if it's not a file, say so
+			print "Buddy, that's not a file"
+		###DO THE THING###
+		elif thefile.ext in aexts:
+			with ut.cd(thefile.dir):
+				make_audio(args, thefile) #actually make the thing
+				if args.mp3 is True:
+					subprocess.call(["python",os.path.join(conf.scriptRepo,'makemp3.py'),'-i', thefile.assetName])
+		else:
+			print "makebroadcast cannot process the file specified"
+			print "allowable filetypes are:"
+			print aexts
 	###THINGISDONE###
 
 if __name__ == '__main__':
