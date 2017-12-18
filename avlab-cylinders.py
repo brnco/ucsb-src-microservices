@@ -45,13 +45,13 @@ def main():
 							os.rename(os.path.join(captureDir, s, 'cusb-cy'+s+'b.wav'), os.path.join(captureDir, s, 'cusb-cyl'+s+'b.wav'))
 						if os.path.exists('cusb-cy' + s + 'a.wav'): #check to see that it wasnt just misnamed at capture
 							os.rename(os.path.join(captureDir, s, 'cusb-cy'+s+'a.wav'), os.path.join(captureDir, s, 'cusb-cyl'+s+'a.wav'))
-						else:	
+						else:
 							continue
 					###END VALIDATE###
 					###DO FFMPEG###
 					#calls makebroadcast.py and tells it to insert 2s fades and normalize to -1.5db
 					subprocess.call(['python', os.path.join(conf.scriptRepo, 'makebroadcast.py'), '-so', startObj, '-ff', '-n', '-c'])
-					subprocess.call(['python', os.path.join(conf.scriptRepo, 'makemp3.py'), '-so', startObj])
+					subprocess.call(['python', os.path.join(conf.scriptRepo, 'makeaccess.py'), '-o', 'mp3', '-i', startObj])
 					###END FFMPEG###
 				###LOG IT###
 				#opens a log and write "Cylinder12345" for each cylinder processed so we can change their catalog records later

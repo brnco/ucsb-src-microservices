@@ -67,8 +67,8 @@ def make_video(args):
 	file.vobOutFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-concat.VOB')
 	file.outputFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-broadcast.' + conf.ffmpeg.vcodec_broadcast_format)
 	file.concatxt = os.path.join(file.vobDir, 'concat.txt')
-	#worked = concat_vobs(file)
-	worked = True
+	worked = concat_vobs(file)
+	#worked = True
 	if worked is not True:
 		print 'makebroadcast encountered an error'
 		sys.exit()
@@ -305,7 +305,7 @@ def main():
 			with ut.cd(thefile.dir):
 				make_audio(args, thefile) #actually make the thing
 				if args.mp3 is True:
-					subprocess.call(["python",os.path.join(conf.scriptRepo,'makemp3.py'),'-i', thefile.assetName])
+					subprocess.call(["python",os.path.join(conf.scriptRepo,'makeaccess.py'),'-o', 'mp3', '-i', thefile.assetName])
 		else:
 			print "makebroadcast cannot process the file specified"
 			print "allowable filetypes are:"

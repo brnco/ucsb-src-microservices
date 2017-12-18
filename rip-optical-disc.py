@@ -29,12 +29,12 @@ def go(cmdstr):
 		returncode = e.returncode
 		print returncode
 		return returncode
-	
+
 def make_iso(args, file):
 	'''
 	makes the iso using ddrescue
 	'''
-	cmdstr = 'ddrescue -b 2048 -v ' + args.d + ' ' + file.isofullpath + ' ' + file.logFullPath
+	cmdstr = 'ddrescue -b 2048 -v ' + args.d + ' ' + file.isoFullPath + ' ' + file.logFullPath
 	if not os.path.exists(file.dir):
 		os.makedirs(file.dir)
 	cmdWorked = go(cmdstr)
@@ -50,7 +50,7 @@ def parse_input(args):
 	file.name = 'cusb-' + args.i
 	file.ext = '.iso'
 	file.dir = os.path.join(conf.video.new_ingest, args.i)
-	file.isofullpath = os.path.join(file.dir, file.name + file.ext)
+	file.isoFullPath = os.path.join(file.dir, file.name + file.ext)
 	file.logFullPath = os.path.join(file.dir, file.name + '.log')
 	file.broadcastFullPath = os.path.join(file.dir, file.name + "-broadcast." + "mov")
 	file.accessFullPath = os.path.join(file.dir, file.name + "-acc." + conf.ffmpeg.vcodec_access_format)
@@ -63,8 +63,6 @@ def init_args():
 	parser = argparse.ArgumentParser(description="rips an optical disc, DVD only, Mac OSX/ Linux only")
 	parser.add_argument('-i', '--item', dest='i', help='the item/ accession number of the disc, with the a/v preceeding it, e.g. v1234')
 	parser.add_argument('-d', '--drive', dest='d', default='/dev/disk3', help='the disc drive where the dvd is located, default is /dev/disk3. run "diskutil list" to locate')
-	parser.add_argument('-b', '--broadcast', dest='t', action='store_true', default=True, help='losslessly transcode and concatenate DVD video files (VOBs) to mov')
-	parser.add_argument('-a', '--access', dest='a', action='store_true', default=True, help='lossy transcode the file to our access format')
 	args = parser.parse_args()
 	return args
 
@@ -85,6 +83,8 @@ def main():
 		print 'for more info'
 		print 'exiting...'
 	else:
+		cmdstr = 'python ' + os.path.join(conf.scriptRepo, 'hashmove.py') + ' -nm ' + file.isoFullPath
+		processWorked = go(cmdstr)
 		cmdstr = 'diskutil eject ' + args.d
 		processWorked = go(cmdstr)
 

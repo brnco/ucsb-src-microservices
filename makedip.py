@@ -157,9 +157,9 @@ def make_transcodes(a,b,u,m,i,startDirs):
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-d','-n','-mp3','-sys',args.sys])
 	for f in b:
 		if args.t is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makeaccess.py'), '-o', 'mp3', '-i', f])
 		if args.d is True:
-			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makemp3.py'),'-i',f])
+			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makeaccess.py'), '-o', 'mp3', '-i', f])
 	for f in u:
 		if args.t is True and args.hq is True:
 			subprocess.call([conf.python,os.path.join(conf.scriptRepo,'makebroadcast.py'),'-i',f,'-t'])

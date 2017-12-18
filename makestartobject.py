@@ -25,17 +25,36 @@ def avname(startObj, avlist):
 	'''
 	makes and SO for AV names - magnetic audio tape and video
 	'''
+	dir = ''
 	if "v" in startObj:
 		for dirs, subdirs, files in os.walk(avlist[1]):
 			for s in subdirs:
 				if startObj in s:
-					print "found video " + startObj + " in subdir " + os.path.join(dirs, s)
-					return startObj
+					dir = os.path.join(dirs,s)
 		for dirs, subdirs, files in os.walk(avlist[2]):
 			for s in subdirs:
 				if startObj in s:
-					print "found video " + startObj + " in subdir " + os.path.join(dirs, s)
-					return startObj
+					dir = os.path.join(dirs,s)
+		if dir:
+			ls = os.listdir(dir)
+			for f in ls:
+				if "-acc" in f:
+					return os.path.join(dir, f)
+			for f in ls:
+				if "-broadcast" in f:
+					return os.path.join(dir, f)
+			for f in ls:
+				if "-pres" in f:
+					return os.path.join(dir, f)
+			for f in ls:
+				if 'cusb-' + startObj + '.mov' in f:
+					return os.path.join(dir, f)
+			for f in ls:
+				if '.mp4'	in f:
+					return os.path.join(dir, f)
+			return None
+		else:
+			return None
 	else:
 		canonSO = startObj.replace("cusb-", "")
 		aNumber = canonSO.replace("a", "") #input arg here is a1234 but we want just the number
@@ -169,7 +188,7 @@ def make_lists():
 	njPreIngestDir = conf.NationalJukebox.PreIngestQCDir
 	videoRepoDir = conf.video.repo
 	videoNewIngest = conf.video.new_ingest
-	avlist = [tapeRepoDir, videoNewIngest, videoRepoDir,tapeNewIngest]
+	avlist = [tapeRepoDir, videoNewIngest, videoRepoDir, tapeNewIngest]
 	cylist = [cylinderNewIngest, cylinderRepoDir]
 	disclist = [discNewIngest, njBroadDir, njPreIngestDir, discRepoDir]
 	allists={}

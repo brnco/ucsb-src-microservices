@@ -192,7 +192,7 @@ def main():
 					mark_processed_FM(f.replace("cusb_","ucsb_").replace(".cr2",""))
 
 					#check if it's ready to qc
-					subprocess.call([conf.python, os.path.join(conf.scriptRepo, "makesip.py"), "-m", "nj", "-i", args.i.replace(".cr2","")])
+					subprocess.call([conf.python, os.path.join(conf.scriptRepo, "makesip.py"), "-m", "nj", "-i", f.replace(".cr2","")])
 
 if __name__ == '__main__':
 	main()

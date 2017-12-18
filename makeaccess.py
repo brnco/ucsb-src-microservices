@@ -22,6 +22,21 @@ import mtd
 import ff
 import makestartobject as makeso
 
+def make_video(thefile):
+	'''
+	actually use everything we've made to make the mp4
+	'''
+	with ut.cd(thefile.dir):
+		if thefile.ext == 'mxf':
+			ffstr = 'ffmpeg -i ' + thefile.infullpath + ' -map 0 -dn -vf "weave,setfield=bff,setdar=4/3" -c:v libx264 -preset slower -crf 18 -c:a aac ' + thefile.outfullpath
+		else:
+			ffstr = 'ffmpeg -i ' + thefile.infullpath + ' -map 0 -dn -c:v libx264 -preset slower -crf 18 -c:a aac ' + thefile.outfullpath
+		print ffstr
+		ffWorked = ff.go(ffstr)
+		if ffWorked is not True:
+			print "makeaccess encountered an error transcoding that file"
+			print ffWorked
+
 def make_audio(thefile, mtdstr):	#make the mp3
 	'''
 	actually use everything we've configured so far to make an mp3
@@ -38,7 +53,7 @@ def make_audio(thefile, mtdstr):	#make the mp3
 		print ffstr
 		ffWorked = ff.go(ffstr)
 		if ffWorked is not True:
-			print "makemp3 encountered an error transcoding that file"
+			print "makeaccess encountered an error transcoding that file"
 			print ffWorked
 
 def parse_input(args):
@@ -51,8 +66,11 @@ def parse_input(args):
 	thefile.fname, thefile.ext = os.path.splitext(os.path.basename(os.path.abspath(thefile.infullpath)))
 	thefile.startUseChar = thefile.fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	thefile.dir = os.path.dirname(thefile.infullpath) #grabs the directory that this object is in (we'll cd into it later)
-	thefile = make_endUseChar(thefile) #grip the right filename endings, canonical name of the asset
-	thefile.outfname = thefile.assetName + thefile.endUseChar + "." + conf.ffmpeg.acodec_access_format
+	if "v" in args.i:
+		thefile.outfname = thefile.fname.replace("-pres","").replace("-broadcast","") + "-acc." + conf.ffmpeg.vcodec_access_format
+	else:
+		thefile = make_endUseChar(thefile) #grip the right filename endings, canonical name of the asset
+		thefile.outfname = thefile.assetName + thefile.endUseChar + "." + conf.ffmpeg.acodec_access_format
 	thefile.outfullpath = os.path.join(thefile.dir, thefile.outfname)
 	return thefile
 
@@ -84,10 +102,17 @@ def main():
 	conf = rawconfig.config()
 	parser = argparse.ArgumentParser(description="Makes an mp3 with ID3 tags")
 	parser.add_argument('-i', '--input', dest='i', help='the file to be transcoded')
+	parser.add_argument('-o', '--output', dest='o', choices=['mp3','mp4'], help='the output format')
 	args = parser.parse_args() #create a dictionary instead of leaving args in NAMESPACE land
 	thefile = parse_input(args)
-	mtdstr = mtd.make_manualid3(thefile) #call the id3 check function
-	make_audio(thefile, mtdstr) #call the makeaudio function
+	if args.o is 'mp3':
+		mtdstr = mtd.make_manualid3(thefile) #call the id3 check function
+		make_audio(thefile, mtdstr) #call the makeaudio function
+	else:
+		if thefile.ext == '.mp4':
+			print "file is already in our access format"
+		else:
+			make_video(thefile)
 
 if __name__ == '__main__':
 	main()
