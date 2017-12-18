@@ -93,7 +93,33 @@ def cylname(startObj, cyllist):
 	'''
 	in process
 	'''
-	return startObj
+	dir = ''
+	match = ''
+	match = re.search(r"\d+", startObj)
+	if match:
+		num = str(match.group()).strip()
+	for dirpath in cyllist:
+		for dirs, subdirs, _ in os.walk(dirpath):
+			for s in subdirs:
+				if num in s:
+					dir = os.path.join(dirs, s)
+					break
+			if dir:
+				break
+		if dir:
+			break		
+	if dir:
+		ls = os.listdir(dir)
+		for f in ls:
+			if f.endswith("c.mp3"):
+				return os.path.join(dir,f)
+		for f in ls:
+			if f.endswith("b.wav"):
+				return os.path.join(dir,f)
+		for f in ls:
+			if f.endswith("a.wav"):
+				return os.path.join(dir,f)
+	return None
 
 def discname(startObj, disclist):
 	'''

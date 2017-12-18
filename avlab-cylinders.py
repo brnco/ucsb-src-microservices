@@ -50,7 +50,7 @@ def main():
 					###END VALIDATE###
 					###DO FFMPEG###
 					#calls makebroadcast.py and tells it to insert 2s fades and normalize to -1.5db
-					subprocess.call(['python', os.path.join(conf.scriptRepo, 'makebroadcast.py'), '-so', startObj, '-ff', '-n', '-c'])
+					subprocess.call(['python', os.path.join(conf.scriptRepo, 'makebroadcast.py'), '-i', startObj, '-f', '-n', '-c'])
 					subprocess.call(['python', os.path.join(conf.scriptRepo, 'makeaccess.py'), '-o', 'mp3', '-i', startObj])
 					###END FFMPEG###
 				###LOG IT###

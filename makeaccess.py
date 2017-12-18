@@ -66,9 +66,9 @@ def parse_input(args):
 	thefile.fname, thefile.ext = os.path.splitext(os.path.basename(os.path.abspath(thefile.infullpath)))
 	thefile.startUseChar = thefile.fname[-1:] #grabs the last char of file name which is ~sometimes~ the use character
 	thefile.dir = os.path.dirname(thefile.infullpath) #grabs the directory that this object is in (we'll cd into it later)
-	if "v" in args.i:
+	if thefile.ext == '.mxf' or thefile.ext == '.mp4' or thefile.ext == '.mpeg':
 		thefile.outfname = thefile.fname.replace("-pres","").replace("-broadcast","") + "-acc." + conf.ffmpeg.vcodec_access_format
-	else:
+	elif thefile.ext == '.wav':
 		thefile = make_endUseChar(thefile) #grip the right filename endings, canonical name of the asset
 		thefile.outfname = thefile.assetName + thefile.endUseChar + "." + conf.ffmpeg.acodec_access_format
 	thefile.outfullpath = os.path.join(thefile.dir, thefile.outfname)
@@ -105,7 +105,7 @@ def main():
 	parser.add_argument('-o', '--output', dest='o', choices=['mp3','mp4'], help='the output format')
 	args = parser.parse_args() #create a dictionary instead of leaving args in NAMESPACE land
 	thefile = parse_input(args)
-	if args.o is 'mp3':
+	if args.o == 'mp3':
 		mtdstr = mtd.make_manualid3(thefile) #call the id3 check function
 		make_audio(thefile, mtdstr) #call the makeaudio function
 	else:

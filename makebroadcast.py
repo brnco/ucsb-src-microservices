@@ -261,7 +261,7 @@ def parse_input(args):
 			thefile.aNumber = match.group()
 	elif args.c:
 		match = ''
-		match = re.search(r"\d{4,5}",assetName) #grip just the number of the cylinder
+		match = re.search(r"\d{4,5}",thefile.assetName) #grip just the number of the cylinder
 		if match:
 			thefile.cylNumber = match.group()
 	return thefile
