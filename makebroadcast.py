@@ -28,12 +28,22 @@ def concat_vobs(file):
 	'''
 	concatenates VOB files into single VOB
 	'''
-	with open(file.concatxt, 'a') as concat:
+	'''with open(file.concatxt, 'a') as concat:
 		for vob in os.listdir(file.vobDir):
 			if vob.startswith('VTS') and vob.endswith('.VOB'):
 				concat.write("file '" + vob + "'\n")
-	ffstr = 'ffmpeg -f concat -i concat.txt -c copy ' + file.vobOutFullPath
+	ffstr = 'ffmpeg -f concat -i concat.txt -c copy -map V -map a ' + file.vobOutFullPath'''
+	inputstr = ''
+	inputcount = 0
+	filterstrprefix = ''
+	for vob in os.listdir(file.vobDir):
+		if vob.startswith('VTS') and vob.endswith('.VOB'):
+			inputstr = inputstr + " -i " + vob
+			filterstrprefix = filterstrprefix + "[" + str(inputcount) + ":v:0] [" + str(inputcount) + ":a:0] "
+			inputcount = inputcount + 1
+	ffstr = 'ffmpeg' + inputstr + ' -filter_complex "' + filterstrprefix + ' concat=n=' + str(inputcount) + ':v=1:a=1 [v] [a]" -map "[v]" -map "[a]" -c:v libx264 -movflags faststart -pix_fmt yuv420p -crf 20 -c:a aac -ac 2 -b:a 192k ' + file.outputFullPath
 	print ffstr
+	foo = raw_input("eh")
 	with ut.cd(file.vobDir):
 		ffWorked = ff.go(ffstr)
 		if ffWorked is not True:
@@ -42,19 +52,6 @@ def concat_vobs(file):
 			return False
 		else:
 			return True
-
-def transcode_vob(file):
-	'''
-	streamcopy the concatenated VOB to mpeg
-	'''
-	ffstr = 'ffmpeg -i ' + file.vobOutFullPath + ' -c copy -target ntsc-dvd ' + file.outputFullPath
-	ffWorked = ff.go(ffstr)
-	if ffWorked is not True:
-		print 'makebroadcast encountered the following error trying to streamcopy the VOBs to ' + conf.ffmpeg.vcodec_broadcast_format
-		print ffWorked
-		return False
-	else:
-		return True
 
 def make_video(args):
 	'''
@@ -65,22 +62,13 @@ def make_video(args):
 	file.vNum = os.path.basename(os.path.dirname(file.vobDir))
 	file.name = 'cusb-' + file.vNum
 	file.vobOutFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-concat.VOB')
-	file.outputFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-broadcast.' + conf.ffmpeg.vcodec_broadcast_format)
+	file.outputFullPath = os.path.join(os.path.dirname(file.vobDir), file.name + '-acc.' + conf.ffmpeg.vcodec_access_format)
 	file.concatxt = os.path.join(file.vobDir, 'concat.txt')
 	worked = concat_vobs(file)
 	#worked = True
 	if worked is not True:
 		print 'makebroadcast encountered an error'
 		sys.exit()
-	else:
-		if os.path.exists(file.concatxt):
-			os.remove(file.concatxt)
-		worked = transcode_vob(file)
-		if worked is not True:
-			print 'makebroadcast encountered an error'
-			sys.exit()
-		else:
-			os.remove(file.vobOutFullPath)
 
 def make_audio(args, thefile):
 	'''
