@@ -164,7 +164,7 @@ def process(kwargs):
 	print acf
 	#verify that we got an object back from mtd.py
 	if acf is None:
-		return false
+		return False
 	else:
 		#verify that FM record filled out compeltely
 		processNone = 0
